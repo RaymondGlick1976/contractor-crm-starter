@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Customers | Admin | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=37">
+  <style>
+    .import-dropzone {
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-2xl);
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      background: var(--color-bg-soft);
+    }
+    
+    .import-dropzone:hover, .import-dropzone.dragover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
+    
+    .import-dropzone-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-md);
+    }
+    
+    .import-preview {
+      max-height: 300px;
+      overflow: auto;
+      margin-top: var(--space-lg);
+    }
+    
+    .import-preview table {
+      font-size: 0.75rem;
+    }
+    
+    .import-preview th {
+      position: sticky;
+      top: 0;
+      background: var(--color-bg-soft);
+    }
+    
+    .mapping-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    
+    .mapping-row:last-child {
+      border-bottom: none;
+    }
+    
+    .mapping-source {
+      flex: 1;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    .mapping-arrow {
+      color: var(--color-text-muted);
+    }
+    
+    .mapping-target {
+      flex: 1;
+    }
+    
+    .import-stats {
+      display: flex;
+      gap: var(--space-xl);
+      padding: var(--space-lg);
+      background: var(--color-bg-soft);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .import-stat {
+      text-align: center;
+    }
+    
+    .import-stat-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    
+    .import-stat-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    
+    /* Email Compose Modal Styles */
+    .email-compose-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: var(--space-lg);
+    }
+    .email-compose-tab {
+      padding: var(--space-sm) var(--space-lg);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      transition: all var(--transition-fast);
+    }
+    .email-compose-tab:hover {
+      color: var(--color-text);
+    }
+    .email-compose-tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+    .email-compose-content {
+      display: none;
+    }
+    .email-compose-content.active {
+      display: block;
+    }
+    .template-select-card {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-md);
+      margin-bottom: var(--space-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .template-select-card:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
+    .template-select-card.selected {
+      border-color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
+    .template-select-card-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .template-select-card-preview {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .email-history-item {
+      border-left: 3px solid var(--color-primary);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+      background: var(--color-bg-soft);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+    .email-history-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-sm);
+    }
+    .email-history-item-subject {
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+    .email-history-item-date {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    .email-history-item-body {
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
+      white-space: pre-wrap;
+      max-height: 80px;
+      overflow: hidden;
+      position: relative;
+    }
+    .email-history-item-body.expanded {
+      max-height: none;
+    }
+    .email-history-toggle {
+      font-size: 0.75rem;
+      color: var(--color-primary);
+      cursor: pointer;
+      margin-top: var(--space-xs);
+    }
+    .email-btn {
+      background: none;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      color: var(--color-primary);
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+    }
+    .email-btn:hover {
+      background: var(--color-primary-soft);
+    }
+    .variable-tag {
+      display: inline-block;
+      background: var(--color-primary-soft);
+      color: var(--color-primary);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      font-family: monospace;
+      cursor: pointer;
+      margin: 2px;
+    }
+    .variable-tag:hover {
+      background: var(--color-primary);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Permission check before page loads
+    const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+    if (!user) {
+      window.location.href = '/admin/login.html';
+    } else if (!user.permissions?.can_view_customers) {
+      window.location.href = user.permissions?.can_view_pipeline ? '/admin/pipeline.html' : '/admin/index.html';
+    }
+  </script>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-logo">
+        <img data-brand-logo src="" alt="Company Logo" style="height: 40px; filter: brightness(0) invert(1); display: none;">
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item"><a href="/admin/today.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Today</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/index.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals Pipeline</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html?view=calendar" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/customers.html" class="sidebar-nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/vendors.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Vendors</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/quotes.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Quotes</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/invoices.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Invoices</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/payments.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/punch-list.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Punch List</a></li>
+        </ul>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Bookkeeping</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/banking.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>Banking</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/reports.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Reports</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Lead Capture</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/booking-forms.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Booking Forms</a></li>
+            <li class="sidebar-nav-item"><a href="/schedule" target="_blank" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Online Scheduling</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/bulk-email.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="2" y1="20" x2="8" y2="14"/><line x1="22" y1="20" x2="16" y2="14"/></svg>Bulk Email</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/sequences.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><polyline points="16 17 18 19 22 15"/></svg>Email Sequences</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Catalog</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/catalog.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Custom Library</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/email-templates.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Templates</a></li>
+          </ul>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/settings.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    <main class="app-main">
+      <header class="app-header">
+        <h2>Customers</h2>
+        <div class="btn-group">
+          <button class="btn btn-secondary" id="import-csv-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Import CSV
+          </button>
+          <button class="btn btn-secondary" id="export-csv-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export CSV
+          </button>
+          <button class="btn btn-primary" id="add-customer-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Customer
+          </button>
+        </div>
+      </header>
+      
+      <div class="app-content">
+        <!-- Search -->
+        <div class="card mb-xl">
+          <div class="card-body">
+            <div class="flex gap-md">
+              <input type="text" id="search-input" class="form-input" placeholder="Search customers..." style="max-width: 400px;">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Customers Table -->
+        <div class="card">
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Location</th>
+                  <th>Lead Source</th>
+                  <th>Quotes</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="customers-tbody">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 40px;">
+                    <div class="loading-spinner" style="margin: 0 auto;"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script>
+    let customers = [];
+    let displayedCustomers = [];
+    let leadSources = [];
+    
+    async function loadLeadSources() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data } = await supabase
+          .from('lead_sources')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order');
+        leadSources = data || [];
+      } catch (err) {
+        console.error('Failed to load lead sources:', err);
+        leadSources = [];
+      }
+    }
+    
+    async function loadCustomers() {
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        const { data, error } = await supabase
+          .from('customers')
+          .select(`
+            *,
+            quotes:quotes(count),
+            invoices:invoices(amount_due)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        customers = data || [];
+        renderCustomers(customers);
+      } catch (err) {
+        console.error('Load error:', err);
+        showToast('Failed to load customers', 'error');
+      }
+    }
+    
+    function renderCustomers(data) {
+      displayedCustomers = data;
+      const tbody = $('#customers-tbody');
+      clearElement(tbody);
+      
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted p-xl">No customers found</td></tr>';
+        return;
+      }
+      
+      data.forEach(customer => {
+        const quoteCount = customer.quotes?.[0]?.count || 0;
+        
+        const row = createElement('tr');
+        row.innerHTML = `
+          <td><a href="javascript:void(0)" onclick="viewCustomer('${customer.id}')" style="font-weight:600;">${customer.name}</a></td>
+          <td>
+            <a href="javascript:void(0)" onclick="openEmailCompose('${customer.id}')" style="display: inline-flex; align-items: center; gap: 6px;">
+              ${customer.email}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </a>
+          </td>
+          <td>${customer.phone ? phoneLink(customer.phone) : '—'}</td>
+          <td>${customer.address || customer.city ? [customer.address, customer.city ? `${customer.city}, ${customer.state}` : ''].filter(Boolean).join('<br>') : '—'}</td>
+          <td>${customer.lead_source ? `<span class="badge badge-info">${customer.lead_source}</span>` : '—'}</td>
+          <td>${quoteCount}</td>
+          <td class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="editCustomer('${customer.id}')">Edit</button>
+            <a href="/admin/quote-builder.html?customer_id=${customer.id}" class="btn btn-ghost btn-sm">New Quote</a>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+    
+    // Search
+    const searchInput = $('#search-input');
+    searchInput.addEventListener('input', debounce((e) => {
+      const query = e.target.value.toLowerCase();
+      if (!query) {
+        renderCustomers(customers);
+        return;
+      }
+      
+      const filtered = customers.filter(c => 
+        c.name.toLowerCase().includes(query) ||
+        c.email.toLowerCase().includes(query) ||
+        (c.phone && c.phone.includes(query)) ||
+        (c.city && c.city.toLowerCase().includes(query))
+      );
+      renderCustomers(filtered);
+    }, 300));
+    
+    // Export CSV
+    $('#export-csv-btn').addEventListener('click', () => {
+      const data = displayedCustomers;
+      if (!data.length) { showToast('No customers to export', 'error'); return; }
+
+      const escCsv = (val) => {
+        if (val == null) return '';
+        const s = String(val);
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
+      };
+
+      const headers = ['Name', 'Email', 'Phone', 'Location', 'Lead Source', 'Quotes'];
+      const rows = data.map(c => {
+        const location = [c.address, c.city ? `${c.city}, ${c.state || ''}`.trim() : ''].filter(Boolean).join(', ');
+        const quoteCount = c.quotes?.[0]?.count || 0;
+        return [c.name, c.email, c.phone || '', location, c.lead_source || '', quoteCount].map(escCsv).join(',');
+      });
+
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `customers-export-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Add customer
+    $('#add-customer-btn').addEventListener('click', () => showCustomerModal());
+    
+    function showCustomerModal(customer = null) {
+      const isEdit = !!customer;
+      
+      const leadSourceOptions = leadSources.map(ls => 
+        `<option value="${ls.name}" ${customer?.lead_source === ls.name ? 'selected' : ''}>${ls.name}</option>`
+      ).join('');
+      
+      // Parse existing name into first/last for editing
+      let firstName = customer?.first_name || '';
+      let lastName = customer?.last_name || '';
+      if (!firstName && customer?.name) {
+        // Fallback: split the name field
+        const parts = customer.name.split(' ');
+        firstName = parts[0] || '';
+        lastName = parts.slice(1).join(' ') || '';
+      }
+      
+      const content = createElement('form', { id: 'customer-form' });
+      content.innerHTML = `
+        <div class="grid grid-cols-2 gap-lg">
+          <div class="form-group">
+            <label class="form-label">First Name *</label>
+            <input type="text" name="first_name" class="form-input" value="${firstName}" placeholder="Enter first name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name *</label>
+            <input type="text" name="last_name" class="form-input" value="${lastName}" placeholder="Enter last name" required>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-lg">
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input type="email" name="email" class="form-input" value="${customer?.email || ''}" placeholder="Enter email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="tel" name="phone" class="form-input" value="${customer?.phone || ''}" placeholder="Enter phone number">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-lg">
+          <div class="form-group">
+            <label class="form-label">Lead Source</label>
+            <select name="lead_source" class="form-select">
+              <option value="">-- Select --</option>
+              ${leadSourceOptions}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company</label>
+            <input type="text" name="company" class="form-input" value="${customer?.company || ''}" placeholder="Company name (optional)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input type="text" name="address" class="form-input" value="${customer?.address || ''}" placeholder="Street address">
+        </div>
+        <div class="grid grid-cols-3 gap-lg">
+          <div class="form-group">
+            <label class="form-label">City</label>
+            <input type="text" name="city" class="form-input" value="${customer?.city || ''}" placeholder="City">
+          </div>
+          <div class="form-group">
+            <label class="form-label">State</label>
+            <input type="text" name="state" class="form-input" value="${customer?.state || 'MA'}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ZIP</label>
+            <input type="text" name="zip" class="form-input" value="${customer?.zip || ''}" placeholder="Zip code">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea name="notes" class="form-textarea" rows="2" placeholder="Any additional notes...">${customer?.notes || ''}</textarea>
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'flex justify-between' });
+      
+      const leftBtns = createElement('div', { className: 'btn-group' });
+      let deleteBtn = null;
+      let emailBtn = null;
+      if (isEdit) {
+        emailBtn = createElement('button', {
+          type: 'button',
+          className: 'btn btn-secondary'
+        });
+        emailBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          Email
+        `;
+        leftBtns.appendChild(emailBtn);
+        
+        deleteBtn = createElement('button', {
+          type: 'button',
+          className: 'btn btn-danger',
+          textContent: 'Delete'
+        });
+        leftBtns.appendChild(deleteBtn);
+      }
+      footer.appendChild(leftBtns);
+      
+      const rightBtns = createElement('div', { className: 'btn-group' });
+      const cancelBtn = createElement('button', {
+        type: 'button',
+        className: 'btn btn-secondary',
+        textContent: 'Cancel'
+      });
+      const submitBtn = createElement('button', {
+        type: 'button',
+        className: 'btn btn-primary',
+        textContent: isEdit ? 'Save Changes' : 'Add Customer'
+      });
+      rightBtns.appendChild(cancelBtn);
+      rightBtns.appendChild(submitBtn);
+      footer.appendChild(rightBtns);
+      
+      const modal = createModal({
+        title: isEdit ? 'Edit Customer' : 'Add Customer',
+        content,
+        footer,
+        size: 'lg'
+      });
+      
+      // Add event listeners AFTER modal is created
+      cancelBtn.addEventListener('click', () => closeModal(modal));
+      submitBtn.addEventListener('click', async () => {
+        if (content.checkValidity()) {
+          const ok = await saveCustomer(new FormData(content), customer?.id);
+          if (ok) closeModal(modal);
+        } else {
+          content.reportValidity();
+        }
+      });
+      if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+          if (await confirm('Delete this customer? This cannot be undone.', { danger: true })) {
+            await deleteCustomer(customer.id);
+            closeModal(modal);
+          }
+        });
+      }
+      if (emailBtn) {
+        emailBtn.addEventListener('click', () => {
+          closeModal(modal);
+          openEmailCompose(customer.id);
+        });
+      }
+    }
+    
+    async function saveCustomer(formData, id = null) {
+      try {
+        const supabase = await app.waitForSupabase();
+
+        const firstName = formData.get('first_name').trim();
+        const lastName = formData.get('last_name').trim();
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        const data = {
+          name: fullName,
+          first_name: firstName,
+          last_name: lastName,
+          email: formData.get('email').toLowerCase(),
+          phone: formData.get('phone') || null,
+          company: formData.get('company') || null,
+          address: formData.get('address') || null,
+          city: formData.get('city') || null,
+          state: formData.get('state') || null,
+          zip: formData.get('zip') || null,
+          lead_source: formData.get('lead_source') || null,
+          notes: formData.get('notes') || null
+        };
+
+        if (id) {
+          const { error } = await supabase.from('customers').update(data).eq('id', id);
+          if (error) throw error;
+          showToast('Customer updated', 'success');
+        } else {
+          const { error } = await supabase.from('customers').insert(data);
+          if (error) throw error;
+          showToast('Customer added', 'success');
+        }
+
+        loadCustomers();
+        return true;
+      } catch (err) {
+        console.error('Save customer error:', err);
+        showToast('Failed to save: ' + (err.message || err), 'error');
+        return false;
+      }
+    }
+    
+    async function deleteCustomer(id) {
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('customers').delete().eq('id', id);
+        showToast('Customer deleted', 'success');
+        loadCustomers();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    }
+    
+    window.editCustomer = async (id) => {
+      const customer = customers.find(c => c.id === id);
+      if (customer) showCustomerModal(customer);
+    };
+
+    function mapsLink(customer) {
+      const parts = [customer.address, customer.city, customer.state, customer.zip].filter(Boolean);
+      if (parts.length === 0) return '—';
+      const display = parts.join(', ');
+      const query = encodeURIComponent(display);
+      return `<a href="https://maps.google.com/?q=${query}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;">${display}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></a>`;
+    }
+
+    window.viewCustomer = async (id) => {
+      const customer = customers.find(c => c.id === id);
+      if (!customer) return;
+
+      const quoteCount = customer.quotes?.[0]?.count || 0;
+      const content = createElement('div');
+      const fieldStyle = 'font-size:0.7rem;text-transform:uppercase;letter-spacing:0.03em;color:var(--color-text-muted);font-weight:600;';
+      content.innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md) var(--space-xl);">
+          <div>
+            <div style="${fieldStyle}">Email</div>
+            <div style="margin-top:2px;">${customer.email ? `<a href="mailto:${customer.email}">${customer.email}</a>` : '—'}</div>
+          </div>
+          <div>
+            <div style="${fieldStyle}">Phone</div>
+            <div style="margin-top:2px;">${customer.phone ? phoneLink(customer.phone) : '—'}</div>
+          </div>
+          <div style="grid-column:1/-1;">
+            <div style="${fieldStyle}">Address</div>
+            <div style="margin-top:2px;">${mapsLink(customer)}</div>
+          </div>
+          ${customer.company ? `<div>
+            <div style="${fieldStyle}">Company</div>
+            <div style="margin-top:2px;">${customer.company}</div>
+          </div>` : ''}
+          ${customer.lead_source ? `<div>
+            <div style="${fieldStyle}">Lead Source</div>
+            <div style="margin-top:2px;"><span class="badge badge-info">${customer.lead_source}</span></div>
+          </div>` : ''}
+          <div>
+            <div style="${fieldStyle}">Quotes</div>
+            <div style="margin-top:2px;">${quoteCount}</div>
+          </div>
+          ${customer.notes ? `<div style="grid-column:1/-1;">
+            <div style="${fieldStyle}">Notes</div>
+            <div style="margin-top:2px;white-space:pre-wrap;">${customer.notes}</div>
+          </div>` : ''}
+        </div>
+
+        <div style="margin-top:var(--space-lg);padding-top:var(--space-lg);border-top:1px solid var(--color-border);">
+          <div style="display:flex;justify-content:flex-end;">
+              <button type="button" class="btn btn-ghost btn-sm" onclick="openPortalAsAdmin('${customer.id}')" title="View customer portal as admin">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Portal
+              </button>
+          </div>
+        </div>
+      `;
+
+      const footer = createElement('div', { className: 'flex justify-between' });
+      const leftBtns = createElement('div', { className: 'btn-group' });
+      const emailBtn = createElement('button', { type: 'button', className: 'btn btn-secondary' });
+      emailBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email';
+      leftBtns.appendChild(emailBtn);
+      footer.appendChild(leftBtns);
+
+      const rightBtns = createElement('div', { className: 'btn-group' });
+      const closeBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Close' });
+      const editBtn = createElement('button', { type: 'button', className: 'btn btn-primary', textContent: 'Edit' });
+      rightBtns.appendChild(closeBtn);
+      rightBtns.appendChild(editBtn);
+      footer.appendChild(rightBtns);
+
+      const modal = createModal({ title: customer.name, content, footer, size: 'lg' });
+
+      closeBtn.addEventListener('click', () => closeModal(modal));
+      editBtn.addEventListener('click', () => { closeModal(modal); showCustomerModal(customer); });
+      emailBtn.addEventListener('click', () => { closeModal(modal); openEmailCompose(customer.id); });
+
+    };
+
+    window.openPortalAsAdmin = async (customerId) => {
+      try {
+        const res = await fetch('/api/admin-portal-access', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ customer_id: customerId })
+        });
+        if (!res.ok) throw new Error('Failed to create portal session');
+        // Set the localStorage flag the portal auth checks
+        localStorage.setItem('portal_logged_in', 'true');
+        window.open('/portal/dashboard.html', '_blank');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to open portal', 'error');
+      }
+    };
+
+    // ==========================================
+    // EMAIL COMPOSE FUNCTIONALITY
+    // ==========================================
+    
+    let emailTemplates = [];
+    
+    async function loadEmailTemplates() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data } = await supabase
+          .from('email_templates')
+          .select('*')
+          .eq('is_active', true)
+          .order('name');
+        emailTemplates = data || [];
+      } catch (err) {
+        console.error('Failed to load email templates:', err);
+        emailTemplates = [];
+      }
+    }
+    
+    async function loadEmailHistory(customerId) {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data } = await supabase
+          .from('email_logs')
+          .select('*')
+          .eq('customer_id', customerId)
+          .order('sent_at', { ascending: false });
+        return data || [];
+      } catch (err) {
+        console.error('Failed to load email history:', err);
+        return [];
+      }
+    }
+    
+    window.openEmailCompose = async (customerId) => {
+      const customer = customers.find(c => c.id === customerId);
+      if (!customer) return;
+      
+      // Load templates if not already loaded
+      if (emailTemplates.length === 0) {
+        await loadEmailTemplates();
+      }
+      
+      // Load email history
+      const emailHistory = await loadEmailHistory(customerId);
+      
+      const content = createElement('div');
+      content.innerHTML = `
+        <div class="email-compose-tabs">
+          <div class="email-compose-tab active" data-tab="compose">Compose</div>
+          <div class="email-compose-tab" data-tab="history">History (${emailHistory.length})</div>
+        </div>
+        
+        <div id="compose-tab" class="email-compose-content active">
+          <div class="form-group">
+            <label class="form-label">To</label>
+            <input type="email" id="email-to" class="form-input" value="${customer.email}" readonly style="background: var(--color-bg-soft);">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Template (optional)</label>
+            <select id="email-template" class="form-select" onchange="applyTemplate()">
+              <option value="">— Custom Email —</option>
+              ${emailTemplates.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Subject *</label>
+            <input type="text" id="email-subject" class="form-input" placeholder="Enter subject line" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Message *</label>
+            <textarea id="email-body" class="form-textarea" rows="8" placeholder="Write your message..." required></textarea>
+          </div>
+          
+          <div style="background: var(--color-bg-soft); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md);">
+            <p class="text-sm text-muted mb-xs"><strong>Insert variable:</strong></p>
+            <span class="variable-tag" onclick="insertEmailVariable('{{first_name}}')">{{first_name}}</span>
+            <span class="variable-tag" onclick="insertEmailVariable('{{customer_name}}')">{{customer_name}}</span>
+            <span class="variable-tag" onclick="insertEmailVariable('{{company_name}}')">{{company_name}}</span>
+          </div>
+        </div>
+        
+        <div id="history-tab" class="email-compose-content">
+          ${emailHistory.length === 0 
+            ? '<p class="text-center text-muted p-xl">No emails sent to this customer yet.</p>'
+            : emailHistory.map(email => `
+              <div class="email-history-item">
+                <div class="email-history-item-header">
+                  <div class="email-history-item-subject">${escapeHtml(email.subject)}</div>
+                  <div class="email-history-item-date">${formatDate(email.sent_at)}</div>
+                </div>
+                <div class="email-history-item-body" id="body-${email.id}">${escapeHtml(email.body)}</div>
+                <div class="email-history-toggle" onclick="toggleEmailBody('${email.id}')">Show more</div>
+              </div>
+            `).join('')
+          }
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'flex justify-end gap-md' });
+      footer.innerHTML = `
+        <button type="button" class="btn btn-secondary" id="email-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="email-send-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Send Email
+        </button>
+      `;
+      
+      const modal = createModal({
+        title: `Email ${customer.name}`,
+        content,
+        footer,
+        size: 'lg'
+      });
+      
+      // Store customer data for template replacement
+      modal.customerData = customer;
+      
+      // Tab switching
+      content.querySelectorAll('.email-compose-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          content.querySelectorAll('.email-compose-tab').forEach(t => t.classList.remove('active'));
+          content.querySelectorAll('.email-compose-content').forEach(c => c.classList.remove('active'));
+          tab.classList.add('active');
+          content.querySelector(`#${tab.dataset.tab}-tab`).classList.add('active');
+        });
+      });
+      
+      // Attach listeners to buttons via the live DOM modal
+      const cancelBtn = modal.querySelector('#email-cancel-btn');
+      const sendBtn = modal.querySelector('#email-send-btn');
+
+      cancelBtn.addEventListener('click', () => closeModal(modal));
+
+      sendBtn.addEventListener('click', async () => {
+        console.log('Send Email button clicked for', customer.email);
+        const subject = $('#email-subject').value.trim();
+        const body = $('#email-body').value.trim();
+
+        if (!subject || !body) {
+          showToast('Please enter subject and message', 'error');
+          return;
+        }
+
+        await sendCustomerEmail(customer, subject, body);
+        closeModal(modal);
+      });
+    };
+    
+    window.applyTemplate = () => {
+      const templateId = $('#email-template').value;
+      if (!templateId) {
+        $('#email-subject').value = '';
+        $('#email-body').value = '';
+        return;
+      }
+      
+      const template = emailTemplates.find(t => t.id === templateId);
+      if (!template) return;
+      
+      // Get the customer data from the modal
+      const modal = document.querySelector('.modal-overlay');
+      const customer = modal?.customerData;
+      
+      // Replace template variables
+      let subject = template.subject;
+      let body = template.body;
+      
+      if (customer) {
+        const firstName = customer.first_name || customer.name?.split(' ')[0] || '';
+        subject = subject.replace(/\{\{first_name\}\}/g, firstName)
+                         .replace(/\{\{customer_name\}\}/g, customer.name || '');
+        body = body.replace(/\{\{first_name\}\}/g, firstName)
+                   .replace(/\{\{customer_name\}\}/g, customer.name || '');
+      }
+      
+      // Get company name from settings (if available) or use default
+      subject = subject.replace(/\{\{company_name\}\}/g, ((typeof getCurrentUser === 'function' && getCurrentUser()?.org_name) || ''));
+      body = body.replace(/\{\{company_name\}\}/g, ((typeof getCurrentUser === 'function' && getCurrentUser()?.org_name) || ''));
+      
+      $('#email-subject').value = subject;
+      $('#email-body').value = body;
+    };
+    
+    window.insertEmailVariable = (variable) => {
+      const textarea = $('#email-body');
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      textarea.value = text.substring(0, start) + variable + text.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + variable.length;
+      textarea.focus();
+    };
+    
+    window.toggleEmailBody = (emailId) => {
+      const bodyEl = $(`#body-${emailId}`);
+      const toggleEl = bodyEl.nextElementSibling;
+      if (bodyEl.classList.contains('expanded')) {
+        bodyEl.classList.remove('expanded');
+        toggleEl.textContent = 'Show more';
+      } else {
+        bodyEl.classList.add('expanded');
+        toggleEl.textContent = 'Show less';
+      }
+    };
+    
+    async function sendCustomerEmail(customer, subject, body) {
+      try {
+        const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+        
+        // Replace any remaining variables
+        const firstName = customer.first_name || customer.name?.split(' ')[0] || '';
+        const processedSubject = subject.replace(/\{\{first_name\}\}/g, firstName)
+                                        .replace(/\{\{customer_name\}\}/g, customer.name || '')
+                                        .replace(/\{\{company_name\}\}/g, ((typeof getCurrentUser === 'function' && getCurrentUser()?.org_name) || ''));
+        const processedBody = body.replace(/\{\{first_name\}\}/g, firstName)
+                                  .replace(/\{\{customer_name\}\}/g, customer.name || '')
+                                  .replace(/\{\{company_name\}\}/g, ((typeof getCurrentUser === 'function' && getCurrentUser()?.org_name) || ''));
+        
+        const response = await fetch('/.netlify/functions/send-template-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to_email: customer.email,
+            subject: processedSubject,
+            body: processedBody,
+            customer_id: customer.id,
+            sent_by: user?.id || null
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to send email');
+        }
+        
+        showToast('Email sent successfully!', 'success');
+      } catch (err) {
+        console.error('Send email error:', err);
+        showToast('Failed to send email: ' + err.message, 'error');
+      }
+    }
+    
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+    
+    // ==========================================
+    // CSV IMPORT FUNCTIONALITY
+    // ==========================================
+    
+    let csvData = [];
+    let csvHeaders = [];
+    let columnMapping = {};
+    
+    const targetFields = [
+      { key: 'first_name', label: 'First Name', required: false },
+      { key: 'last_name', label: 'Last Name', required: false },
+      { key: 'name', label: 'Full Name', required: false },
+      { key: 'email', label: 'Email', required: true },
+      { key: 'phone', label: 'Phone', required: false },
+      { key: 'company', label: 'Company', required: false },
+      { key: 'address', label: 'Address', required: false },
+      { key: 'address2', label: 'Address 2', required: false },
+      { key: 'city', label: 'City', required: false },
+      { key: 'state', label: 'State', required: false },
+      { key: 'zip', label: 'ZIP', required: false },
+      { key: 'lead_source', label: 'Lead Source', required: false },
+      { key: 'notes', label: 'Notes', required: false }
+    ];
+    
+    $('#import-csv-btn').addEventListener('click', showImportModal);
+    
+    function showImportModal() {
+      csvData = [];
+      csvHeaders = [];
+      columnMapping = {};
+      
+      const content = createElement('div', { id: 'import-content' });
+      content.innerHTML = `
+        <div id="import-step-1">
+          <div class="import-dropzone" id="dropzone">
+            <div class="import-dropzone-icon">📄</div>
+            <p><strong>Drop your CSV file here</strong></p>
+            <p class="text-muted text-sm">or click to browse</p>
+            <input type="file" id="csv-file-input" accept=".csv,.txt" style="display: none;">
+          </div>
+          <p class="text-muted text-sm mt-md">Supported: CSV files from Excel, Google Sheets, etc.</p>
+        </div>
+        
+        <div id="import-step-2" style="display: none;">
+          <div class="import-stats">
+            <div class="import-stat">
+              <div class="import-stat-value" id="row-count">0</div>
+              <div class="import-stat-label">Rows Found</div>
+            </div>
+            <div class="import-stat">
+              <div class="import-stat-value" id="col-count">0</div>
+              <div class="import-stat-label">Columns</div>
+            </div>
+          </div>
+          
+          <h4>Map Columns</h4>
+          <p class="text-muted text-sm mb-md">Match your CSV columns to customer fields</p>
+          <div id="mapping-container"></div>
+          
+          <h4 class="mt-lg">Preview</h4>
+          <div class="import-preview" id="preview-container"></div>
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'flex justify-end gap-md' });
+      footer.innerHTML = `
+        <button type="button" class="btn btn-secondary" id="import-cancel-btn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="import-btn" style="display: none;">Import Customers</button>
+      `;
+      
+      const modal = createModal({
+        title: 'Import Customers from CSV',
+        content,
+        footer,
+        size: 'xl'
+      });
+      
+      // Set up dropzone
+      const dropzone = $('#dropzone');
+      const fileInput = $('#csv-file-input');
+      
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      });
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dragover');
+      });
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) processCSVFile(file);
+      });
+      
+      fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) processCSVFile(file);
+      });
+      
+      $('#import-cancel-btn').addEventListener('click', () => closeModal(modal));
+      $('#import-btn').addEventListener('click', () => {
+        importCustomers();
+        closeModal(modal);
+      });
+    }
+    
+    function processCSVFile(file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        parseCSV(text);
+        showStep2();
+      };
+      reader.readAsText(file);
+    }
+    
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      if (lines.length === 0) return;
+      
+      // Parse header
+      csvHeaders = parseCSVLine(lines[0]);
+      
+      // Parse data rows
+      csvData = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.some(v => v.trim())) {
+          const row = {};
+          csvHeaders.forEach((header, idx) => {
+            row[header] = values[idx] || '';
+          });
+          csvData.push(row);
+        }
+      }
+      
+      // Auto-map columns
+      autoMapColumns();
+    }
+    
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+    
+    function autoMapColumns() {
+      columnMapping = {};
+      
+      const mappings = {
+        'first_name': ['first name', 'firstname', 'first', 'fname'],
+        'last_name': ['last name', 'lastname', 'last', 'lname', 'surname'],
+        'name': ['name', 'full name', 'fullname', 'customer name', 'customer', 'client'],
+        'email': ['email', 'e-mail', 'email address', 'mail'],
+        'phone': ['phone', 'telephone', 'tel', 'mobile', 'cell', 'phone number'],
+        'company': ['company', 'company name', 'business', 'organization'],
+        'address': ['address', 'street', 'street address', 'address1', 'address 1'],
+        'address2': ['address2', 'address 2', 'apt', 'suite', 'unit'],
+        'city': ['city', 'town'],
+        'state': ['state', 'province', 'region', 'st'],
+        'zip': ['zip', 'zipcode', 'zip code', 'postal', 'postal code', 'postcode'],
+        'lead_source': ['lead source', 'leadsource', 'source', 'how heard', 'referral source'],
+        'notes': ['notes', 'note', 'comments', 'comment', 'description']
+      };
+      
+      csvHeaders.forEach(header => {
+        const headerLower = header.toLowerCase().trim();
+        for (const [field, aliases] of Object.entries(mappings)) {
+          if (aliases.includes(headerLower)) {
+            columnMapping[header] = field;
+            break;
+          }
+        }
+      });
+    }
+    
+    function showStep2() {
+      $('#import-step-1').style.display = 'none';
+      $('#import-step-2').style.display = 'block';
+      $('#import-btn').style.display = 'inline-flex';
+      
+      $('#row-count').textContent = csvData.length;
+      $('#col-count').textContent = csvHeaders.length;
+      
+      renderMapping();
+      renderPreview();
+    }
+    
+    function renderMapping() {
+      const container = $('#mapping-container');
+      container.innerHTML = csvHeaders.map(header => `
+        <div class="mapping-row">
+          <div class="mapping-source">${header}</div>
+          <div class="mapping-arrow">→</div>
+          <div class="mapping-target">
+            <select class="form-select form-select-sm" data-source="${header}" onchange="updateMapping(this)">
+              <option value="">-- Skip --</option>
+              ${targetFields.map(f => `
+                <option value="${f.key}" ${columnMapping[header] === f.key ? 'selected' : ''}>
+                  ${f.label}${f.required ? ' *' : ''}
+                </option>
+              `).join('')}
+            </select>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    window.updateMapping = (select) => {
+      const source = select.dataset.source;
+      const target = select.value;
+      
+      // Remove any existing mapping to this target
+      Object.keys(columnMapping).forEach(key => {
+        if (columnMapping[key] === target && key !== source) {
+          delete columnMapping[key];
+        }
+      });
+      
+      if (target) {
+        columnMapping[source] = target;
+      } else {
+        delete columnMapping[source];
+      }
+      
+      renderMapping();
+      renderPreview();
+    };
+    
+    function renderPreview() {
+      const container = $('#preview-container');
+      const previewRows = csvData.slice(0, 5);
+      
+      container.innerHTML = `
+        <table class="table">
+          <thead>
+            <tr>
+              ${targetFields.filter(f => Object.values(columnMapping).includes(f.key)).map(f => `<th>${f.label}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${previewRows.map(row => `
+              <tr>
+                ${targetFields.filter(f => Object.values(columnMapping).includes(f.key)).map(f => {
+                  const sourceCol = Object.keys(columnMapping).find(k => columnMapping[k] === f.key);
+                  return `<td>${sourceCol ? row[sourceCol] || '' : ''}</td>`;
+                }).join('')}
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        ${csvData.length > 5 ? `<p class="text-muted text-sm mt-sm">Showing 5 of ${csvData.length} rows</p>` : ''}
+      `;
+    }
+    
+    async function importCustomers() {
+      // Validate required mappings
+      const hasName = Object.values(columnMapping).includes('name');
+      const hasFirstName = Object.values(columnMapping).includes('first_name');
+      const hasLastName = Object.values(columnMapping).includes('last_name');
+      const hasEmail = Object.values(columnMapping).includes('email');
+      
+      if (!hasEmail) {
+        showToast('Please map the Email column', 'error');
+        return;
+      }
+      
+      if (!hasName && !hasFirstName && !hasLastName) {
+        showToast('Please map Name or First Name/Last Name columns', 'error');
+        return;
+      }
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        // Valid database fields for customers table
+        const validFields = ['name', 'first_name', 'last_name', 'email', 'phone', 'address', 'city', 'state', 'zip', 'notes', 'lead_source_id'];
+        
+        // Transform data
+        const seenEmails = new Set();
+        const customersToImport = [];
+        
+        for (const row of csvData) {
+          const customer = {};
+          
+          // Get values from mapping
+          Object.entries(columnMapping).forEach(([source, target]) => {
+            let value = row[source]?.trim() || null;
+            if (target === 'email' && value) {
+              value = value.toLowerCase();
+            }
+            customer[target] = value;
+          });
+          
+          // Skip if no email or already seen this email
+          if (!customer.email) continue;
+          if (seenEmails.has(customer.email)) continue;
+          seenEmails.add(customer.email);
+          
+          // Combine first_name + last_name into name if no full name mapped
+          if (!customer.name && (customer.first_name || customer.last_name)) {
+            customer.name = [customer.first_name, customer.last_name].filter(Boolean).join(' ');
+          }
+          
+          // Combine address + address2
+          if (customer.address2 && customer.address) {
+            customer.address = customer.address + ', ' + customer.address2;
+          }
+          
+          // Skip if no name
+          if (!customer.name) continue;
+          
+          // Only keep valid database fields
+          const cleanCustomer = {};
+          for (const field of validFields) {
+            if (customer[field] !== undefined && customer[field] !== null) {
+              cleanCustomer[field] = customer[field];
+            }
+          }
+          
+          customersToImport.push(cleanCustomer);
+        }
+        
+        if (customersToImport.length === 0) {
+          showToast('No valid customers to import', 'error');
+          return;
+        }
+        
+        let imported = 0;
+        let failed = 0;
+        
+        // Close the import modal 
+        const modal = document.querySelector('.modal-overlay');
+        if (modal) closeModal(modal);
+        
+        showToast(`Starting import of ${customersToImport.length} customers...`, 'info');
+        
+        // Process in batches using upsert (handles duplicates automatically)
+        const batchSize = 50;
+        for (let i = 0; i < customersToImport.length; i += batchSize) {
+          const batch = customersToImport.slice(i, i + batchSize);
+          
+          // Use upsert with email as the conflict key
+          const { data, error } = await supabase
+            .from('customers')
+            .upsert(batch, { 
+              onConflict: 'org_id,email',
+              ignoreDuplicates: false 
+            })
+            .select();
+          
+          if (error) {
+            console.error('Upsert batch error:', error);
+            // Try individual upserts for this batch to identify specific failures
+            for (const customer of batch) {
+              const { error: singleError } = await supabase
+                .from('customers')
+                .upsert(customer, { onConflict: 'org_id,email' });
+              
+              if (singleError) {
+                console.error('Failed:', customer.email, singleError);
+                failed++;
+              } else {
+                imported++;
+              }
+            }
+          } else {
+            imported += data?.length || batch.length;
+          }
+        }
+        
+        let message = `Imported/updated ${imported} customers`;
+        if (failed > 0) message += `, ${failed} failed`;
+        
+        showToast(message, failed > 0 ? 'warning' : 'success');
+        loadCustomers();
+        
+      } catch (err) {
+        console.error('Import error:', err);
+        showToast('Import failed: ' + err.message, 'error');
+      }
+    }
+    
+    // Initialize
+    async function init() {
+      await loadLeadSources();
+      await loadEmailTemplates();
+      await loadCustomers();
+    }
+    init();
+  </script>
+</body>
+</html>

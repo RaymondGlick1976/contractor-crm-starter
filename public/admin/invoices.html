@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Invoices | Admin | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=51">
+</head>
+<body>
+  <script>
+    // Permission check before page loads
+    const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+    if (!user) {
+      window.location.href = '/admin/login.html';
+    } else if (!user.permissions?.can_view_invoices) {
+      window.location.href = user.permissions?.can_view_pipeline ? '/admin/pipeline.html' : '/admin/index.html';
+    }
+  </script>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-logo">
+        <img data-brand-logo src="" alt="Company Logo" style="height: 40px; filter: brightness(0) invert(1); display: none;">
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item"><a href="/admin/today.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Today</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/index.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals Pipeline</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html?view=calendar" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/customers.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/vendors.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Vendors</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/quotes.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Quotes</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/invoices.html" class="sidebar-nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Invoices</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/payments.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/punch-list.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Punch List</a></li>
+        </ul>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Bookkeeping</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/banking.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>Banking</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/reports.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Reports</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Lead Capture</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/booking-forms.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Booking Forms</a></li>
+            <li class="sidebar-nav-item"><a href="/schedule" target="_blank" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Online Scheduling</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/bulk-email.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="2" y1="20" x2="8" y2="14"/><line x1="22" y1="20" x2="16" y2="14"/></svg>Bulk Email</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/sequences.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><polyline points="16 17 18 19 22 15"/></svg>Email Sequences</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Catalog</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/catalog.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Custom Library</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/email-templates.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Templates</a></li>
+          </ul>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/settings.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    <main class="app-main">
+      <header class="app-header">
+        <h2>Invoices</h2>
+        <button type="button" id="new-invoice-btn" class="btn btn-primary" onclick="createNewInvoice()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Invoice
+        </button>
+      </header>
+      
+      <div class="app-content">
+        <!-- Filters -->
+        <div class="card mb-xl">
+          <div class="card-body">
+            <div class="flex gap-md items-center">
+              <input type="text" id="search-input" class="form-input" placeholder="Search invoices..." style="max-width: 300px;">
+              <select id="status-filter" class="form-select" style="max-width: 150px;">
+                <option value="">All Status</option>
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="viewed">Viewed</option>
+                <option value="partial">Partial</option>
+                <option value="paid">Paid</option>
+                <option value="overdue">Overdue</option>
+                <option value="archived">Archived</option>
+              </select>
+              <label class="form-check" style="margin-left: auto;">
+                <input type="checkbox" id="hide-archived" checked>
+                <span class="form-check-label">Hide archived</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Invoices Table -->
+        <div class="card">
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Customer</th>
+                  <th>Title</th>
+                  <th>Total</th>
+                  <th>Paid</th>
+                  <th>Due</th>
+                  <th>Status</th>
+                  <th>Due Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="invoices-tbody">
+                <tr>
+                  <td colspan="9" style="text-align: center; padding: 40px;">
+                    <div class="loading-spinner" style="margin: 0 auto;"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script src="/js/share-link.js"></script>
+  <script>
+    
+    let invoices = [];
+
+    // Create a blank draft invoice (not linked to a quote) and open it in the editor
+    async function createNewInvoice() {
+      const btn = document.getElementById('new-invoice-btn');
+      btn.disabled = true;
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: invoiceNumber, error: numErr } = await supabase.rpc('generate_invoice_number');
+        if (numErr) throw numErr;
+
+        const { data: invoice, error } = await supabase
+          .from('invoices')
+          .insert({
+            invoice_number: invoiceNumber,
+            quote_id: null,
+            customer_id: null,
+            title: 'New Invoice',
+            status: 'draft',
+            subtotal: 0,
+            tax_rate: 0,
+            tax_amount: 0,
+            total: 0,
+            amount_due: 0,
+            due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          })
+          .select('id')
+          .single();
+        if (error) throw error;
+
+        window.location.href = `/admin/invoice-editor.html?id=${invoice.id}`;
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to create invoice: ' + err.message, 'error');
+        btn.disabled = false;
+      }
+    }
+
+    async function loadInvoices() {
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        const { data, error } = await supabase
+          .from('invoices')
+          .select('*, customers(name, email)')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        invoices = data || [];
+        renderInvoices(invoices);
+      } catch (err) {
+        console.error('Load error:', err);
+        showToast('Failed to load invoices', 'error');
+      }
+    }
+    
+    function renderInvoices(data) {
+      const tbody = $('#invoices-tbody');
+      clearElement(tbody);
+      
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted p-xl">No invoices found</td></tr>';
+        return;
+      }
+      
+      data.forEach(invoice => {
+        const row = createElement('tr');
+        const qbIcon = invoice.qb_invoice_id ? `<span title="Synced to QuickBooks" style="color: var(--color-success); margin-right: 4px;">✓QB</span>` : '';
+        row.innerHTML = `
+          <td><strong>${invoice.invoice_number}</strong></td>
+          <td>
+            <div>${invoice.customers?.name || '—'}</div>
+            <div class="text-sm text-muted">${invoice.customers?.email || ''}</div>
+          </td>
+          <td>${invoice.title}</td>
+          <td>${formatCurrency(invoice.total)}</td>
+          <td>${formatCurrency(invoice.amount_paid)}</td>
+          <td class="${invoice.amount_due > 0 ? 'text-danger font-bold' : ''}">${formatCurrency(invoice.amount_due)}</td>
+          <td><span class="badge badge-${invoice.status}">${invoice.status}</span> ${qbIcon}</td>
+          <td>${invoice.due_date ? formatDate(invoice.due_date) : '—'}</td>
+          <td class="table-actions">
+            <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${invoice.id}')">View</button>
+            <a class="btn btn-ghost btn-sm" href="/admin/invoice-editor.html?id=${invoice.id}">Edit</a>
+            <button class="btn btn-ghost btn-sm" onclick="printInvoiceById('${invoice.id}')" title="Print">🖨️</button>
+            ${invoice.status !== 'cancelled' ? `<button class="btn btn-ghost btn-sm" onclick="textInvoiceLink('${invoice.id}')" title="Text or copy customer link">💬</button>` : ''}
+            ${invoice.status !== 'paid' && invoice.status !== 'cancelled' && invoice.status !== 'archived' ? `<button class="btn btn-ghost btn-sm" onclick="sendInvoice('${invoice.id}')">${invoice.sent_at ? 'Resend' : 'Send'}</button>` : ''}
+            ${invoice.amount_due > 0 ? `<button class="btn btn-ghost btn-sm" onclick="recordPayment('${invoice.id}')">Record Payment</button>` : ''}
+            ${!invoice.qb_invoice_id
+              ? `<button class="btn btn-ghost btn-sm" onclick="syncInvoiceToQB('${invoice.id}').then(loadInvoices)" title="Sync to QuickBooks">QB</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="syncInvoiceToQB('${invoice.id}').then(loadInvoices)" title="Re-sync payments to QuickBooks" style="color: var(--color-success);">✓QB</button>`}
+            ${invoice.status === 'archived' 
+              ? `<button class="btn btn-ghost btn-sm" onclick="unarchiveInvoice('${invoice.id}')" title="Unarchive">📤</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="archiveInvoice('${invoice.id}')" title="Archive">📥</button>`}
+            <button class="btn btn-ghost btn-sm text-danger" onclick="deleteInvoice('${invoice.id}')" title="Delete">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+    
+    // Search & Filter
+    const searchInput = $('#search-input');
+    const statusFilter = $('#status-filter');
+    const hideArchivedCheckbox = $('#hide-archived');
+    
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase();
+      const status = statusFilter.value;
+      const hideArchived = hideArchivedCheckbox.checked;
+      
+      let filtered = invoices;
+      
+      // Hide archived unless specifically filtering for them
+      if (hideArchived && status !== 'archived') {
+        filtered = filtered.filter(inv => inv.status !== 'archived');
+      }
+      
+      if (query) {
+        filtered = filtered.filter(inv => 
+          inv.invoice_number.toLowerCase().includes(query) ||
+          inv.title.toLowerCase().includes(query) ||
+          inv.customers?.name?.toLowerCase().includes(query) ||
+          inv.customers?.email?.toLowerCase().includes(query)
+        );
+      }
+      
+      if (status) {
+        filtered = filtered.filter(inv => inv.status === status);
+      }
+      
+      renderInvoices(filtered);
+    }
+    
+    searchInput.addEventListener('input', debounce(applyFilters, 300));
+    statusFilter.addEventListener('change', applyFilters);
+    hideArchivedCheckbox.addEventListener('change', applyFilters);
+    
+    window.textInvoiceLink = async (id) => {
+      const inv = invoices.find(x => x.id === id);
+      if (!inv) return;
+      await ShareLink.open({ table: 'invoices', record: inv, customer: inv.customers, onSent: () => loadInvoices() });
+    };
+
+
+    // Payment schedule block for an invoice (copied from the quote). Empty string when none.
+    function paymentScheduleBlock(invoice) {
+      const sched = Array.isArray(invoice.payment_schedule) ? invoice.payment_schedule : [];
+      if (sched.length === 0) return '';
+      const total = parseFloat(invoice.total) || 0;
+      // Fixed payments (e.g. the deposit) come off the total first; percentages apply to the remainder
+      const fixedTotal = sched.filter(p => p.amount_type === 'fixed').reduce((s, p) => s + (parseFloat(p.amount_value) || 0), 0);
+      const base = Math.max(0, total - fixedTotal);
+      let sum = 0;
+      const rows = sched.map(p => {
+        const v = parseFloat(p.amount_value) || 0;
+        const amt = p.amount_type === 'percentage' ? base * (v / 100) : v;
+        sum += amt;
+        return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;">
+          <div><div style="font-weight:500;">${p.name || ''}</div>${p.due_description ? `<div style="font-size:12px;color:#666;">${p.due_description}</div>` : ''}</div>
+          <div style="font-weight:500;white-space:nowrap;">${formatCurrency(amt)}</div></div>`;
+      }).join('');
+      const warn = Math.abs(sum - total) > 0.005
+        ? `<div style="margin-top:6px;font-size:12px;color:#b45309;">Schedule totals ${formatCurrency(sum)}; invoice total is ${formatCurrency(total)}.</div>` : '';
+      return `<div style="margin-top:20px;">
+        <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#666;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:6px;">Payment Schedule</div>
+        ${rows}${warn}</div>`;
+    }
+
+    // Add accepted change orders to an existing invoice (one invoice line per change order item)
+    async function addChangeOrdersToInvoice(invoiceId, cos) {
+      const supabase = await app.waitForSupabase();
+      const { data: last } = await supabase
+        .from('invoice_line_items')
+        .select('sort_order')
+        .eq('invoice_id', invoiceId)
+        .order('sort_order', { ascending: false })
+        .limit(1);
+      let sort = last && last.length ? (last[0].sort_order || 0) + 1 : 0;
+      const rows = [];
+      cos.forEach(co => (co.change_order_items || []).forEach(item => {
+        const qty = parseFloat(item.quantity) || 1;
+        const unit = parseFloat(item.unit_price) || 0;
+        rows.push({
+          invoice_id: invoiceId,
+          change_order_id: co.id,
+          description: item.description,
+          details: `Change Order #${co.change_order_number}`,
+          quantity: qty,
+          unit_price: unit,
+          line_total: Math.round(unit * qty * 100) / 100,
+          is_taxable: true,
+          apply_discount: true,
+          sort_order: sort++
+        });
+      }));
+      if (rows.length === 0) return;
+      const { error } = await supabase.from('invoice_line_items').insert(rows);
+      if (error) throw error;
+    }
+
+    window.viewInvoice = async (id) => {
+      // Fetch fresh invoice data from DB to avoid stale cached totals
+      const supabase = await app.waitForSupabase();
+      const { data: freshInvoice } = await supabase
+        .from('invoices')
+        .select('*, customers(name, email, phone, address, city, state, zip, company)')
+        .eq('id', id)
+        .single();
+      const invoice = freshInvoice || invoices.find(i => i.id === id);
+      if (!invoice) return;
+
+      // Update cached array so other actions reflect the fresh data
+      const cacheIdx = invoices.findIndex(i => i.id === id);
+      if (cacheIdx >= 0 && freshInvoice) invoices[cacheIdx] = freshInvoice;
+
+      // Load line items
+      const { data: lineItems } = await supabase
+        .from('invoice_line_items')
+        .select('*')
+        .eq('invoice_id', id)
+        .order('sort_order');
+      
+      const { data: payments } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('invoice_id', id)
+        .eq('status', 'succeeded')
+        .order('payment_date', { ascending: false });
+      
+      let itemsHtml = '';
+      if (invoice.document_mode === 'attachment') {
+        // Attached-document invoice
+        const { data: docs } = await supabase.from('invoice_attachments')
+          .select('file_url, file_name').eq('invoice_id', id).order('display_order');
+        itemsHtml = `<div style="margin-bottom: var(--space-lg); padding: var(--space-md); background: var(--color-bg-alt); border-radius: var(--radius-md);">
+          📄 Invoice document: ${(docs || []).map(d => `<a href="${d.file_url}" target="_blank" rel="noopener">${escapeHtml(d.file_name)}</a>`).join(', ') || '<span class="text-muted">none attached — add it in Edit</span>'}
+        </div>`;
+      } else if (lineItems && lineItems.length > 0) {
+        itemsHtml = `
+          <table class="table" style="margin-bottom: var(--space-lg);">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th style="text-align: right;">Qty</th>
+                <th style="text-align: right;">Price</th>
+                <th style="text-align: right;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lineItems.map(item => {
+                const attrs = (item.attribute_selections || []).filter(s => s.is_public && s.option_name);
+                const attrsHtml = attrs.map(s => `<div class="text-sm text-muted" style="margin-top:2px;">${s.attribute_name}: ${s.option_name}</div>`).join('');
+                return `
+                <tr>
+                  <td>
+                    <div>${item.description}</div>
+                    ${item.details ? `<div class="text-sm text-muted" style="white-space: pre-wrap;">${item.details}</div>` : ''}
+                    ${attrsHtml}
+                  </td>
+                  <td style="text-align: right;">${item.quantity}</td>
+                  <td style="text-align: right;">${formatCurrency(item.unit_price)}</td>
+                  <td style="text-align: right;">${formatCurrency(item.line_total)}</td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+      
+      let paymentsHtml = '';
+      if (payments && payments.length > 0) {
+        paymentsHtml = `
+          <div style="margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--color-border);">
+            <h4 style="margin-bottom: var(--space-sm);">Payment History</h4>
+            ${payments.map(p => `
+              <div class="flex justify-between items-center" style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border-light);">
+                <div>
+                  <div>${formatCurrency(p.amount)}</div>
+                  <div class="text-sm text-muted">${formatDate(p.payment_date)} • ${p.payment_method || 'Card'}${p.reference_number ? ' • Ref: ' + p.reference_number : ''}${p.notes ? ' • ' + p.notes : ''}</div>
+                </div>
+                <div style="display:flex;gap:var(--space-xs);align-items:center;">
+                  <span class="badge badge-paid">Paid</span>
+                  <button class="btn btn-ghost btn-sm" onclick="editPayment('${p.id}','${id}')" title="Edit payment" style="padding:2px 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="deletePayment('${p.id}','${id}')" title="Delete payment" style="padding:2px 6px;color:var(--color-danger);">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+      
+      // Load company info for header
+      const { data: companySetting } = await supabase.from('settings').select('value').eq('key', 'company').single();
+      const company = companySetting?.value || {};
+      const companyCityStateZip = [
+        company.city || '',
+        [company.state || '', company.zip || ''].filter(Boolean).join(' ')
+      ].filter(Boolean).join(', ');
+
+      const statusColors = { draft: '#6b7280', sent: '#3b82f6', viewed: '#8b5cf6', partial: '#f59e0b', paid: '#10b981', overdue: '#ef4444', archived: '#9ca3af' };
+      const statusColor = statusColors[invoice.status] || '#6b7280';
+
+      const content = `
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-xl);padding-bottom:var(--space-lg);border-bottom:2px solid var(--color-primary);">
+          <div style="display:flex;align-items:center;gap:var(--space-md);">
+            ${localStorage.getItem('brand_logo_url') ? `<img src="${localStorage.getItem('brand_logo_url')}" alt="${company.name || 'Company'}" style="height:60px;width:auto;" onerror="this.style.display='none'">` : ''}
+            <div>
+              <div style="font-weight:700;font-size:1.1rem;">${company.name || ''}</div>
+              ${company.phone ? `<div class="text-sm text-muted">${phoneLink(company.phone)}</div>` : ''}
+              ${company.email ? `<div class="text-sm text-muted">${company.email}</div>` : ''}
+              ${company.address ? `<div class="text-sm text-muted">${company.address}</div>` : ''}
+              ${companyCityStateZip ? `<div class="text-sm text-muted">${companyCityStateZip}</div>` : ''}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:1.5rem;font-weight:700;color:var(--color-text);">INVOICE</div>
+            <div style="font-size:1.1rem;font-weight:600;color:var(--color-primary);margin-top:2px;">${invoice.invoice_number}</div>
+            <div style="margin-top:var(--space-sm);">
+              <span style="display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:600;color:white;background:${statusColor};text-transform:uppercase;">${invoice.status}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-bottom:var(--space-xl);padding:var(--space-md);background:var(--color-bg-soft);border-radius:var(--radius-md);">
+          <div>
+            <div class="text-sm text-muted" style="font-weight:600;text-transform:uppercase;font-size:0.7rem;letter-spacing:0.03em;">Bill To</div>
+            <div style="font-weight:600;margin-top:4px;">${invoice.customers?.name || '—'}</div>
+            ${invoice.customers?.company ? `<div class="text-sm">${invoice.customers.company}</div>` : ''}
+            ${invoice.customers?.email ? `<div class="text-sm">${invoice.customers.email}</div>` : ''}
+          </div>
+          <div style="text-align:right;">
+            <div style="margin-bottom:var(--space-sm);">
+              <div class="text-sm text-muted" style="font-weight:600;text-transform:uppercase;font-size:0.7rem;letter-spacing:0.03em;">Invoice Date</div>
+              <div style="font-weight:500;">${formatDate(invoice.created_at)}</div>
+            </div>
+            <div>
+              <div class="text-sm text-muted" style="font-weight:600;text-transform:uppercase;font-size:0.7rem;letter-spacing:0.03em;">Due Date</div>
+              <div style="font-weight:500;">${invoice.due_date ? formatDate(invoice.due_date) : '—'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-weight:600;font-size:0.9rem;margin-bottom:var(--space-sm);">${invoice.title}</div>
+
+        ${itemsHtml}
+
+        <div style="display:flex;justify-content:flex-end;">
+          <div style="width:280px;background:var(--color-bg-soft);padding:var(--space-md);border-radius:var(--radius-md);">
+            <div class="flex justify-between mb-sm">
+              <span>Subtotal</span>
+              <span>${formatCurrency(invoice.subtotal)}</span>
+            </div>
+            ${invoice.discount_amount > 0 ? `
+              <div class="flex justify-between mb-sm" style="color:var(--color-success);">
+                <span>Discount${invoice.discount_type === 'percentage' ? ` (${parseFloat(invoice.discount_value)}%)` : ''}</span>
+                <span>-${formatCurrency(invoice.discount_amount)}</span>
+              </div>
+            ` : ''}
+            ${invoice.tax_amount > 0 ? `
+              <div class="flex justify-between mb-sm">
+                <span>Tax (${(invoice.tax_rate * 100).toFixed(2)}%)</span>
+                <span>${formatCurrency(invoice.tax_amount)}</span>
+              </div>
+            ` : ''}
+            <div class="flex justify-between font-bold" style="padding-top:var(--space-sm);border-top:1px solid var(--color-border);">
+              <span>Total</span>
+              <span>${formatCurrency(invoice.total)}</span>
+            </div>
+            <div class="flex justify-between mt-sm" style="color:var(--color-success);">
+              <span>Paid</span>
+              <span>${formatCurrency(invoice.amount_paid)}</span>
+            </div>
+            <div class="flex justify-between mt-sm font-bold" style="padding-top:var(--space-sm);border-top:1px solid var(--color-border);font-size:1.1rem;color:${invoice.amount_due > 0 ? 'var(--color-danger)' : 'var(--color-success)'};">
+              <span>Balance Due</span>
+              <span>${formatCurrency(invoice.amount_due)}</span>
+            </div>
+          </div>
+        </div>
+
+        ${paymentScheduleBlock(invoice)}${paymentsHtml}
+
+        ${invoice.qb_invoice_id ? `
+          <div style="margin-top:var(--space-lg);padding:var(--space-sm);background:var(--color-success-bg);border-radius:var(--radius-sm);display:flex;align-items:center;gap:var(--space-sm);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span class="text-sm" style="color:var(--color-success);">Synced to QuickBooks</span>
+            <span class="text-sm text-muted">${invoice.qb_synced_at ? '• ' + formatDate(invoice.qb_synced_at) : ''}</span>
+          </div>
+        ` : ''}
+      `;
+
+      const footer = createElement('div', { style: 'display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-sm);width:100%;' });
+
+      const leftBtns = createElement('div', { style: 'display:flex;flex-wrap:wrap;gap:var(--space-sm);' });
+
+      const editBtn = createElement('a', { className: 'btn btn-secondary', href: `/admin/invoice-editor.html?id=${id}` });
+      editBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit';
+      leftBtns.appendChild(editBtn);
+
+      const printBtn = createElement('button', { className: 'btn btn-secondary' });
+      printBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print';
+      leftBtns.appendChild(printBtn);
+
+      const customerViewBtn = createElement('button', { className: 'btn btn-secondary' });
+      customerViewBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Customer View';
+      customerViewBtn.addEventListener('click', async () => {
+        customerViewBtn.disabled = true;
+        customerViewBtn.textContent = 'Generating link...';
+        try {
+          let token = invoice.access_token;
+          if (!token) {
+            // Generate access token
+            const supabase = await app.waitForSupabase();
+            token = Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('');
+            await supabase.from('invoices').update({ access_token: token }).eq('id', id);
+            invoice.access_token = token;
+          }
+          window.open(`/portal/invoice.html?token=${token}`, '_blank');
+        } catch (err) {
+          console.error('Customer view error:', err);
+          showToast('Failed to generate customer link', 'error');
+        }
+        customerViewBtn.disabled = false;
+        customerViewBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>Customer View';
+      });
+      leftBtns.appendChild(customerViewBtn);
+
+      const textLinkBtn = createElement('button', { className: 'btn btn-secondary', textContent: '💬 Text Link' });
+      textLinkBtn.addEventListener('click', () => {
+        ShareLink.open({ table: 'invoices', record: invoice, customer: invoice.customers, onSent: () => loadInvoices() });
+      });
+      leftBtns.appendChild(textLinkBtn);
+      footer.appendChild(leftBtns);
+
+      const rightBtns = createElement('div', { className: 'btn-group' });
+      const closeBtn = createElement('button', { className: 'btn btn-secondary', textContent: 'Close' });
+      rightBtns.appendChild(closeBtn);
+
+      if (!invoice.qb_invoice_id) {
+        const qbBtn = createElement('button', { className: 'btn btn-ghost' });
+        qbBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>QB';
+        qbBtn.addEventListener('click', async () => {
+          qbBtn.disabled = true;
+          qbBtn.textContent = 'Syncing...';
+          await syncInvoiceToQB(id);
+          closeModal(modal);
+          loadInvoices();
+        });
+        rightBtns.appendChild(qbBtn);
+      }
+
+      // Accepted change orders on this quote that are not yet on this invoice
+      let unbilledCOs = [];
+      if (invoice.quote_id) {
+        const { data: acceptedCOs } = await supabase
+          .from('change_orders')
+          .select('id, change_order_number, change_order_items(*)')
+          .eq('quote_id', invoice.quote_id)
+          .eq('status', 'accepted');
+        const { data: billedRows } = await supabase
+          .from('invoice_line_items')
+          .select('change_order_id')
+          .eq('invoice_id', id)
+          .not('change_order_id', 'is', null);
+        const billed = new Set((billedRows || []).map(r => r.change_order_id));
+        unbilledCOs = (acceptedCOs || []).filter(co => !billed.has(co.id) && (co.change_order_items || []).length > 0);
+      }
+      if (unbilledCOs.length > 0) {
+        const coLabel = unbilledCOs.map(co => `#${co.change_order_number}`).join(', ');
+        const addCoBtn = createElement('button', { className: 'btn btn-outline', textContent: `Add Change Order${unbilledCOs.length > 1 ? 's' : ''} ${coLabel}` });
+        addCoBtn.addEventListener('click', async () => {
+          if (!confirm(`Add accepted change order${unbilledCOs.length > 1 ? 's' : ''} ${coLabel} to invoice ${invoice.invoice_number}?`)) return;
+          addCoBtn.disabled = true;
+          try {
+            await addChangeOrdersToInvoice(id, unbilledCOs);
+            showToast('Change order added to invoice', 'success');
+            closeModal(modal);
+            loadInvoices();
+            viewInvoice(id);
+          } catch (err) {
+            console.error(err);
+            showToast('Failed to add change order: ' + err.message, 'error');
+            addCoBtn.disabled = false;
+          }
+        });
+        rightBtns.appendChild(addCoBtn);
+      }
+
+      if (invoice.amount_due > 0) {
+        const payBtn = createElement('button', { className: 'btn btn-primary', textContent: 'Record Payment' });
+        payBtn.addEventListener('click', () => { closeModal(modal); recordPayment(id); });
+        rightBtns.appendChild(payBtn);
+      }
+      footer.appendChild(rightBtns);
+
+      const modal = createModal({
+        title: `Invoice ${invoice.invoice_number}`,
+        content: content,
+        footer: footer,
+        size: 'fullscreen'
+      });
+
+      closeBtn.addEventListener('click', () => closeModal(modal));
+      printBtn.addEventListener('click', () => printInvoice(invoice, lineItems, payments, company));
+    };
+    
+    window.sendInvoice = async (id) => {
+      const invoice = invoices.find(i => i.id === id);
+      if (!invoice) return;
+      const customer = invoice.customers;
+      if (!customer || !customer.email) {
+        showToast('Customer email not found', 'error');
+        return;
+      }
+
+      const firstName = customer.name?.split(' ')[0] || 'Customer';
+
+      // Fetch email template
+      let templateSubject = `Invoice #${invoice.invoice_number}: ${invoice.title}`;
+      let templateBody = `Hi ${firstName},\n\nHere is your invoice for recent services.`;
+
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: template } = await supabase
+          .from('email_templates')
+          .select('*')
+          .eq('template_type', 'invoice')
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        if (template) {
+          const replaceVars = (text) => text
+            .replace(/\{\{first_name\}\}/g, firstName)
+            .replace(/\{\{customer_name\}\}/g, customer.name || '')
+            .replace(/\{\{company_name\}\}/g, ((typeof getCurrentUser === 'function' && getCurrentUser()?.org_name) || ''))
+            .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number || '')
+            .replace(/\{\{invoice_title\}\}/g, invoice.title || '')
+            .replace(/\{\{total\}\}/g, formatCurrency(invoice.total))
+            .replace(/\{\{amount_due\}\}/g, formatCurrency(invoice.amount_due))
+            .replace(/\{\{due_date\}\}/g, invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : '');
+
+          templateSubject = replaceVars(template.subject);
+          templateBody = replaceVars(template.body);
+        }
+      } catch (e) {
+        console.log('Could not load email template, using defaults');
+      }
+
+      // Convert body to preview HTML
+      const bodyPreviewHtml = templateBody
+        .split('\n\n')
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => `<p style="color: #475569; font-size: 13px; margin: 0 0 10px; white-space: pre-wrap;">${p}</p>`)
+        .join('');
+
+      const content = createElement('div');
+      content.innerHTML = `
+        <div style="margin-bottom: var(--space-lg);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">
+            <div>
+              <label class="form-label">To:</label>
+              <div style="padding: 8px 12px; background: var(--color-bg-soft); border-radius: var(--radius-md);">${customer.email}</div>
+            </div>
+            <div>
+              <label class="form-label">Subject:</label>
+              <input type="text" id="email-subject" class="form-input" value="${templateSubject.replace(/"/g, '&quot;')}">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+            <div>
+              <label class="form-label">CC: <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+              <input type="text" id="email-cc" class="form-input" placeholder="email@example.com" value="">
+            </div>
+            <div>
+              <label class="form-label">BCC: <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+              <input type="text" id="email-bcc" class="form-input" placeholder="email@example.com">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Personal Message <span style="color: var(--color-text-muted); font-weight: normal;">(optional - replaces template body)</span></label>
+          <textarea id="email-custom-message" class="form-textarea" rows="3" placeholder="Add a personal note to the customer..."></textarea>
+        </div>
+
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; margin-top: var(--space-lg);">
+          <div style="background: var(--color-bg-soft); padding: 8px 12px; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 0.9rem;">
+            Email Preview <span style="font-weight: normal; color: var(--color-text-muted); font-size: 0.8rem;">(from Invoice Email template)</span>
+          </div>
+          <div style="padding: var(--space-md); background: white; max-height: 300px; overflow-y: auto;">
+            <div style="font-family: Arial, sans-serif; max-width: 500px;">
+              <div style="background: var(--color-primary); padding: 15px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h2 data-org-name style="color: white; margin: 0; font-size: 16px;">Your Business</h2>
+                
+              </div>
+
+              <div style="padding: 15px; background: #f8fafc;">
+                <div id="custom-message-preview" style="color: #475569; font-size: 13px; line-height: 1.6; margin-bottom: 10px; display: none; white-space: pre-wrap; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;"></div>
+
+                <div id="template-body-preview">${bodyPreviewHtml}</div>
+
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin: 10px 0;">
+                  <h4 style="color: var(--color-primary); margin: 0 0 5px; font-size: 14px;">${invoice.title}</h4>
+                  <p style="color: #475569; margin: 3px 0; font-size: 12px;"><strong>Invoice #:</strong> ${invoice.invoice_number}</p>
+                  <p style="color: #475569; margin: 3px 0; font-size: 12px;"><strong>Total:</strong> ${formatCurrency(invoice.total)}</p>
+                  <p style="color: #475569; margin: 3px 0; font-size: 12px;"><strong>Amount Due:</strong> <span style="color: #ef4444; font-weight: bold;">${formatCurrency(invoice.amount_due)}</span></p>
+                  ${invoice.due_date ? `<p style="color: #94a3b8; margin: 3px 0; font-size: 11px;">Due: ${new Date(invoice.due_date).toLocaleDateString()}</p>` : ''}
+                </div>
+
+                <div style="text-align: center; margin: 15px 0;">
+                  <span style="background: var(--color-primary); color: white; padding: 8px 20px; border-radius: 6px; font-size: 12px; font-weight: 600;">View Invoice & Pay</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const footer = createElement('div', { className: 'btn-group' });
+      const cancelBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Cancel' });
+      const sendBtn = createElement('button', { type: 'button', className: 'btn btn-primary', innerHTML: 'Send Email' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(sendBtn);
+
+      const modal = createModal({
+        title: 'Send Invoice to Customer',
+        content,
+        footer,
+        size: 'lg'
+      });
+
+      // Live preview of custom message
+      const customMessageInput = content.querySelector('#email-custom-message');
+      const customMessagePreview = content.querySelector('#custom-message-preview');
+      const templateBodyPreview = content.querySelector('#template-body-preview');
+
+      customMessageInput.addEventListener('input', () => {
+        const msg = customMessageInput.value.trim();
+        if (msg) {
+          customMessagePreview.textContent = msg;
+          customMessagePreview.style.display = 'block';
+          templateBodyPreview.style.display = 'none';
+        } else {
+          customMessagePreview.style.display = 'none';
+          templateBodyPreview.style.display = 'block';
+        }
+      });
+
+      cancelBtn.addEventListener('click', () => closeModal(modal));
+
+      sendBtn.addEventListener('click', async () => {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = 'Sending...';
+
+        try {
+          const customMessage = customMessageInput.value.trim();
+          const customSubject = content.querySelector('#email-subject').value.trim();
+          const cc = content.querySelector('#email-cc').value.trim();
+          const bcc = content.querySelector('#email-bcc').value.trim();
+
+          const response = await fetch('/.netlify/functions/send-invoice-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              invoiceId: id,
+              customMessage: customMessage || undefined,
+              customSubject: customSubject || undefined,
+              cc: cc || undefined,
+              bcc: bcc || undefined
+            })
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Server error (${response.status})`);
+          }
+
+          const result = await response.json();
+          if (result.error) throw new Error(result.error);
+
+          showToast('Invoice sent to ' + customer.email, 'success');
+          closeModal(modal);
+          loadInvoices();
+        } catch (err) {
+          console.error('Send error:', err);
+          showToast('Failed to send: ' + err.message, 'error');
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = 'Send Email';
+        }
+      });
+    };
+    
+    window.recordPayment = (id) => {
+      const invoice = invoices.find(i => i.id === id);
+      if (!invoice) return;
+      
+      const content = createElement('form', { id: 'payment-form' });
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Payment Amount *</label>
+          <input type="number" name="amount" class="form-input" value="${invoice.amount_due}" step="0.01" min="0.01" max="${invoice.amount_due}" required>
+          <div class="text-sm text-muted mt-xs">Amount due: ${formatCurrency(invoice.amount_due)}</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Method *</label>
+          <select name="payment_method" class="form-select" required>
+            <option value="cash">Cash</option>
+            <option value="check">Check</option>
+            <option value="card">Credit/Debit Card</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reference # (optional)</label>
+          <input type="text" name="reference" class="form-input" placeholder="Check number, transaction ID, etc.">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Payment Date</label>
+          <input type="date" name="payment_date" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes (optional)</label>
+          <textarea name="notes" class="form-textarea" rows="2"></textarea>
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'btn-group' });
+      const cancelBtn = createElement('button', {
+        type: 'button',
+        className: 'btn btn-secondary',
+        textContent: 'Cancel'
+      });
+      const saveBtn = createElement('button', {
+        type: 'button',
+        className: 'btn btn-primary',
+        textContent: 'Record Payment'
+      });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(saveBtn);
+
+      const modal = createModal({
+        title: `Record Payment - ${invoice.invoice_number}`,
+        content: content,
+        footer: footer
+      });
+
+      cancelBtn.addEventListener('click', () => closeModal(modal));
+
+      saveBtn.addEventListener('click', async () => {
+        if (content.checkValidity()) {
+          const formData = new FormData(content);
+          await savePayment(id, formData);
+          closeModal(modal);
+        } else {
+          content.reportValidity();
+        }
+      });
+    };
+    
+    async function savePayment(invoiceId, formData) {
+      try {
+        const supabase = await app.waitForSupabase();
+        const invoice = invoices.find(i => i.id === invoiceId);
+
+        const amount = parseFloat(formData.get('amount'));
+
+        // Insert payment record. The DB trigger creates a payment_allocations
+        // row for this invoice and recalculates invoice totals automatically.
+        const { error: paymentError } = await supabase
+          .from('payments')
+          .insert({
+            invoice_id: invoiceId,
+            customer_id: invoice.customer_id,
+            amount: amount,
+            payment_method: formData.get('payment_method'),
+            reference_number: formData.get('reference') || null,
+            payment_date: formData.get('payment_date'),
+            notes: formData.get('notes') || null,
+            status: 'succeeded'
+          });
+
+        if (paymentError) throw paymentError;
+
+        showToast('Payment recorded successfully!', 'success');
+        loadInvoices();
+      } catch (err) {
+        console.error('Payment error:', err);
+        showToast('Failed to record payment: ' + err.message, 'error');
+      }
+    }
+    
+    function printInvoice(invoice, lineItems, payments, company) {
+      const companyName = company.name || '';
+      const companyPhone = company.phone || '';
+      const companyEmail = company.email || '';
+      const companyAddress = company.address || '';
+      const companyCity = company.city || '';
+      const companyState = company.state || '';
+      const companyZip = company.zip || '';
+      const companyCityStateZip = [
+        companyCity,
+        [companyState, companyZip].filter(Boolean).join(' ')
+      ].filter(Boolean).join(', ');
+
+      let itemsHtml = '';
+      if (lineItems && lineItems.length > 0) {
+        itemsHtml = lineItems.map(item => {
+          const attrs = (item.attribute_selections || []).filter(s => s.is_public && s.option_name);
+          const attrsHtml = attrs.map(s => `<div style="color:#666;font-size:11px;margin-top:2px;">${s.attribute_name}: ${s.option_name}</div>`).join('');
+          return `
+          <tr>
+            <td style="padding:8px 16px 8px 0;border-bottom:1px solid #eee;vertical-align:top;">
+              <div>${item.description}</div>
+              ${item.details ? `<div style="color:#666;font-size:12px;white-space:pre-wrap;">${item.details}</div>` : ''}
+              ${attrsHtml}
+            </td>
+            <td style="padding:8px 0 8px 28px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;vertical-align:top;">${item.quantity}</td>
+            <td style="padding:8px 0 8px 28px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;vertical-align:top;">${formatCurrency(item.unit_price)}</td>
+            <td style="padding:8px 0 8px 28px;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;vertical-align:top;">${formatCurrency(item.line_total)}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      let paymentsHtml = '';
+      if (payments && payments.length > 0) {
+        paymentsHtml = `
+          <div style="margin-top:25px;">
+            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#666;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:10px;">Payment History</div>
+            ${payments.map(p => `
+              <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #eee;">
+                <div>
+                  <span style="font-weight:500;">${formatCurrency(p.amount)}</span>
+                  <span style="color:#666;margin-left:8px;">${formatDate(p.payment_date)} - ${p.payment_method || 'Card'}${p.reference_number ? ' (Ref: ' + p.reference_number + ')' : ''}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>`;
+      }
+
+      const html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>Invoice ${invoice.invoice_number}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; color: #333; line-height: 1.5; }
+    @media print {
+      body { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;padding-bottom:20px;border-bottom:2px solid #333;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      ${localStorage.getItem('brand_logo_url') ? `<img src="${localStorage.getItem('brand_logo_url')}" alt="${companyName}" style="height:70px;width:auto;" onerror="this.style.display='none'">` : ''}
+      <div>
+        <div style="font-weight:700;font-size:16px;">${companyName}</div>
+        ${companyPhone ? `<div style="color:#666;font-size:13px;">${companyPhone}</div>` : ''}
+        ${companyEmail ? `<div style="color:#666;font-size:13px;">${companyEmail}</div>` : ''}
+        ${companyAddress ? `<div style="color:#666;font-size:13px;">${companyAddress}</div>` : ''}
+        ${companyCityStateZip ? `<div style="color:#666;font-size:13px;">${companyCityStateZip}</div>` : ''}
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:28px;font-weight:700;letter-spacing:1px;">INVOICE</div>
+      <div style="font-size:18px;font-weight:600;color:#6366f1;margin-top:4px;">${invoice.invoice_number}</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;margin-bottom:30px;">
+    <div>
+      <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#999;">Bill To</div>
+      <div style="font-weight:600;font-size:15px;margin-top:4px;">${invoice.customers?.name || '—'}</div>
+      ${invoice.customers?.company ? `<div style="font-size:13px;">${invoice.customers.company}</div>` : ''}
+      ${invoice.customers?.email ? `<div style="color:#666;font-size:13px;">${invoice.customers.email}</div>` : ''}
+    </div>
+    <div style="text-align:right;">
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#999;">Invoice Date</div>
+        <div style="font-size:14px;font-weight:500;">${formatDate(invoice.created_at)}</div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#999;">Due Date</div>
+        <div style="font-size:14px;font-weight:500;">${invoice.due_date ? formatDate(invoice.due_date) : '—'}</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-weight:600;font-size:15px;margin-bottom:15px;">${invoice.title}</div>
+
+  <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+    <thead>
+      <tr style="border-bottom:2px solid #333;">
+        <th style="text-align:left;padding:8px 16px 8px 0;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#666;width:100%;">Description</th>
+        <th style="text-align:right;padding:8px 0 8px 28px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#666;white-space:nowrap;">Qty</th>
+        <th style="text-align:right;padding:8px 0 8px 28px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#666;white-space:nowrap;">Price</th>
+        <th style="text-align:right;padding:8px 0 8px 28px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#666;white-space:nowrap;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${itemsHtml}
+    </tbody>
+  </table>
+
+  <div style="display:flex;justify-content:flex-end;">
+    <div style="width:260px;">
+      <div style="display:flex;justify-content:space-between;padding:6px 0;">
+        <span style="color:#666;">Subtotal</span>
+        <span>${formatCurrency(invoice.subtotal)}</span>
+      </div>
+      ${invoice.discount_amount > 0 ? `
+        <div style="display:flex;justify-content:space-between;padding:6px 0;">
+          <span style="color:#666;">Discount${invoice.discount_type === 'percentage' ? ` (${parseFloat(invoice.discount_value)}%)` : ''}</span>
+          <span>-${formatCurrency(invoice.discount_amount)}</span>
+        </div>
+      ` : ''}
+      ${invoice.tax_amount > 0 ? `
+        <div style="display:flex;justify-content:space-between;padding:6px 0;">
+          <span style="color:#666;">Tax (${(invoice.tax_rate * 100).toFixed(2)}%)</span>
+          <span>${formatCurrency(invoice.tax_amount)}</span>
+        </div>
+      ` : ''}
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:2px solid #333;font-weight:700;font-size:15px;">
+        <span>Total</span>
+        <span>${formatCurrency(invoice.total)}</span>
+      </div>
+      ${parseFloat(invoice.amount_paid) > 0 ? `
+        <div style="display:flex;justify-content:space-between;padding:6px 0;color:#10b981;">
+          <span>Paid</span>
+          <span>${formatCurrency(invoice.amount_paid)}</span>
+        </div>
+      ` : ''}
+      ${parseFloat(invoice.amount_due) > 0 ? `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #ddd;font-weight:700;font-size:16px;color:#ef4444;">
+          <span>Balance Due</span>
+          <span>${formatCurrency(invoice.amount_due)}</span>
+        </div>
+      ` : `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #ddd;font-weight:700;font-size:16px;color:#10b981;">
+          <span>Balance Due</span>
+          <span>${formatCurrency(0)}</span>
+        </div>
+      `}
+    </div>
+  </div>
+
+  ${paymentScheduleBlock(invoice)}${paymentsHtml}
+
+  <div style="margin-top:30px;padding-top:15px;border-top:1px solid #ddd;font-size:11px;color:#999;text-align:center;">
+    Printed on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+  </div>
+</body>
+</html>`;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.onload = () => { printWindow.print(); };
+    }
+
+    window.editPayment = async (paymentId, invoiceId) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: payment } = await supabase.from('payments').select('*').eq('id', paymentId).single();
+        if (!payment) { showToast('Payment not found', 'error'); return; }
+
+        // Close the invoice view modal first
+        document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+
+        const content = createElement('form', { id: 'edit-payment-form' });
+        content.innerHTML = `
+          <div class="form-group">
+            <label class="form-label">Payment Amount *</label>
+            <input type="number" name="amount" class="form-input" value="${payment.amount}" step="0.01" min="0.01" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Method *</label>
+            <select name="payment_method" class="form-select" required>
+              <option value="cash" ${payment.payment_method === 'cash' ? 'selected' : ''}>Cash</option>
+              <option value="check" ${payment.payment_method === 'check' ? 'selected' : ''}>Check</option>
+              <option value="card" ${payment.payment_method === 'card' ? 'selected' : ''}>Credit/Debit Card</option>
+              <option value="bank_transfer" ${payment.payment_method === 'bank_transfer' ? 'selected' : ''}>Bank Transfer</option>
+              <option value="other" ${payment.payment_method === 'other' ? 'selected' : ''}>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reference # (optional)</label>
+            <input type="text" name="reference" class="form-input" value="${payment.reference_number || ''}" placeholder="Check number, transaction ID, etc.">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Date</label>
+            <input type="date" name="payment_date" class="form-input" value="${payment.payment_date || ''}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes (optional)</label>
+            <textarea name="notes" class="form-textarea" rows="2">${payment.notes || ''}</textarea>
+          </div>
+        `;
+
+        const footer = createElement('div', { className: 'btn-group' });
+        const cancelBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Cancel' });
+        const saveBtn = createElement('button', { type: 'button', className: 'btn btn-primary', textContent: 'Save Changes' });
+        footer.appendChild(cancelBtn);
+        footer.appendChild(saveBtn);
+
+        const modal = createModal({ title: 'Edit Payment', content, footer });
+
+        cancelBtn.addEventListener('click', () => closeModal(modal));
+        saveBtn.addEventListener('click', async () => {
+          if (!content.checkValidity()) { content.reportValidity(); return; }
+
+          try {
+            // Updating the payment row triggers DB recalculation of the invoice
+            // (via payment_allocations sync trigger).
+            await supabase.from('payments').update({
+              amount: parseFloat(content.querySelector('[name="amount"]').value),
+              payment_method: content.querySelector('[name="payment_method"]').value,
+              reference_number: content.querySelector('[name="reference"]').value || null,
+              payment_date: content.querySelector('[name="payment_date"]').value,
+              notes: content.querySelector('[name="notes"]').value || null
+            }).eq('id', paymentId);
+
+            showToast('Payment updated', 'success');
+            closeModal(modal);
+            loadInvoices();
+          } catch (err) {
+            console.error(err);
+            showToast('Failed to update payment: ' + err.message, 'error');
+          }
+        });
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to load payment', 'error');
+      }
+    };
+
+    window.deletePayment = async (paymentId, invoiceId) => {
+      if (!await confirm('Delete this payment? The invoice balance will be updated.')) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        // CASCADE deletes payment_allocations; the trigger recalculates linked invoices.
+        const { error } = await supabase.from('payments').delete().eq('id', paymentId);
+        if (error) throw error;
+
+        showToast('Payment deleted', 'success');
+        // Close view modal and refresh
+        document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+        loadInvoices();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to delete payment: ' + err.message, 'error');
+      }
+    };
+
+    // Sync invoice to QuickBooks
+    async function syncInvoiceToQB(invoiceId) {
+      try {
+        const response = await fetch('/.netlify/functions/qb-sync-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ invoiceId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          if (data.error.includes('not connected')) {
+            showToast('QuickBooks not connected. Go to Settings to connect.', 'error');
+          } else {
+            showToast('QuickBooks sync failed: ' + data.error, 'error');
+          }
+          return false;
+        }
+        
+        showToast(data.message || 'Synced to QuickBooks!', 'success');
+        return true;
+      } catch (err) {
+        console.error('QB sync error:', err);
+        showToast('Failed to sync to QuickBooks', 'error');
+        return false;
+      }
+    }
+    
+    window.printInvoiceById = async (id) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: invoice } = await supabase
+          .from('invoices')
+          .select('*, customers(name, email, phone, address, city, state, zip, company)')
+          .eq('id', id)
+          .single();
+        if (!invoice) return;
+        const { data: lineItems } = await supabase.from('invoice_line_items').select('*').eq('invoice_id', id).order('sort_order');
+        const { data: payments } = await supabase.from('payments').select('*').eq('invoice_id', id).eq('status', 'succeeded').order('payment_date');
+        const { data: companySetting } = await supabase.from('settings').select('value').eq('key', 'company').single();
+        const company = companySetting?.value || {};
+        printInvoice(invoice, lineItems || [], payments || [], company);
+      } catch (err) {
+        showToast('Failed to load invoice for print', 'error');
+      }
+    };
+
+    window.archiveInvoice = async (id) => {
+      if (!confirm('Archive this invoice? It will be hidden from the default view.')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('invoices').update({ status: 'archived' }).eq('id', id);
+        showToast('Invoice archived', 'success');
+        loadInvoices();
+      } catch (err) {
+        showToast('Failed to archive: ' + err.message, 'error');
+      }
+    };
+    
+    window.unarchiveInvoice = async (id) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('invoices').update({ status: 'draft' }).eq('id', id);
+        showToast('Invoice unarchived', 'success');
+        loadInvoices();
+      } catch (err) {
+        showToast('Failed to unarchive: ' + err.message, 'error');
+      }
+    };
+    
+    window.deleteInvoice = async (id) => {
+      const invoice = invoices.find(i => i.id === id);
+      if (!confirm(`Permanently delete invoice ${invoice?.invoice_number || ''}? This cannot be undone.`)) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('invoices').delete().eq('id', id);
+        if (error) throw error;
+        showToast('Invoice deleted', 'success');
+        loadInvoices();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    };
+    
+    // Initialize
+    loadInvoices().then(() => {
+      const params = new URLSearchParams(window.location.search);
+      const openId = params.get('id');
+      if (openId) viewInvoice(openId);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+[build]
+  command = "node scripts/inject-env.js"
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Headers for cache control
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Redirects for SPA-like behavior within portal/admin sections
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Booking forms
+[[redirects]]
+  from = "/book/*"
+  to = "/book.html"
+  status = 200
+
+# Online scheduling
+[[redirects]]
+  from = "/schedule"
+  to = "/schedule.html"
+  status = 200
+
+[[redirects]]
+  from = "/schedule/*"
+  to = "/schedule.html"
+  status = 200
+
+# CORS headers for API functions (cross-origin embeds)
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+# Hourly: appointment reminder emails
+[functions."schedule-reminders"]
+  schedule = "@hourly"
+
+# Every 15 min: send due stage-sequence emails + auto stage moves
+[functions."send-sequence-emails"]
+  schedule = "*/15 * * * *"
+
+[functions."retry-failed-emails"]
+  schedule = "*/15 * * * *"
+
+# Daily 7am ET (11:00 UTC): move deals with expired, unaccepted quotes to Job Lost
+[functions."expire-quote-deals"]
+  schedule = "0 11 * * *"
+
+# Environment variables: see .env.example and SETUP.md. Set them in
+# Netlify → Site configuration → Environment variables.

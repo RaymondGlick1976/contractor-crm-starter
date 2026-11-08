@@ -1,0 +1,2995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quote | Customer Portal | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=32">
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    // Early check for public access - runs before body renders
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('token')) {
+        window.isPublicQuoteAccess = true;
+        // Hide nav, disable logo link, center header for public access
+        document.write('<style>.portal-nav{display:none !important;}.portal-header{justify-content:center;}.portal-logo{display:none !important;}</style>');
+      }
+    })();
+  </script>
+  <style>
+    .quote-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    /* Professional Document Header */
+    .quote-document-header {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-xl);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .document-header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding-bottom: var(--space-lg);
+      border-bottom: 2px solid var(--color-primary);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .company-info h1 {
+      color: var(--color-primary);
+      font-size: 1.75rem;
+      margin: 0 0 var(--space-xs) 0;
+    }
+    
+    .company-info p {
+      color: var(--color-text-muted);
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    .document-type {
+      text-align: right;
+    }
+    
+    .document-type h2 {
+      font-size: 2rem;
+      font-weight: 300;
+      color: var(--color-text);
+      margin: 0 0 var(--space-sm) 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .document-type .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .status-badge.draft { background: #e5e7eb; color: #374151; }
+    .status-badge.sent { background: #dbeafe; color: #1d4ed8; }
+    .status-badge.viewed { background: #fef3c7; color: #92400e; }
+    .status-badge.accepted { background: #d1fae5; color: #047857; }
+    .status-badge.declined { background: #fee2e2; color: #dc2626; }
+    .status-badge.expired { background: #f3f4f6; color: #6b7280; }
+    
+    .document-details-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-lg);
+    }
+    
+    @media (max-width: 768px) {
+      .document-details-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .document-details-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .document-header-top {
+        flex-direction: column;
+        gap: var(--space-md);
+      }
+      
+      .document-type {
+        text-align: left;
+      }
+    }
+    
+    .detail-box {
+      padding: var(--space-sm) 0;
+    }
+    
+    .detail-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    
+    .detail-value {
+      font-weight: 600;
+      color: var(--color-text);
+      font-size: 0.95rem;
+    }
+    
+    .detail-sub {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+    
+    .quote-section {
+      background: var(--color-bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+      overflow: hidden;
+    }
+    
+    .quote-section-header {
+      background: var(--color-bg-alt);
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--color-border-light);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .quote-section-body {
+      padding: var(--space-lg);
+    }
+    
+    .line-item {
+      display: grid;
+      grid-template-columns: auto 60px 1fr auto;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      transition: background var(--transition-fast);
+      align-items: start;
+    }
+    
+    .line-item:hover {
+      background: var(--color-bg-alt);
+    }
+    
+    .line-item.optional {
+      background: rgba(62, 133, 95, 0.05);
+      border: 1px dashed var(--color-primary);
+    }
+    
+    .line-item.optional.selected {
+      background: rgba(62, 133, 95, 0.1);
+      border-style: solid;
+    }
+    
+    .line-item-action {
+      min-width: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .line-item-action .btn {
+      white-space: nowrap;
+    }
+    
+    .line-item-photo {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+    }
+    
+    .line-item-photo:hover {
+      transform: scale(1.05);
+    }
+    
+    .line-item-photo-placeholder {
+      width: 60px;
+      height: 60px;
+      background: var(--color-bg-alt);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-muted);
+    }
+    
+    .line-item-content h4 {
+      margin: 0 0 var(--space-xs);
+      font-size: 1rem;
+    }
+    
+    .line-item-details {
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+      white-space: pre-wrap;
+    }
+    
+    .line-item-price {
+      text-align: right;
+      white-space: nowrap;
+    }
+    
+    .line-item-price-value {
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--color-primary);
+    }
+    
+    .line-item-price-range {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+    
+    .optional-badge {
+      display: inline-block;
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      margin-left: var(--space-sm);
+    }
+    
+    @media (max-width: 600px) {
+      .quote-container {
+        padding: 0;
+      }
+      .quote-document-header {
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+        border-radius: 0;
+      }
+      .quote-section {
+        margin-bottom: var(--space-md);
+        border-radius: 0;
+      }
+      .quote-section-body {
+        padding: var(--space-sm);
+      }
+      .quote-section-header {
+        padding: var(--space-sm) var(--space-md);
+      }
+      .line-item {
+        grid-template-columns: 1fr auto;
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+      }
+      .line-item-photo,
+      .line-item-photo-placeholder {
+        display: none;
+      }
+      .line-item-action {
+        display: none;
+      }
+      .line-item.optional .line-item-action {
+        display: flex;
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+        min-width: auto;
+      }
+      .line-item-action .btn {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+      }
+      .line-item-content {
+        min-width: 0;
+      }
+      .line-item-content h4 {
+        font-size: 0.9rem;
+      }
+      .line-item-price-value {
+        font-size: 1rem;
+      }
+      .attribute-selector {
+        flex-wrap: wrap;
+      }
+      .attribute-selector select {
+        max-width: 100%;
+      }
+      .totals-section {
+        padding: var(--space-md);
+        border-radius: 0;
+      }
+    }
+
+    .attribute-readonly {
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+      margin-top: var(--space-xs);
+    }
+
+    .attribute-selector {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-top: var(--space-xs);
+    }
+    .attribute-selector label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text-light);
+      white-space: nowrap;
+    }
+    .attribute-selector select {
+      padding: 4px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-bg-card, #fff);
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+
+    .totals-section {
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      padding: var(--space-xl);
+      border-radius: var(--radius-lg);
+    }
+    
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-sm) 0;
+    }
+    
+    .totals-row.grand-total {
+      font-size: 1.5rem;
+      font-weight: 700;
+      padding-top: var(--space-md);
+      margin-top: var(--space-md);
+      border-top: 2px solid rgba(255,255,255,0.2);
+    }
+    
+    .deposit-info {
+      background: rgba(255,255,255,0.1);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      margin-top: var(--space-lg);
+      text-align: center;
+    }
+    
+    .deposit-amount {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    
+    .accept-section {
+      text-align: center;
+      padding: var(--space-xl);
+    }
+    
+    .accept-btn {
+      font-size: 1.125rem;
+      padding: var(--space-md) var(--space-2xl);
+    }
+    
+    .payment-method-btn {
+      border: 2px solid var(--color-border);
+      background: white;
+      transition: all 0.2s ease;
+    }
+    
+    .payment-method-btn.active {
+      border-color: var(--color-primary);
+      background: white;
+      color: var(--color-primary);
+      font-weight: 600;
+      box-shadow: 0 0 0 1px var(--color-primary);
+    }
+    
+    .payment-method-btn:hover:not(.active) {
+      border-color: var(--color-primary);
+      background: var(--color-bg-soft);
+    }
+    
+    .video-container {
+      position: relative;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: var(--radius-md);
+    }
+    
+    .video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .attachment-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+    }
+    
+    .attachment-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--color-bg-alt);
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      text-decoration: none;
+      color: var(--color-text);
+      transition: background var(--transition-fast);
+    }
+    
+    .attachment-item:hover {
+      background: var(--color-border);
+    }
+    
+    .attachment-item svg {
+      width: 16px;
+      height: 16px;
+      color: var(--color-text-muted);
+    }
+    
+    .image-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      cursor: pointer;
+    }
+    
+    .image-modal img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    }
+    
+    .quote-expired {
+      background: var(--color-warning);
+      color: white;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+      margin-bottom: var(--space-xl);
+    }
+    
+    .quote-accepted {
+      background: var(--color-success);
+      color: white;
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+      margin-bottom: var(--space-xl);
+    }
+    
+    /* Quote Footer Link Buttons */
+    .quote-footer-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-md);
+    }
+    .quote-footer-buttons .btn {
+      min-width: 180px;
+      justify-content: center;
+      text-decoration: none;
+    }
+    @media (max-width: 600px) {
+      .quote-footer-buttons .btn { flex: 1 1 100%; }
+    }
+    @media print {
+      .quote-footer-buttons .btn::after { content: " (" attr(href) ")"; font-size: 0.75em; font-weight: normal; }
+    }
+
+    /* Quote Footer Banner */
+    #quote-footer-banner-link:hover img {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    /* Change Order Styles */
+    .change-order-card {
+      background: var(--color-bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+      overflow: hidden;
+      border-left: 4px solid var(--color-primary);
+    }
+    
+    .change-order-header {
+      background: var(--color-bg-alt);
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--color-border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .change-order-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .change-order-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    
+    .change-order-badge.pending {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    
+    .change-order-badge.accepted {
+      background: #d1fae5;
+      color: #047857;
+    }
+    
+    .change-order-badge.declined {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    
+    .change-order-body {
+      padding: var(--space-lg);
+    }
+    
+    .change-order-item {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    
+    .change-order-item:last-child {
+      border-bottom: none;
+    }
+    
+    .change-order-total {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-md);
+      background: var(--color-primary);
+      color: white;
+      font-weight: 600;
+      margin-top: var(--space-md);
+      border-radius: var(--radius-md);
+    }
+    
+    .change-order-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+      padding-top: var(--space-lg);
+      border-top: 1px solid var(--color-border-light);
+    }
+    
+    .declined-item {
+      opacity: 0.7;
+      color: var(--color-text-muted);
+    }
+    
+    .declined-item .line-item-content h4 {
+      color: #f59e0b;
+    }
+    
+    /* Payment History Styles */
+    .payment-history {
+      background: var(--color-bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: var(--space-xl);
+      overflow: hidden;
+      border-left: 4px solid var(--color-success);
+    }
+    
+    .payment-history-header {
+      background: #d1fae5;
+      padding: var(--space-md) var(--space-lg);
+      border-bottom: 1px solid var(--color-border-light);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      color: #047857;
+    }
+    
+    .payment-history-body {
+      padding: var(--space-lg);
+    }
+    
+    .payment-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md);
+      background: var(--color-bg-soft);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-sm);
+    }
+    
+    .payment-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .payment-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .payment-item-date {
+      font-weight: 500;
+    }
+    
+    .payment-item-method {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    
+    .payment-item-amount {
+      font-weight: 600;
+      color: var(--color-success);
+      font-size: 1.125rem;
+    }
+    
+    .payment-summary {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-md);
+      background: #d1fae5;
+      border-radius: var(--radius-md);
+      margin-top: var(--space-md);
+    }
+    
+    .payment-summary-label {
+      font-weight: 500;
+      color: #047857;
+    }
+    
+    .payment-summary-value {
+      font-weight: 600;
+      color: #047857;
+    }
+    
+    .quote-actions {
+      display: flex;
+      gap: var(--space-md);
+      justify-content: center;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .quote-actions .btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    .print-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+    
+    /* Print Styles */
+    @media print {
+      @page {
+        margin: 0.6in 0.4in 0.4in 0.4in;
+        size: letter;
+      }
+      
+      body {
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      .portal-header,
+      #portal-header,
+      header.portal-header,
+      .portal-nav,
+      #portal-nav,
+      .quote-actions,
+      .accept-section,
+      #accept-btn,
+      .line-item-action,
+      .package-select-btn,
+      .package-radio,
+      .package-recommended-badge,
+      #status-banner,
+      #loading-state,
+      .skeleton,
+      .package-warning,
+      .no-print {
+        display: none !important;
+      }
+
+      /* Show packages/bundles in print only when active (JS adds .has-packages) */
+      #packages-section.has-packages,
+      .packages-section.has-packages {
+        display: block !important;
+        margin-bottom: 30px !important;
+      }
+
+      .packages-section h2 {
+        font-size: 16pt !important;
+        text-align: center !important;
+        margin-bottom: 4px !important;
+        break-after: avoid;
+      }
+
+      .packages-subtitle {
+        text-align: center !important;
+        margin-bottom: 12px !important;
+      }
+
+      .packages-grid,
+      #packages-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+      }
+
+      .package-card {
+        display: block !important;
+        border: 1px solid #ccc !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .package-card.selected {
+        border: 2px solid #3e855f !important;
+      }
+
+      .package-name {
+        font-weight: bold !important;
+        font-size: 11pt !important;
+        text-align: center !important;
+      }
+
+      .package-price {
+        text-align: center !important;
+        font-size: 14pt !important;
+        font-weight: bold !important;
+        margin: 8px 0 !important;
+      }
+      
+      .portal-container {
+        padding: 0.3in 0.25in !important;
+        margin: 0 !important;
+        max-width: none !important;
+        padding-top: 0.3in !important;
+      }
+      
+      #quote-content {
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      
+      .quote-container {
+        max-width: none !important;
+        padding: 0 !important;
+      }
+      
+      /* Keep section headers with their content */
+      .quote-section-header {
+        break-after: avoid;
+      }
+      
+      /* Keep each line item box together on the same page */
+      .line-item {
+        grid-template-columns: 60px 1fr auto !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      
+      /* Totals section should stay together and not break */
+      .totals-section {
+        background: #3e855f !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      
+      /* Professional document header for print - keep compact */
+      .quote-document-header {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin-bottom: 15px !important;
+      }
+      
+      /* Ensure no forced page breaks before any quote-section */
+      .quote-section {
+        box-shadow: none !important;
+        border: 1px solid #ddd;
+        margin-bottom: 15px !important;
+        margin-top: 0 !important;
+        break-inside: auto;
+      }
+      
+      .document-header-top {
+        padding-bottom: 10px !important;
+        margin-bottom: 10px !important;
+      }
+      
+      .company-info h1 {
+        font-size: 16px !important;
+        margin-bottom: 2px !important;
+      }
+      
+      .company-info p {
+        font-size: 9px !important;
+        line-height: 1.3 !important;
+      }
+      
+      .document-type h2 {
+        font-size: 20px !important;
+        margin-bottom: 4px !important;
+      }
+      
+      .document-details-grid {
+        gap: 8px !important;
+      }
+      
+      .detail-box {
+        padding: 4px 0 !important;
+      }
+      
+      .detail-label {
+        font-size: 7px !important;
+        margin-bottom: 2px !important;
+      }
+      
+      .detail-value {
+        font-size: 10px !important;
+      }
+      
+      .detail-sub {
+        font-size: 8px !important;
+      }
+      
+      .status-badge {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-size: 8px !important;
+        padding: 2px 6px !important;
+      }
+      
+      /* Show item descriptions in bundle for print */
+      .package-item-desc {
+        display: block !important;
+      }
+      
+      /* Hide info icons in print (descriptions are visible) */
+      .info-icon {
+        display: none !important;
+      }
+      
+      /* Keep notes and terms sections together if small */
+      #notes-section,
+      #terms-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+    
+    /* Package Selection Styles */
+    .packages-section {
+      margin-bottom: var(--space-xl);
+    }
+    
+    .packages-section h2 {
+      text-align: center;
+      margin-bottom: var(--space-sm);
+    }
+    
+    .packages-section .packages-subtitle {
+      text-align: center;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .packages-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-lg);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    @media (min-width: 1200px) {
+      .packages-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        max-width: 1100px;
+      }
+    }
+    
+    @media (max-width: 700px) {
+      .packages-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .package-card {
+      background: var(--color-bg-card);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      position: relative;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .package-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+      transform: translateY(-4px);
+    }
+    
+    .package-card.recommended {
+      border-color: var(--color-primary);
+    }
+    
+    .package-card.selected {
+      border-color: var(--color-success);
+      box-shadow: 0 0 0 2px var(--color-success), 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .package-card.selected:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 0 2px var(--color-success), 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .package-recommended-badge {
+      position: absolute;
+      top: -1px;
+      right: 20px;
+      background: var(--color-text-muted);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 0 0 4px 4px;
+      transform: rotate(0deg);
+    }
+    
+    .package-card.recommended .package-recommended-badge {
+      background: var(--color-primary);
+    }
+    
+    .package-radio {
+      position: absolute;
+      top: var(--space-md);
+      left: var(--space-md);
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--color-border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .package-card.selected .package-radio {
+      border-color: var(--color-success);
+      background: var(--color-success);
+    }
+    
+    .package-card.selected .package-radio::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+    }
+    
+    .package-name {
+      font-size: 1.35rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: var(--space-sm);
+    }
+    
+    .package-description {
+      text-align: center;
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      margin-bottom: var(--space-md);
+      min-height: 40px;
+      white-space: pre-wrap;
+      line-height: 1.5;
+    }
+    
+    .package-price {
+      text-align: center;
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: var(--color-text);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .package-price sup {
+      font-size: 1.1rem;
+      vertical-align: super;
+    }
+    
+    .package-items-list {
+      border-top: 1px solid var(--color-border-light);
+      padding-top: var(--space-md);
+    }
+    
+    .package-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border-light);
+      font-size: 0.875rem;
+    }
+    
+    .package-item.excluded {
+      color: var(--color-text-muted);
+      text-decoration: line-through;
+    }
+    
+    .package-item-name {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+    
+    .package-item-desc {
+      width: 100%;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+    
+    .package-item-price {
+      font-weight: 500;
+      flex-shrink: 0;
+      margin-left: var(--space-sm);
+    }
+    
+    .package-item .info-icon {
+      color: var(--color-text-muted);
+      cursor: help;
+    }
+    
+    .package-select-btn {
+      width: 100%;
+      margin-top: var(--space-lg);
+      padding: var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .package-select-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    
+    .package-card.selected .package-select-btn {
+      background: var(--color-success);
+      border-color: var(--color-success);
+      color: white;
+    }
+    
+    .package-warning {
+      background: #fef3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xl);
+    }
+  </style>
+</head>
+<body>
+  <header class="portal-header" id="portal-header">
+    <a href="/portal/dashboard.html" class="portal-logo">
+      <img data-brand-logo src="" alt="Company Logo" style="height: 56px; filter: brightness(0) invert(1); display: none;">
+    </a>
+    <nav class="portal-nav" id="portal-nav">
+      <a href="/portal/dashboard.html" class="portal-nav-link">Dashboard</a>
+      <a href="/portal/quotes.html" class="portal-nav-link active">Quotes</a>
+      <a href="/portal/invoices.html" class="portal-nav-link">Invoices</a>
+      <a href="/portal/payments.html" class="portal-nav-link">Payments</a>
+      <a href="/portal/files.html" class="portal-nav-link">Files</a>
+      <a href="/portal/uploads.html" class="portal-nav-link">Uploads</a>
+    </nav>
+  </header>
+  
+  <main class="portal-container">
+    <div class="quote-container">
+      <!-- Loading State -->
+      <div id="loading-state">
+        <div class="skeleton" style="height: 200px; margin-bottom: 20px;"></div>
+        <div class="skeleton" style="height: 300px; margin-bottom: 20px;"></div>
+        <div class="skeleton" style="height: 150px;"></div>
+      </div>
+      
+      <!-- Quote Content -->
+      <div id="quote-content" style="display: none;">
+        <!-- Professional Quote Header -->
+        <div id="quote-document-header" class="quote-document-header">
+          <div class="document-header-top">
+            <div class="company-info" style="display:flex;align-items:center;gap:16px;">
+              <img data-brand-logo src="" alt="Company Logo" style="height:70px;width:auto; display:none;">
+              <div>
+                <h1 id="company-name-display"></h1>
+                <p id="company-address-display"></p>
+                <p id="company-contact-display"></p>
+              </div>
+            </div>
+            <div class="document-type">
+              <h2>Proposal</h2>
+              <div id="document-status-badge" class="status-badge"></div>
+            </div>
+          </div>
+          
+          <div class="document-details-grid">
+            <div class="detail-box">
+              <div class="detail-label">Customer</div>
+              <div class="detail-value" id="customer-name-display"></div>
+              <div class="detail-sub" id="customer-contact-display"></div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-label">Project</div>
+              <div class="detail-value" id="project-title-display"></div>
+              <div class="detail-sub" id="project-address-display"></div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-label">Proposal #</div>
+              <div class="detail-value" id="proposal-number-display"></div>
+            </div>
+            <div class="detail-box">
+              <div class="detail-label">Date</div>
+              <div class="detail-value" id="proposal-date-display"></div>
+              <div class="detail-sub" id="valid-until-display"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Actions Bar -->
+        <div class="quote-actions no-print">
+          <a href="/portal/dashboard.html" class="btn" style="text-decoration: none; background: #f97316; color: white; border-color: #f97316; padding: var(--space-sm) var(--space-xxl); min-width: 200px; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            My Portal
+          </a>
+          <button class="btn btn-secondary print-btn" onclick="window.print()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 6 2 18 2 18 9"/>
+              <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+              <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Print / Save PDF
+          </button>
+        </div>
+        
+        <!-- Status Banner -->
+        <div id="status-banner"></div>
+        
+        <!-- Packages Section (shown when packages_enabled) -->
+        <div id="packages-section" class="packages-section" style="display: none;">
+          <h2>Select Your Bundle</h2>
+          <p class="packages-subtitle">Choose the option that best fits your needs</p>
+          <div class="packages-grid" id="packages-grid"></div>
+          <div id="package-warning" class="package-warning" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Please select a bundle to continue with your proposal.
+          </div>
+        </div>
+        
+        <!-- Line Items Section -->
+        <div class="quote-section">
+          <div class="quote-section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            Quote Details
+          </div>
+          <div class="quote-section-body" id="line-items-container">
+            <!-- Line items will be rendered here -->
+          </div>
+        </div>
+        
+        <!-- Attachments Section -->
+        <div id="attachments-section" class="quote-section" style="display: none;">
+          <div class="quote-section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+            </svg>
+            Attachments
+          </div>
+          <div class="quote-section-body">
+            <div class="attachment-list" id="attachment-list"></div>
+          </div>
+        </div>
+        
+        <!-- Declined Options Section -->
+        <div id="declined-options-section" class="quote-section" style="display: none; border-left: 4px solid #f59e0b;">
+          <div class="quote-section-header" style="background: #fffbeb;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Declined Options
+          </div>
+          <div class="quote-section-body" id="declined-options-container">
+            <!-- Declined options will be rendered here -->
+          </div>
+        </div>
+        
+        <!-- Change Orders Section -->
+        <div id="change-orders-section" style="display: none;">
+          <!-- Change orders will be rendered here -->
+        </div>
+        
+        <!-- Payment History Section -->
+        <div id="payment-history-section" class="payment-history" style="display: none;">
+          <div class="payment-history-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            Payment History
+          </div>
+          <div class="payment-history-body" id="payment-history-body">
+            <!-- Payments will be rendered here -->
+          </div>
+        </div>
+        
+        <!-- Totals Section -->
+        <div class="totals-section" id="totals-section">
+          <div class="totals-row">
+            <span>Subtotal</span>
+            <span id="subtotal">$0.00</span>
+          </div>
+          <div class="totals-row" id="discount-row" style="display: none;">
+            <span id="discount-label">Discount</span>
+            <span id="discount-amount">-$0.00</span>
+          </div>
+          <div class="totals-row" id="tax-row" style="display: none;">
+            <span>Tax (<span id="tax-rate">0</span>%)</span>
+            <span id="tax-amount">$0.00</span>
+          </div>
+          <div class="totals-row grand-total">
+            <span>Total</span>
+            <span id="grand-total">$0.00</span>
+          </div>
+          <div class="deposit-info" id="payment-schedule-info">
+            <div style="font-weight: 600; margin-bottom: var(--space-sm);">Payment Schedule</div>
+            <div id="payment-schedule-display"></div>
+            <div style="margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid rgba(255,255,255,0.2);">
+              <div style="display: flex; justify-content: space-between;">
+                <span>Deposit required to begin:</span>
+                <span class="deposit-amount" id="deposit-amount">$0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Accept Section -->
+        <div class="accept-section" id="accept-section">
+          <p class="text-muted mb-lg">
+            By accepting this quote, you agree to the terms and authorize the work to begin.
+          </p>
+          
+          <div id="payment-options" style="max-width: 400px; margin: 0 auto var(--space-lg);">
+            <!-- Payment Method Selection -->
+            <div style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-lg);">
+              <!-- Shown when the business has connected Stripe -->
+              <button type="button" class="btn btn-secondary payment-method-btn" id="pay-card-btn" onclick="selectPaymentMethod('card')" style="flex: 1; display: none;">
+                💳 Pay by Card
+              </button>
+              <button type="button" class="btn btn-secondary payment-method-btn active" id="pay-check-btn" onclick="selectPaymentMethod('check')" style="flex: 1;">
+                🏦 Check / Cash
+              </button>
+            </div>
+            
+            <!-- Card Payment Amount -->
+            <div id="card-payment-section">
+              <label class="form-label text-center" style="color: var(--color-text-light);">Payment Amount</label>
+              <div style="display: flex; align-items: center; gap: var(--space-sm); justify-content: center;">
+                <span style="font-size: 1.25rem;">$</span>
+                <input type="number" id="payment-amount" class="form-input" style="font-size: 1.25rem; text-align: center; max-width: 150px;" step="0.01" min="1">
+              </div>
+              <div class="text-sm text-muted mt-sm text-center">
+                Minimum deposit: <span id="min-deposit">$0.00</span>
+              </div>
+            </div>
+            
+            <!-- Check/Cash Info -->
+            <div id="check-payment-section" style="display: none; text-align: center;">
+              <p class="text-muted mb-md">
+                You'll receive payment instructions after accepting. Make checks payable to:
+              </p>
+              <div id="check-payable-name" data-org-name style="background: var(--color-bg-alt); padding: var(--space-md); border-radius: var(--radius-md); font-weight: 600;">
+              </div>
+            </div>
+          </div>
+          
+          <button class="btn btn-accent accept-btn" id="accept-btn">
+            Accept Quote & Pay
+          </button>
+          
+          <!-- Preview Mode Warning -->
+          <div id="preview-warning" style="display: none; margin-top: var(--space-md); padding: var(--space-md); background: #fef3c7; border-radius: var(--radius-md); text-align: center;">
+            <strong>⚠️ Preview Mode</strong><br>
+            <span class="text-sm">Payment is disabled in preview. Open in new tab to test actual checkout.</span>
+          </div>
+        </div>
+        
+        <!-- Notes Section -->
+        <div id="notes-section" class="quote-section" style="display: none;">
+          <div class="quote-section-header">Notes</div>
+          <div class="quote-section-body" id="notes-content"></div>
+        </div>
+        
+        <!-- Terms and Conditions Section -->
+        <div id="terms-section" class="quote-section" style="display: none;">
+          <div class="quote-section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+            Terms & Conditions
+          </div>
+          <div class="quote-section-body" id="terms-content" style="white-space: pre-line; color: var(--color-text-light); font-size: 0.875rem; line-height: 1.6;"></div>
+        </div>
+        
+        <!-- Video Section (About Your Project) -->
+        <div id="video-section" class="quote-section" style="display: none;">
+          <div class="quote-section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="23 7 16 12 23 17 23 7"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+            About Your Project
+          </div>
+          <div class="quote-section-body">
+            <div class="video-container" id="video-container"></div>
+          </div>
+        </div>
+        
+        <!-- Footer Link Buttons -->
+        <div id="quote-footer-buttons" class="quote-section" style="display: none;">
+          <div class="quote-section-header">Helpful Links</div>
+          <div class="quote-section-body">
+            <div id="quote-footer-buttons-list" class="quote-footer-buttons"></div>
+          </div>
+        </div>
+
+        <!-- Promotional Footer Banner -->
+        <div id="quote-footer-banner" class="quote-section" style="display: none;">
+          <div class="quote-section-body" style="text-align: center; padding: var(--space-xl);">
+            <p id="quote-footer-banner-title" style="font-weight: 600; margin-bottom: var(--space-md); font-size: 1.1rem; display: none;"></p>
+            <a id="quote-footer-banner-link" href="#" target="_blank" rel="noopener noreferrer" style="display: inline-block;">
+              <img id="quote-footer-banner-image" src="" alt="View More" style="max-width: 100%; max-height: 250px; border-radius: var(--radius-md); box-shadow: var(--shadow-md); transition: transform 0.2s ease;">
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script src="/js/utils.js"></script>
+  <script src="/js/portal-auth.js"></script>
+  <script>
+    
+    let quote = null;
+    let lineItems = [];
+    let attachments = [];
+    let changeOrders = [];
+    let payments = [];
+    let packages = [];
+    let selectedPackageId = null;
+    let stripe = null;
+    let accessToken = null;
+    let isPublicAccess = false;
+    let quoteFooterData = null;
+    let companyData = null;
+    let linkedInvoice = null;
+    
+    // Get quote ID or token from URL
+    const params = new URLSearchParams(window.location.search);
+    const quoteId = params.get('id');
+    accessToken = params.get('token');
+    const hideUnselected = params.get('hideUnselected') === '1';
+    const autoPrint = params.get('print') === '1';
+    
+    // Check for payment status
+    const paymentStatus = params.get('payment');
+    if (paymentStatus === 'success') {
+      setTimeout(() => {
+        showToast('Payment successful! Thank you.', 'success');
+      }, 500);
+    } else if (paymentStatus === 'cancelled') {
+      setTimeout(() => {
+        showToast('Payment was cancelled.', 'info');
+      }, 500);
+    }
+    
+    // Determine access mode
+    if (accessToken) {
+      isPublicAccess = true;
+      // Skip auth check for public access
+      window.skipAuthCheck = true;
+    } else if (!quoteId) {
+      window.location.href = '/portal/quotes.html';
+    }
+    
+    async function loadQuote() {
+      try {
+        let response;
+        
+        if (isPublicAccess) {
+          // Use public API with token
+          // Admin views (preview=1 or admin=1) shouldn't mark the quote as viewed
+          const _qp = new URLSearchParams(window.location.search);
+          const _skipTracking = _qp.get('preview') === '1' || _qp.get('admin') === '1';
+          response = await fetch(`/.netlify/functions/public-quote?token=${accessToken}${_skipTracking ? '&preview=1' : ''}`);
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to load quote');
+          }
+          response = await response.json();
+        } else {
+          // Use authenticated API
+          response = await apiCall(`portal-quote?id=${quoteId}`);
+        }
+        
+        quote = response.quote;
+        lineItems = response.line_items;
+
+        // Sync admin price overrides into available_options so dropdown
+        // reselection preserves the admin-set price instead of reverting
+        // to the catalog default.
+        (lineItems || []).forEach(item => {
+          (item.attribute_selections || []).forEach(sel => {
+            if (sel.available_options && sel.option_id && sel.unit_price != null) {
+              const matchingOpt = sel.available_options.find(o => o.option_id === sel.option_id);
+              if (matchingOpt) {
+                matchingOpt.unit_price = sel.unit_price;
+              }
+            }
+          });
+        });
+
+        // Filter out unselected optional items when printing from admin
+        if (hideUnselected) {
+          lineItems = lineItems.filter(item => !item.is_optional || item.is_selected);
+        }
+
+        attachments = response.attachments;
+        changeOrders = response.change_orders || [];
+        payments = response.payments || [];
+        packages = (response.quote && response.quote.document_mode === 'attachment') ? [] : (response.packages || []);
+        quoteFooterData = response.quote_footer || null;
+        companyData = response.company || null;
+        linkedInvoice = response.linked_invoice || null;
+
+        renderQuote();
+
+        // Auto-trigger print dialog when opened from admin Print button
+        if (autoPrint) {
+          setTimeout(() => window.print(), 600);
+        }
+        
+      } catch (err) {
+        console.error('Failed to load quote:', err);
+        showToast(err.message || 'Failed to load quote', 'error');
+        
+        // Show error state
+        $('#loading-state').innerHTML = `
+          <div class="card">
+            <div class="card-body text-center" style="padding: var(--space-3xl);">
+              <h3 style="color: var(--color-danger);">Unable to Load Quote</h3>
+              <p class="text-muted">${err.message || 'The quote link may be invalid or expired.'}</p>
+              <a href="/portal/login.html" class="btn btn-primary mt-lg">Go to Portal</a>
+            </div>
+          </div>
+        `;
+      }
+    }
+    
+    function renderQuote() {
+      $('#loading-state').style.display = 'none';
+      $('#quote-content').style.display = 'block';
+      
+      // Show portal login link for public access instead of nav
+      if (isPublicAccess) {
+        const nav = $('#portal-nav');
+        const header = $('#portal-header');
+        const logoLink = header?.querySelector('.portal-logo');
+        
+        // Disable logo link for public access (shouldn't go to dashboard)
+        if (logoLink) {
+          logoLink.removeAttribute('href');
+          logoLink.style.pointerEvents = 'none';
+          logoLink.style.cursor = 'default';
+        }
+        
+        if (nav) {
+          nav.innerHTML = `
+            <a href="/portal/login.html" class="portal-nav-link" style="background: rgba(255,255,255,0.1); border-radius: 6px; padding: 8px 16px;">
+              🔐 Sign into Customer Portal
+            </a>
+          `;
+          // Show the nav now that content is set (was hidden by early script)
+          nav.style.display = '';
+        }
+        if (header) {
+          header.style.justifyContent = '';
+        }
+      }
+      
+      // Status banner
+      const statusBanner = $('#status-banner');
+      if (quote.status === 'expired') {
+        statusBanner.innerHTML = '<div class="quote-expired">This quote has expired. Please contact us for a new quote.</div>';
+        $('#accept-section').style.display = 'none';
+      } else if (quote.status === 'accepted' || quote.status === 'converted') {
+        const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+        let statusHtml = `<div class="quote-accepted">✓ Quote accepted on ${formatDate(quote.accepted_at)}`;
+        if (totalPaid > 0) {
+          statusHtml += ` • Deposit paid: ${formatCurrency(totalPaid)}`;
+        }
+        statusHtml += '</div>';
+        if (linkedInvoice) {
+          let invoiceUrl;
+          if (isPublicAccess && linkedInvoice.access_token) {
+            invoiceUrl = `/portal/invoice.html?token=${linkedInvoice.access_token}`;
+          } else if (!isPublicAccess && linkedInvoice.id) {
+            invoiceUrl = `/portal/invoice.html?id=${linkedInvoice.id}`;
+          }
+          if (invoiceUrl) {
+            statusHtml += `<div style="margin-top:var(--space-sm);"><a href="${invoiceUrl}" class="btn btn-primary btn-sm">View Invoice</a></div>`;
+          }
+        }
+        statusBanner.innerHTML = statusHtml;
+        $('#accept-section').style.display = 'none';
+      } else if (quote.status === 'declined') {
+        statusBanner.innerHTML = '<div class="quote-expired">This quote was declined.</div>';
+        $('#accept-section').style.display = 'none';
+      }
+      
+      // Header
+      renderDocumentHeader();
+      
+      // Video
+      if (quote.video_url) {
+        $('#video-section').style.display = 'block';
+        const videoId = extractVideoId(quote.video_url);
+        if (videoId) {
+          $('#video-container').innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>`;
+        }
+      }
+      
+      const isDocQuote = quote.document_mode === 'attachment';
+      if (isDocQuote) {
+        // The uploaded document IS the quote
+        renderDocumentBody();
+      } else
+      // Check if packages exist (automatic - show bundles if they exist)
+      if (packages && packages.length > 0) {
+        // Show packages section
+        $('#packages-section').style.display = 'block';
+        $('#packages-section').classList.add('has-packages');
+
+        // IMPORTANT: Set selectedPackageId BEFORE rendering so totals calculate correctly
+        // Check for both boolean true and string 'true' (database may return either)
+        selectedPackageId = quote.selected_package_id || 
+                           packages.find(p => p.is_selected === true || p.is_selected === 'true')?.id || 
+                           null;
+        
+        renderPackages();
+        
+        // Show warning if no package selected yet
+        if (!selectedPackageId && quote.status !== 'accepted' && quote.status !== 'converted') {
+          $('#package-warning').style.display = 'flex';
+        }
+        
+        // Also show line items if there are any additional items
+        if (lineItems && lineItems.length > 0) {
+          renderLineItems();
+        }
+      } else {
+        // Show regular line items
+        renderLineItems();
+        
+        // If packages exist but not enabled, still show them (for preview)
+        if (packages && packages.length > 0) {
+          $('#packages-section').style.display = 'block';
+          $('#packages-section').classList.add('has-packages');
+          renderPackages();
+        }
+      }
+      
+      // Attachments (already shown as the quote body in document mode)
+      if (attachments.length > 0 && !isDocQuote) {
+        $('#attachments-section').style.display = 'block';
+        const attachmentList = $('#attachment-list');
+        attachments.forEach(att => {
+          if (att.file_type?.includes('image')) {
+            // Image attachments - show as thumbnail with link
+            const item = createElement('a', {
+              className: 'attachment-item attachment-image',
+              href: att.file_url,
+              target: '_blank'
+            });
+            item.innerHTML = `
+              <img src="${att.file_url}" alt="${att.file_name}" style="max-width: 100%; max-height: 200px; border-radius: 8px; display: block;">
+              <span style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">${att.file_name}</span>
+            `;
+            item.style.flexDirection = 'column';
+            item.style.maxWidth = '250px';
+            attachmentList.appendChild(item);
+          } else {
+            // Non-image - show as icon + filename link
+            const icon = getFileIcon(att.file_type);
+            const item = createElement('a', {
+              className: 'attachment-item',
+              href: att.file_url,
+              target: '_blank',
+              innerHTML: `${icon} ${att.file_name}`
+            });
+            attachmentList.appendChild(item);
+          }
+        });
+      }
+      
+      // Notes
+      if (quote.notes) {
+        $('#notes-section').style.display = 'block';
+        $('#notes-content').textContent = quote.notes;
+      }
+      
+      // Render declined options (optional items not selected)
+      renderDeclinedOptions();
+      
+      // Render change orders
+      renderChangeOrders();
+      
+      // Render payment history
+      renderPayments();
+      
+      // Load and display terms
+      loadTerms();
+      
+      // Load and display promotional footer
+      loadQuoteFooter();
+      
+      // Calculate totals
+      updateTotals();
+    }
+    
+    function renderDocumentHeader() {
+      // Company info
+      const company = companyData || {};
+      const companyName = company.name || '';
+      const companyAddress = [company.address, company.city, company.state, company.zip]
+        .filter(Boolean).join(', ') || '';
+      const companyContact = [company.phone, company.email].filter(Boolean).join(' • ');
+      
+      $('#company-name-display').textContent = companyName;
+      document.querySelectorAll('[data-org-name]').forEach(el => { el.textContent = companyName; });
+      $('#company-address-display').textContent = companyAddress;
+      $('#company-contact-display').textContent = companyContact;
+      
+      // Status badge
+      const statusBadge = $('#document-status-badge');
+      const statusMap = {
+        draft: 'Draft',
+        sent: 'Pending',
+        viewed: 'Viewed',
+        accepted: 'Accepted',
+        declined: 'Declined',
+        expired: 'Expired',
+        converted: 'Accepted'
+      };
+      statusBadge.textContent = statusMap[quote.status] || quote.status;
+      statusBadge.className = `status-badge ${quote.status}`;
+      
+      // Customer info
+      const customer = quote.customers || {};
+      $('#customer-name-display').textContent = customer.name || 'Customer';
+      const customerContact = [customer.email, customer.phone].filter(Boolean).join(' • ');
+      $('#customer-contact-display').textContent = customerContact;
+      
+      // Project info - use customer address if no job_address
+      $('#project-title-display').textContent = quote.title || '';
+      const jobAddress = quote.job_address || 
+        [customer.address, customer.city, customer.state, customer.zip].filter(Boolean).join(', ') || '';
+      $('#project-address-display').textContent = jobAddress;
+      
+      // Proposal number and date
+      $('#proposal-number-display').textContent = quote.quote_number || '';
+      
+      const createdDate = quote.created_at ? new Date(quote.created_at).toLocaleDateString('en-US', {
+        month: 'numeric',
+        day: 'numeric', 
+        year: 'numeric'
+      }) : '';
+      $('#proposal-date-display').textContent = createdDate;
+      
+      const expiresDate = quote.expires_at ? formatDate(quote.expires_at) : '';
+      $('#valid-until-display').textContent = expiresDate ? `Valid until ${expiresDate}` : '';
+    }
+    
+    function renderDeclinedOptions() {
+      // Hide declined options when printing without unselected items
+      if (hideUnselected) {
+        $('#declined-options-section').style.display = 'none';
+        return;
+      }
+      // Only show declined options after quote has been accepted
+      if (!['accepted', 'converted'].includes(quote.status)) {
+        $('#declined-options-section').style.display = 'none';
+        return;
+      }
+      
+      const declinedItems = lineItems.filter(item => item.is_optional && !item.is_selected);
+      
+      if (declinedItems.length === 0) {
+        $('#declined-options-section').style.display = 'none';
+        return;
+      }
+      
+      $('#declined-options-section').style.display = 'block';
+      const container = $('#declined-options-container');
+      clearElement(container);
+      
+      declinedItems.forEach(item => {
+        const itemEl = createElement('div', { className: 'line-item declined-item' });
+        
+        // Empty action cell
+        itemEl.appendChild(createElement('div', { className: 'line-item-action' }));
+        
+        // Photo or placeholder
+        if (item.photo_url) {
+          itemEl.appendChild(createElement('img', { className: 'line-item-photo', src: item.photo_url, alt: item.description }));
+        } else {
+          itemEl.appendChild(createElement('div', { className: 'line-item-photo-placeholder', innerHTML: '📦' }));
+        }
+        
+        // Content
+        const contentDiv = createElement('div', { className: 'line-item-content' });
+        contentDiv.appendChild(createElement('h4', { textContent: item.description }));
+        if (item.details) contentDiv.appendChild(createElement('p', { className: 'line-item-details', textContent: item.details }));
+        itemEl.appendChild(contentDiv);
+        
+        // Price
+        const priceCell = createElement('div', { className: 'line-item-price' });
+        priceCell.appendChild(createElement('div', { className: 'line-item-price-value', textContent: formatCurrency(item.line_total || 0) }));
+        itemEl.appendChild(priceCell);
+        
+        container.appendChild(itemEl);
+      });
+    }
+    
+    function renderChangeOrders() {
+      if (changeOrders.length === 0) {
+        $('#change-orders-section').style.display = 'none';
+        return;
+      }
+      
+      $('#change-orders-section').style.display = 'block';
+      const container = $('#change-orders-section');
+      clearElement(container);
+      
+      changeOrders.forEach(co => {
+        const items = co.change_order_items || [];
+        const isPending = ['sent', 'viewed'].includes(co.status);
+        const isAccepted = co.status === 'accepted';
+        const isDeclined = co.status === 'declined';
+        
+        const card = createElement('div', { className: 'change-order-card' });
+        
+        // Header
+        const header = createElement('div', { className: 'change-order-header' });
+        const titleDiv = createElement('div', { className: 'change-order-title' });
+        titleDiv.innerHTML = `Change Order #${co.change_order_number}`;
+        
+        let badgeClass = 'pending';
+        let badgeText = 'Awaiting Response';
+        if (isAccepted) {
+          badgeClass = 'accepted';
+          badgeText = `Accepted – on ${formatDate(co.accepted_at)}`;
+        } else if (isDeclined) {
+          badgeClass = 'declined';
+          badgeText = 'Declined';
+        }
+        
+        header.appendChild(titleDiv);
+        header.appendChild(createElement('span', { className: `change-order-badge ${badgeClass}`, textContent: badgeText }));
+        card.appendChild(header);
+        
+        // Body with items
+        const body = createElement('div', { className: 'change-order-body' });
+        
+        let subtotal = 0;
+        items.forEach(item => {
+          const qty = item.quantity || 1;
+          const price = item.unit_price || 0;
+          const total = qty * price;
+          subtotal += total;
+          
+          const itemRow = createElement('div', { className: 'change-order-item' });
+          itemRow.innerHTML = `
+            <div>
+              <strong>${item.description}</strong>
+              <span style="color: var(--color-text-muted); margin-left: var(--space-sm);">${qty} × ${formatCurrency(price)}</span>
+            </div>
+            <div>${formatCurrency(total)}</div>
+          `;
+          body.appendChild(itemRow);
+        });
+        
+        // Total
+        const taxRate = parseFloat(quote.tax_rate || 0);
+        const tax = subtotal * taxRate;
+        const total = subtotal + tax;
+        
+        const totalDiv = createElement('div', { className: 'change-order-total' });
+        totalDiv.innerHTML = `<span>Total</span><span>${formatCurrency(total)}</span>`;
+        body.appendChild(totalDiv);
+        
+        // Actions for pending change orders
+        if (isPending) {
+          const actionsDiv = createElement('div', { className: 'change-order-actions' });
+          
+          const acceptBtn = createElement('button', { className: 'btn btn-primary', textContent: 'Accept Change Order' });
+          acceptBtn.onclick = () => respondToChangeOrder(co.id, 'accept');
+          
+          const declineBtn = createElement('button', { className: 'btn btn-secondary', textContent: 'Decline' });
+          declineBtn.onclick = () => respondToChangeOrder(co.id, 'decline');
+          
+          actionsDiv.appendChild(acceptBtn);
+          actionsDiv.appendChild(declineBtn);
+          body.appendChild(actionsDiv);
+        }
+        
+        card.appendChild(body);
+        container.appendChild(card);
+      });
+    }
+    
+    async function respondToChangeOrder(changeOrderId, action) {
+      if (action === 'decline' && !confirm('Are you sure you want to decline this change order?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/.netlify/functions/change-order-response', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: accessToken, change_order_id: changeOrderId, action })
+        });
+        
+        if (!response.ok) throw new Error('Failed to process response');
+        
+        // Update local state
+        const co = changeOrders.find(c => c.id === changeOrderId);
+        if (co) {
+          co.status = action === 'accept' ? 'accepted' : 'declined';
+          if (action === 'accept') co.accepted_at = new Date().toISOString();
+        }
+        
+        // Re-render
+        renderChangeOrders();
+        updateTotals();
+        
+        showToast(action === 'accept' ? 'Change order accepted!' : 'Change order declined', 'success');
+        
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to process response', 'error');
+      }
+    }
+    
+    function renderPayments() {
+      if (payments.length === 0) {
+        $('#payment-history-section').style.display = 'none';
+        return;
+      }
+      
+      $('#payment-history-section').style.display = 'block';
+      const container = $('#payment-history-body');
+      clearElement(container);
+      
+      let totalPaid = 0;
+      
+      payments.forEach(payment => {
+        const amount = parseFloat(payment.amount || 0);
+        totalPaid += amount;
+        
+        const paymentEl = createElement('div', { className: 'payment-item' });
+        
+        const infoDiv = createElement('div', { className: 'payment-item-info' });
+        infoDiv.innerHTML = `
+          <div class="payment-item-date">${formatDate(payment.created_at)}</div>
+          <div class="payment-item-method">${payment.payment_method || 'Card'} ${payment.stripe_payment_id ? '• ' + payment.stripe_payment_id.substring(0, 12) + '...' : ''}</div>
+        `;
+        
+        const amountDiv = createElement('div', { className: 'payment-item-amount', textContent: formatCurrency(amount) });
+        
+        paymentEl.appendChild(infoDiv);
+        paymentEl.appendChild(amountDiv);
+        container.appendChild(paymentEl);
+      });
+      
+      // Add total summary
+      const summaryEl = createElement('div', { className: 'payment-summary' });
+      summaryEl.innerHTML = `
+        <span class="payment-summary-label">Total Paid</span>
+        <span class="payment-summary-value">${formatCurrency(totalPaid)}</span>
+      `;
+      container.appendChild(summaryEl);
+    }
+    
+    async function loadTerms() {
+      try {
+        const { data, error } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'terms_and_conditions')
+          .single();
+        
+        if (data && data.value && data.value.quote) {
+          $('#terms-section').style.display = 'block';
+          $('#terms-content').textContent = data.value.quote;
+        }
+      } catch (err) {
+        console.log('Terms not configured');
+      }
+    }
+    
+    async function loadQuoteFooter() {
+      let globalFooter = null;
+      
+      // Get global footer settings (for banner)
+      if (isPublicAccess && quoteFooterData) {
+        globalFooter = quoteFooterData;
+      } else {
+        try {
+          const supabase = await app.waitForSupabase();
+          const { data, error } = await supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'quote_footer')
+            .single();
+          
+          if (data && data.value) {
+            globalFooter = data.value;
+          }
+        } catch (err) {
+          // Quote footer not configured
+        }
+      }
+      
+      // Footer link buttons (per-quote selection; null = buttons marked "on by default")
+      const allButtons = (globalFooter && Array.isArray(globalFooter.buttons))
+        ? globalFooter.buttons.filter(b => b && b.id && b.label && /^https?:\/\//i.test(b.url || ''))
+        : [];
+      const chosenIds = Array.isArray(quote && quote.footer_button_ids) ? quote.footer_button_ids : null;
+      const shownButtons = chosenIds === null
+        ? allButtons.filter(b => b.default_on)
+        : allButtons.filter(b => chosenIds.includes(b.id));
+      if (shownButtons.length) {
+        const list = $('#quote-footer-buttons-list');
+        list.innerHTML = shownButtons.map(b =>
+          `<a class="btn btn-primary" href="${escapeHtml(b.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(b.label)}</a>`
+        ).join('');
+        $('#quote-footer-buttons').style.display = 'block';
+      } else {
+        $('#quote-footer-buttons').style.display = 'none';
+      }
+
+      // Display global banner if enabled and has image
+      if (globalFooter && globalFooter.enabled && globalFooter.image_url) {
+        const banner = $('#quote-footer-banner');
+        const image = $('#quote-footer-banner-image');
+        const link = $('#quote-footer-banner-link');
+        const title = $('#quote-footer-banner-title');
+        
+        image.src = globalFooter.image_url;
+        image.alt = globalFooter.title || 'Learn More';
+        
+        if (globalFooter.link_url) {
+          link.href = globalFooter.link_url;
+          link.style.cursor = 'pointer';
+        } else {
+          link.removeAttribute('href');
+          link.style.cursor = 'default';
+          link.onclick = (e) => e.preventDefault();
+        }
+        
+        if (globalFooter.title) {
+          title.textContent = globalFooter.title;
+          title.style.display = 'block';
+        }
+        
+        banner.style.display = 'block';
+      }
+      
+    }
+    
+    function renderLineItems() {
+      const container = $('#line-items-container');
+      const scrollY = window.scrollY;
+      clearElement(container);
+      
+      // Sort: required items first, then optional
+      const sortedItems = [...lineItems].sort((a, b) => {
+        const aOpt = a.is_optional === true;
+        const bOpt = b.is_optional === true;
+        if (aOpt === bOpt) return (a.sort_order || 0) - (b.sort_order || 0);
+        return aOpt ? 1 : -1;
+      });
+      
+      sortedItems.forEach(item => {
+        const isOptional = item.is_optional === true;
+        const isSelected = item.is_selected === true;
+        // Allow selection if quote is sent/viewed, OR if it's a draft being previewed
+        const canSelect = ['sent', 'viewed', 'draft'].includes(quote.status) && 
+                         !['accepted', 'converted', 'expired', 'rejected'].includes(quote.status);
+        const isSelectable = isOptional && canSelect;
+        const itemId = item.id;
+        
+        const itemEl = createElement('div', {
+          className: `line-item ${isOptional ? 'optional' : ''} ${isSelected ? 'selected' : ''}`,
+          dataset: { id: itemId }
+        });
+        
+        // Action button cell (for optional items)
+        const actionCell = createElement('div', { className: 'line-item-action' });
+        if (isOptional) {
+          const btn = document.createElement('button');
+          btn.className = `btn btn-sm ${isSelected ? 'btn-danger' : 'btn-primary'}`;
+          btn.textContent = isSelected ? 'Remove' : 'Add';
+          btn.disabled = !isSelectable;
+          btn.dataset.itemId = itemId;
+          btn.dataset.action = 'toggle-optional';
+          actionCell.appendChild(btn);
+        }
+        itemEl.appendChild(actionCell);
+        
+        // Photo
+        if (item.photo_url) {
+          const photo = createElement('img', {
+            className: 'line-item-photo',
+            src: item.photo_url,
+            alt: item.description,
+            onClick: () => showImageModal(item.photo_url)
+          });
+          itemEl.appendChild(photo);
+        } else {
+          const placeholder = createElement('div', {
+            className: 'line-item-photo-placeholder',
+            innerHTML: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'
+          });
+          itemEl.appendChild(placeholder);
+        }
+        
+        // Content
+        const content = createElement('div', { className: 'line-item-content' });
+        const title = createElement('h4');
+        title.textContent = item.description;
+        if (item.quantity > 1) {
+          title.innerHTML += ` <span style="color: var(--color-text-light);">(Qty: ${item.quantity})</span>`;
+        }
+        if (isOptional) {
+          title.innerHTML += '<span class="optional-badge">Optional</span>';
+        }
+        content.appendChild(title);
+
+        // Render public attribute selectors
+        const attrSelections = item.attribute_selections || [];
+        if (canSelect) {
+          if (item.details) {
+            content.appendChild(createElement('div', { className: 'line-item-details', textContent: item.details }));
+          }
+          const publicAttrs = attrSelections.filter(sel => sel.is_public && sel.available_options && sel.available_options.length > 1);
+          if (publicAttrs.length > 0) {
+            publicAttrs.forEach((sel, idx) => {
+              const attrIndex = attrSelections.indexOf(sel);
+              const selectorDiv = createElement('div', { className: 'attribute-selector' });
+              selectorDiv.appendChild(createElement('label', { textContent: sel.attribute_name + ':' }));
+
+              const select = document.createElement('select');
+              select.dataset.itemId = itemId;
+              select.dataset.attrIndex = attrIndex.toString();
+              select.dataset.attributeId = sel.attribute_id;
+              select.dataset.action = 'change-attribute';
+
+              sel.available_options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.option_id;
+                option.textContent = opt.option_name;
+                if (opt.option_id === sel.option_id) option.selected = true;
+                select.appendChild(option);
+              });
+
+              selectorDiv.appendChild(select);
+              content.appendChild(selectorDiv);
+            });
+          }
+        } else {
+          const readonlyAttrs = attrSelections.filter(sel => sel.option_name);
+          // Strip attribute option listings from details text when showing readonly selections
+          let cleanDetails = item.details || '';
+          if (readonlyAttrs.length > 0) {
+            readonlyAttrs.forEach(sel => {
+              const escaped = sel.attribute_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              cleanDetails = cleanDetails.replace(new RegExp('[,\\s]*' + escaped + ':[^,]*'), '');
+            });
+            cleanDetails = cleanDetails.replace(/\s*[-–]\s*$/, '').trim();
+          }
+          if (cleanDetails) {
+            content.appendChild(createElement('div', { className: 'line-item-details', textContent: cleanDetails }));
+          }
+          readonlyAttrs.forEach(sel => {
+            content.appendChild(createElement('div', {
+              className: 'attribute-readonly',
+              textContent: sel.attribute_name + ': ' + sel.option_name
+            }));
+          });
+        }
+
+        itemEl.appendChild(content);
+        
+        // Price
+        const priceCell = createElement('div', { className: 'line-item-price' });
+        if (item.is_range_pricing) {
+          priceCell.appendChild(createElement('div', { 
+            className: 'line-item-price-value',
+            textContent: formatCurrencyRange(item.line_total_low, item.line_total_high)
+          }));
+          priceCell.appendChild(createElement('div', {
+            className: 'line-item-price-range',
+            textContent: 'Range estimate'
+          }));
+        } else {
+          priceCell.appendChild(createElement('div', {
+            className: 'line-item-price-value',
+            textContent: formatCurrency(item.line_total)
+          }));
+        }
+        itemEl.appendChild(priceCell);
+        
+        container.appendChild(itemEl);
+      });
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
+    }
+
+    function toggleOption(itemId, selected) {
+      const item = lineItems.find(i => i.id === itemId);
+      if (item) {
+        item.is_selected = selected;
+        
+        // Update UI
+        const itemEl = $(`.line-item[data-id="${itemId}"]`);
+        if (itemEl) {
+          itemEl.classList.toggle('selected', selected);
+        }
+        
+        updateTotals();
+        
+        // Save selection to server
+        if (isPublicAccess) {
+          fetch('/.netlify/functions/public-quote-selection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: accessToken, item_id: itemId, is_selected: selected })
+          }).catch(() => {});
+        } else {
+          apiCall('portal-quote-selection', {
+            method: 'POST',
+            body: JSON.stringify({ quote_id: quote.id, item_id: itemId, selected })
+          }).catch(() => {});
+        }
+      }
+    }
+    
+    function calculateAttributeLineTotal(unitPrice, pricingType, quantity, basePrice, sel) {
+      if (pricingType === 'percentage') return basePrice * (unitPrice / 100);
+      // For sqft attributes, use (width * height) / 144 instead of quantity
+      if (sel && sel.catalog_pricing_type === 'sqft' && sel.width && sel.height) {
+        return unitPrice * ((sel.width * sel.height) / 144);
+      }
+      return unitPrice * quantity;
+    }
+
+    function handleAttributeChange(itemId, attrIndex, newOptionId) {
+      const item = lineItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      const attrSelections = item.attribute_selections || [];
+      const sel = attrSelections[attrIndex];
+      if (!sel || !sel.is_public) return;
+
+      const newOption = (sel.available_options || []).find(o => o.option_id === newOptionId);
+      if (!newOption) return;
+
+      // Get base price
+      let basePrice = item.base_price;
+      if (basePrice === null || basePrice === undefined) {
+        const totalAttrValue = attrSelections.reduce((sum, s) => sum + (parseFloat(s.line_total) || 0), 0);
+        basePrice = (parseFloat(item.unit_price) || 0) - totalAttrValue;
+      }
+
+      // Update selection — preserve admin price override when same option is reselected
+      const optionChanged = sel.option_id !== newOptionId;
+      sel.option_id = newOption.option_id;
+      sel.option_name = newOption.option_name;
+      if (optionChanged) {
+        sel.unit_price = newOption.unit_price;
+      }
+      sel.pricing_type = newOption.pricing_type;
+      sel.line_total = calculateAttributeLineTotal(sel.unit_price, sel.pricing_type, sel.quantity || 1, basePrice, sel);
+
+      // Recalculate item price
+      const newAttrTotal = attrSelections.reduce((sum, s) => sum + (parseFloat(s.line_total) || 0), 0);
+      item.unit_price = Math.round((basePrice + newAttrTotal) * 100) / 100;
+      item.line_total = Math.round(item.unit_price * (item.quantity || 1) * 100) / 100;
+
+      renderLineItems();
+      updateTotals();
+
+      // Save to server
+      const payload = {
+        item_id: itemId,
+        attribute_change: { attribute_id: sel.attribute_id, new_option_id: newOptionId }
+      };
+
+      if (isPublicAccess) {
+        payload.token = accessToken;
+        fetch('/.netlify/functions/public-quote-selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(err => console.error('Failed to save attribute selection:', err));
+      } else {
+        payload.quote_id = quote.id;
+        apiCall('portal-quote-selection', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }).catch(err => console.error('Failed to save attribute selection:', err));
+      }
+    }
+
+    function renderPackages() {
+      const container = $('#packages-grid');
+      clearElement(container);
+      
+      // Sort packages by sort_order
+      const sortedPackages = [...packages].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      
+      sortedPackages.forEach(pkg => {
+        const pkgIsSelected = pkg.is_selected === true || pkg.is_selected === 'true';
+        const isSelected = pkg.id === selectedPackageId || pkgIsSelected;
+        const total = pkg.price || pkg.items.filter(i => i.is_included).reduce((sum, item) => sum + (item.quantity * item.price), 0);
+        
+        // Filter items to show
+        const itemsToShow = pkg.hide_non_included 
+          ? pkg.items.filter(i => i.is_included)
+          : pkg.items;
+        
+        const card = createElement('div', {
+          className: `package-card ${pkg.is_recommended ? 'recommended' : ''} ${isSelected ? 'selected' : ''}`,
+          dataset: { packageId: pkg.id }
+        });
+        
+        // Radio button indicator
+        card.innerHTML = `
+          <div class="package-radio"></div>
+          ${pkg.is_recommended ? '<div class="package-recommended-badge">Recommended</div>' : ''}
+          <div class="package-name">${pkg.name}</div>
+          ${pkg.description ? `<div class="package-description">${pkg.description}</div>` : '<div class="package-description"></div>'}
+          <div class="package-price"><sup>$</sup>${formatNumber(total)}</div>
+          <div class="package-items-list">
+            ${itemsToShow.map(item => `
+              <div class="package-item ${!item.is_included ? 'excluded' : ''}">
+                <div class="package-item-name">
+                  ${item.name}
+                  ${item.description ? `<span class="info-icon" title="${item.description.replace(/"/g, '&quot;')}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                  </span>` : ''}
+                  ${item.description ? `<div class="package-item-desc">${item.description}</div>` : ''}
+                </div>
+                <div class="package-item-price">
+                  ${item.is_included ? formatCurrency(item.price * item.quantity) : ''}
+                  ${!item.is_included ? '<span style="color: var(--color-danger);">✕</span>' : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="package-select-btn" onclick="selectPackage('${pkg.id}')">
+            ${isSelected ? 'Selected<br><small>(click to remove)</small>' : 'Select Bundle'}
+          </button>
+        `;
+        
+        // Make whole card clickable
+        card.addEventListener('click', (e) => {
+          if (!e.target.closest('.package-select-btn')) {
+            selectPackage(pkg.id);
+          }
+        });
+        
+        container.appendChild(card);
+      });
+      
+      // Update totals based on selected package
+      updateTotals();
+    }
+    
+    function selectPackage(packageId) {
+      // Toggle selection
+      if (selectedPackageId === packageId) {
+        selectedPackageId = null;
+      } else {
+        selectedPackageId = packageId;
+      }
+      
+      // Update UI
+      $$('.package-card').forEach(card => {
+        const isSelected = card.dataset.packageId === selectedPackageId;
+        card.classList.toggle('selected', isSelected);
+        const btn = card.querySelector('.package-select-btn');
+        if (btn) {
+          btn.innerHTML = isSelected ? 'Selected<br><small>(click to remove)</small>' : 'Select Bundle';
+        }
+      });
+      
+      // Update warning message
+      const warning = $('#package-warning');
+      if (warning) {
+        warning.style.display = selectedPackageId ? 'none' : 'flex';
+      }
+      
+      // Update totals
+      updateTotals();
+      
+      // Save selection to server
+      if (isPublicAccess) {
+        fetch('/.netlify/functions/public-quote-selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: accessToken, package_id: selectedPackageId })
+        }).catch(() => {});
+      } else {
+        apiCall('portal-quote-selection', {
+          method: 'POST',
+          body: JSON.stringify({ quote_id: quote.id, package_id: selectedPackageId })
+        }).catch(() => {});
+      }
+    }
+    
+    function formatNumber(num) {
+      return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+    
+    // ===== Attached-document quotes: show the document inline =====
+    function renderDocumentBody() {
+      const container = $('#line-items-container');
+      const esc = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      if (!attachments.length) {
+        container.innerHTML = '<p class="text-muted">The quote document is being prepared. Please check back shortly.</p>';
+        return;
+      }
+      container.innerHTML = attachments.map(att => {
+        const url = esc(att.file_url);
+        const name = esc(att.file_name || 'Quote document');
+        const type = String(att.file_type || '').toLowerCase();
+        const isPdf = type.includes('pdf') || /\.pdf($|\?)/i.test(att.file_url || '');
+        const isImg = type.startsWith('image/');
+        let view = '';
+        if (isPdf) {
+          view = `<iframe src="${url}#view=FitH" title="${name}" style="width:100%; height:75vh; min-height:480px; border:1px solid var(--color-border); border-radius:8px; background:#fff;"></iframe>`;
+        } else if (isImg) {
+          view = `<img src="${url}" alt="${name}" style="max-width:100%; border:1px solid var(--color-border); border-radius:8px; display:block;">`;
+        }
+        return `
+          <div class="doc-attachment" style="margin-bottom: var(--space-lg);">
+            ${view}
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top: var(--space-sm); flex-wrap:wrap;">
+              <span class="text-muted text-sm">${name}</span>
+              <a class="btn btn-secondary btn-sm no-print" href="${url}" target="_blank" rel="noopener">Open / Download</a>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function updateTotals() {
+      let subtotal = 0;
+      let subtotalLow = 0;
+      let subtotalHigh = 0;
+      let taxableSubtotal = 0;
+      let taxableSubtotalLow = 0;
+      let taxableSubtotalHigh = 0;
+      let discountableSubtotal = 0;
+      let taxableDiscountable = 0;
+      let hasRange = false;
+      
+      // Check if we have packages and a selected one
+      // Calculate from packages if: packages exist AND (one is selected OR packages_enabled is true)
+      const hasSelectedPackage = selectedPackageId || packages.some(p => p.is_selected === true || p.is_selected === 'true');
+      
+      if (quote.document_mode === 'attachment') {
+        // Attached-document quote: the business entered the total (tax included)
+        const t = parseFloat(quote.manual_total ?? quote.total) || 0;
+        subtotal = t; subtotalLow = t; subtotalHigh = t;
+      } else if (packages.length > 0 && hasSelectedPackage) {
+        // Find selected package by ID OR by is_selected flag (fallback)
+        let selectedPkg = packages.find(p => p.id === selectedPackageId);
+        
+        // If not found by ID, check is_selected flag (handle both boolean and string)
+        if (!selectedPkg) {
+          selectedPkg = packages.find(p => p.is_selected === true || p.is_selected === 'true');
+        }
+        
+        if (selectedPkg) {
+          // Sync selectedPackageId if it was found via is_selected flag
+          if (!selectedPackageId) {
+            selectedPackageId = selectedPkg.id;
+          }
+          
+          // Calculate package total - use price field or sum of items
+          let pkgTotal = 0;
+          if (selectedPkg.price !== null && selectedPkg.price !== undefined && selectedPkg.price !== '') {
+            pkgTotal = parseFloat(selectedPkg.price) || 0;
+          } else if (selectedPkg.items && selectedPkg.items.length > 0) {
+            pkgTotal = selectedPkg.items
+              .filter(i => i.is_included !== false)
+              .reduce((sum, item) => {
+                const qty = parseFloat(item.quantity) || 1;
+                const price = parseFloat(item.price) || 0;
+                return sum + (qty * price);
+              }, 0);
+          }
+          
+          subtotal = pkgTotal;
+          subtotalLow = pkgTotal;
+          subtotalHigh = pkgTotal;
+          
+          // Handle package tax
+          if (selectedPkg.apply_tax) {
+            taxableSubtotal = pkgTotal;
+            taxableSubtotalLow = pkgTotal;
+            taxableSubtotalHigh = pkgTotal;
+          }
+
+          // Whole bundle is discountable
+          discountableSubtotal = pkgTotal;
+          taxableDiscountable = selectedPkg.apply_tax ? pkgTotal : 0;
+        }
+
+        // Also add any selected optional line items (add-ons)
+        lineItems.forEach(item => {
+          const isOptional = item.is_optional === true;
+          const isSelected = item.is_selected === true;
+          const isTaxable = item.is_taxable === true;
+
+          // Only add optional items that are selected
+          if (isOptional && isSelected) {
+            const total = parseFloat(item.line_total || 0);
+            subtotal += total;
+            subtotalLow += total;
+            subtotalHigh += total;
+            if (isTaxable) {
+              taxableSubtotal += total;
+              taxableSubtotalLow += total;
+              taxableSubtotalHigh += total;
+            }
+            if (item.apply_discount !== false) {
+              discountableSubtotal += total;
+              if (isTaxable) taxableDiscountable += total;
+            }
+          }
+        });
+      } else {
+        // Standard line items calculation
+        lineItems.forEach(item => {
+          const isOptional = item.is_optional === true;
+          const isSelected = item.is_selected === true;
+          const isTaxable = item.is_taxable === true;
+          
+          if (!isOptional || isSelected) {
+            if (item.is_range_pricing) {
+              hasRange = true;
+              const lowTotal = parseFloat(item.line_total_low || 0);
+              const highTotal = parseFloat(item.line_total_high || 0);
+              subtotalLow += lowTotal;
+              subtotalHigh += highTotal;
+              if (isTaxable) {
+                taxableSubtotalLow += lowTotal;
+                taxableSubtotalHigh += highTotal;
+              }
+            } else {
+              const total = parseFloat(item.line_total || 0);
+              subtotal += total;
+              subtotalLow += total;
+              subtotalHigh += total;
+              if (isTaxable) {
+                taxableSubtotal += total;
+                taxableSubtotalLow += total;
+                taxableSubtotalHigh += total;
+              }
+              if (item.apply_discount !== false) {
+                discountableSubtotal += total;
+                if (isTaxable) taxableDiscountable += total;
+              }
+            }
+          }
+        });
+      }
+      
+      // Add accepted change orders to totals
+      changeOrders.forEach(co => {
+        if (co.status === 'accepted') {
+          const items = co.change_order_items || [];
+          items.forEach(item => {
+            const qty = item.quantity || 1;
+            const price = item.unit_price || 0;
+            const total = qty * price;
+            subtotal += total;
+            subtotalLow += total;
+            subtotalHigh += total;
+            // Change order items are always taxable
+            taxableSubtotal += total;
+            taxableSubtotalLow += total;
+            taxableSubtotalHigh += total;
+          });
+        }
+      });
+      
+      // Discount (applied before tax; excluded items don't count toward the discount base)
+      const discType = quote.discount_type || 'percentage';
+      const discValue = parseFloat(quote.discount_value) || 0;
+      let discAmount = discType === 'percentage'
+        ? discountableSubtotal * (discValue / 100)
+        : Math.min(discValue, discountableSubtotal);
+      if (!(discAmount > 0)) discAmount = 0;
+      discAmount = Math.round(discAmount * 100) / 100;
+      const taxableShare = discountableSubtotal > 0 ? (taxableDiscountable / discountableSubtotal) : 0;
+      const taxableReduction = discAmount * taxableShare;
+
+      const taxRate = parseFloat(quote.tax_rate || 0);
+      const taxAmount = Math.max(0, taxableSubtotal - taxableReduction) * taxRate;
+      const taxAmountLow = Math.max(0, taxableSubtotalLow - taxableReduction) * taxRate;
+      const taxAmountHigh = Math.max(0, taxableSubtotalHigh - taxableReduction) * taxRate;
+
+      const grandTotal = subtotal - discAmount + taxAmount;
+      const grandTotalLow = subtotalLow - discAmount + taxAmountLow;
+      const grandTotalHigh = subtotalHigh - discAmount + taxAmountHigh;
+
+      // Update display
+      if (hasRange) {
+        $('#subtotal').textContent = formatCurrencyRange(subtotalLow, subtotalHigh);
+        $('#grand-total').textContent = formatCurrencyRange(grandTotalLow, grandTotalHigh);
+      } else {
+        $('#subtotal').textContent = formatCurrency(subtotal);
+        $('#grand-total').textContent = formatCurrency(grandTotal);
+      }
+
+      if (discAmount > 0) {
+        $('#discount-row').style.display = 'flex';
+        $('#discount-label').textContent = discType === 'percentage' ? `Discount (${discValue}%)` : 'Discount';
+        $('#discount-amount').textContent = '-' + formatCurrency(discAmount);
+      } else {
+        $('#discount-row').style.display = 'none';
+      }
+
+      if (taxRate > 0) {
+        $('#tax-row').style.display = 'flex';
+        $('#tax-rate').textContent = (taxRate * 100).toFixed(2);
+        $('#tax-amount').textContent = hasRange ? formatCurrencyRange(taxAmountLow, taxAmountHigh) : formatCurrency(taxAmount);
+      }
+      
+      // Payment schedule and deposit calculation
+      const paymentScheduleDisplay = $('#payment-schedule-display');
+      let depositAmount = 0;
+      
+      if (quote.payment_schedule && Array.isArray(quote.payment_schedule) && quote.payment_schedule.length > 0) {
+        // Display payment schedule
+        let scheduleHtml = '';
+        // Fixed payments (e.g. the deposit) come off the total first; percentages apply to the remainder
+        const schedFixed = quote.payment_schedule.filter(p => p.amount_type === 'fixed').reduce((s, p) => s + (parseFloat(p.amount_value) || 0), 0);
+        const schedBase = Math.max(0, (hasRange ? grandTotalLow : grandTotal) - schedFixed);
+        quote.payment_schedule.forEach((payment, idx) => {
+          const amount = payment.amount_type === 'percentage' 
+            ? schedBase * (payment.amount_value / 100)
+            : payment.amount_value;
+          
+          if (idx === 0) depositAmount = amount; // First payment is the deposit
+          
+          scheduleHtml += `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; ${idx > 0 ? 'opacity: 0.8;' : ''}">
+              <span>${payment.name}</span>
+              <span>${formatCurrency(amount)}</span>
+            </div>
+          `;
+          if (payment.due_description) {
+            scheduleHtml += `<div style="font-size: 0.75rem; opacity: 0.7; margin-bottom: 8px; text-align: right;">${payment.due_description}</div>`;
+          }
+        });
+        paymentScheduleDisplay.innerHTML = scheduleHtml;
+      } else {
+        // Backwards compatibility: use deposit_type/deposit_value
+        if (quote.deposit_type === 'percentage') {
+          depositAmount = (hasRange ? grandTotalLow : grandTotal) * (parseFloat(quote.deposit_value) / 100);
+        } else {
+          depositAmount = parseFloat(quote.deposit_value || 0);
+        }
+        
+        // Show simple deposit display
+        const balanceAmount = (hasRange ? grandTotalLow : grandTotal) - depositAmount;
+        paymentScheduleDisplay.innerHTML = `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+            <span>Deposit</span>
+            <span>${formatCurrency(depositAmount)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; opacity: 0.8;">
+            <span>Balance</span>
+            <span>${formatCurrency(balanceAmount)}</span>
+          </div>
+        `;
+      }
+      
+      // Store minimum deposit for validation
+      window.minDepositAmount = depositAmount;
+      
+      $('#deposit-amount').textContent = formatCurrency(depositAmount);
+      $('#min-deposit').textContent = formatCurrency(depositAmount);
+      
+      // Set payment amount input to deposit amount (default)
+      const paymentInput = $('#payment-amount');
+      if (paymentInput) {
+        paymentInput.min = depositAmount.toFixed(2);
+        if (!paymentInput.dataset.userModified) {
+          paymentInput.value = depositAmount.toFixed(2);
+        }
+      }
+      
+      // Display terms and conditions if available
+      if (quote.terms_and_conditions) {
+        $('#terms-section').style.display = 'block';
+        $('#terms-content').textContent = quote.terms_and_conditions;
+      }
+    }
+    
+    function showImageModal(imageUrl) {
+      const modal = createElement('div', {
+        className: 'image-modal',
+        onClick: (e) => { if (e.target === modal) modal.remove(); }
+      }, [
+        createElement('img', { src: imageUrl })
+      ]);
+      document.body.appendChild(modal);
+    }
+    
+    function extractVideoId(url) {
+      const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+      return match ? match[1] : null;
+    }
+    
+    function getFileIcon(fileType) {
+      if (fileType?.includes('pdf')) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>';
+      }
+      if (fileType?.includes('image')) {
+        return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+      }
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/></svg>';
+    }
+    
+    // Track when user modifies payment amount
+    $('#payment-amount').addEventListener('input', function() {
+      this.dataset.userModified = 'true';
+    });
+    
+    // Payment method selection
+    // Card payments appear only when this business has connected Stripe
+    let ONLINE_PAYMENTS_ENABLED = false;
+    let selectedPaymentMethod = 'check';
+    async function checkOnlinePayments() {
+      try {
+        const qs = accessToken ? `?token=${encodeURIComponent(accessToken)}` : '';
+        const res = await fetch('/.netlify/functions/stripe-config' + qs, { credentials: 'include' });
+        if (!res.ok) return;
+        const cfg = await res.json();
+        if (cfg.enabled) {
+          ONLINE_PAYMENTS_ENABLED = true;
+          const cardBtn = $('#pay-card-btn');
+          if (cardBtn) cardBtn.style.display = '';
+          selectPaymentMethod('card');
+        }
+      } catch (e) { /* stay on check/cash */ }
+    }
+    const isPreviewMode = new URLSearchParams(window.location.search).get('preview') === '1';
+    
+    // Show preview warning if in preview mode
+    if (isPreviewMode) {
+      const previewWarning = $('#preview-warning');
+      if (previewWarning) previewWarning.style.display = 'block';
+    }
+    
+    function selectPaymentMethod(method) {
+      if (!ONLINE_PAYMENTS_ENABLED) method = 'check';
+      selectedPaymentMethod = method;
+      
+      // Update button states
+      $('#pay-card-btn').classList.toggle('active', method === 'card');
+      $('#pay-check-btn').classList.toggle('active', method === 'check');
+      
+      // Show/hide relevant sections
+      $('#card-payment-section').style.display = method === 'card' ? 'block' : 'none';
+      $('#check-payment-section').style.display = method === 'check' ? 'block' : 'none';
+      
+      // Update button text
+      $('#accept-btn').textContent = method === 'card' ? 'Accept Quote & Pay' : 'Accept Quote';
+    }
+    
+    try { selectPaymentMethod('check'); } catch (e) {}
+    // accessToken is known after the URL is parsed at page start
+    setTimeout(checkOnlinePayments, 0);
+
+    // Accept quote button
+    $('#accept-btn').addEventListener('click', async () => {
+      const btn = $('#accept-btn');
+      
+      // Check if in preview mode
+      if (isPreviewMode) {
+        showToast('Payment disabled in preview mode. Open in new tab to test.', 'info');
+        return;
+      }
+      
+      // Packages required validation
+      if (packages.length > 0 && !selectedPackageId) {
+        showToast('Please select a bundle first', 'error');
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      
+      try {
+        // Get selected options
+        const selectedOptions = lineItems
+          .filter(i => i.is_optional === true && i.is_selected === true)
+          .map(i => i.id);
+        
+        if (selectedPaymentMethod === 'check') {
+          // Accept without Stripe - mark as accepted with check/cash payment pending
+          await acceptWithCheckPayment(selectedOptions);
+        } else {
+          // Card payment via Stripe
+          const paymentAmount = Math.round(parseFloat($('#payment-amount').value) * 100) / 100;
+          const minDeposit = Math.round((window.minDepositAmount || 0) * 100) / 100;
+          
+          // Validate payment amount
+          if (!paymentAmount || paymentAmount < minDeposit - 0.01) {
+            showToast(`Minimum payment is ${formatCurrency(minDeposit)}`, 'error');
+            btn.disabled = false;
+            btn.textContent = 'Accept Quote & Pay';
+            return;
+          }
+          
+          await processCardPayment(selectedOptions, paymentAmount);
+        }
+        
+      } catch (err) {
+        console.error('Checkout error:', err);
+        showToast(err.message || 'Failed to process. Please try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = selectedPaymentMethod === 'card' ? 'Accept Quote & Pay' : 'Accept Quote';
+      }
+    });
+    
+    async function acceptWithCheckPayment(selectedOptions) {
+      let response;
+      
+      if (isPublicAccess) {
+        // Use public API
+        const res = await fetch('/.netlify/functions/public-quote-selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: accessToken,
+            selected_options: selectedOptions,
+            selected_package_id: selectedPackageId,
+            accept_quote: true,
+            payment_method: 'check'
+          })
+        });
+        
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Failed to accept quote');
+        }
+        response = await res.json();
+      } else {
+        // Use authenticated API
+        response = await apiCall('portal-quote-selection', {
+          method: 'POST',
+          body: JSON.stringify({
+            quote_id: quote.id,
+            selected_options: selectedOptions,
+            selected_package_id: selectedPackageId,
+            accept_quote: true,
+            payment_method: 'check'
+          })
+        });
+      }
+      
+      // Show success message
+      showToast('Quote accepted! Payment instructions will be sent.', 'success');
+      
+      // Reload the page to show accepted status
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    }
+    
+    async function processCardPayment(selectedOptions, paymentAmount) {
+      let response;
+      
+      if (isPublicAccess) {
+        // Use public checkout API
+        const res = await fetch('/.netlify/functions/public-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: accessToken,
+            selected_options: selectedOptions,
+            selected_package_id: selectedPackageId,
+            payment_amount: paymentAmount
+          })
+        });
+        
+        if (!res.ok) {
+          const error = await res.json();
+          throw new Error(error.error || 'Failed to create checkout');
+        }
+        response = await res.json();
+      } else {
+        // Use authenticated API
+        response = await apiCall('create-checkout', {
+          method: 'POST',
+          body: JSON.stringify({
+            quote_id: quote.id,
+            selected_options: selectedOptions,
+            selected_package_id: selectedPackageId,
+            payment_amount: paymentAmount
+          })
+        });
+      }
+      
+      // Redirect to Stripe
+      if (response.url) {
+        window.location.href = response.url;
+      } else {
+        throw new Error('Failed to create checkout session');
+      }
+    }
+    
+    // Event delegation for optional item buttons
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('[data-action="toggle-optional"]');
+      if (!btn) return;
+      
+      const itemId = btn.dataset.itemId;
+      
+      // Find the item in lineItems
+      const item = lineItems.find(i => i.id === itemId);
+      if (!item) return;
+      
+      // Toggle selection
+      const nowSelected = !(item.is_selected === true);
+      item.is_selected = nowSelected;
+      
+      // Re-render line items and update totals
+      renderLineItems();
+      updateTotals();
+      
+      // Save to server
+      if (isPublicAccess) {
+        fetch('/.netlify/functions/public-quote-selection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: accessToken, item_id: itemId, is_selected: nowSelected })
+        }).catch(() => {});
+      } else {
+        apiCall('portal-quote-selection', {
+          method: 'POST',
+          body: JSON.stringify({ quote_id: quote.id, item_id: itemId, selected: nowSelected })
+        }).catch(() => {});
+      }
+    });
+    
+    // Event delegation for attribute selection dropdowns
+    document.addEventListener('change', function(e) {
+      const select = e.target.closest('[data-action="change-attribute"]');
+      if (!select) return;
+      handleAttributeChange(select.dataset.itemId, parseInt(select.dataset.attrIndex), select.value);
+    });
+
+    // Initialize
+    loadQuote();
+  </script>
+</body>
+</html>

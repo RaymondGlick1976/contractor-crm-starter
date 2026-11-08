@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Quotes | Admin | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=44">
+</head>
+<body>
+  <script>
+    // Permission check before page loads
+    const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+    if (!user) {
+      window.location.href = '/admin/login.html';
+    } else if (!user.permissions?.can_view_quotes) {
+      window.location.href = user.permissions?.can_view_pipeline ? '/admin/pipeline.html' : '/admin/index.html';
+    }
+  </script>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-logo">
+        <img data-brand-logo src="" alt="Company Logo" style="height: 40px; filter: brightness(0) invert(1); display: none;">
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item"><a href="/admin/today.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Today</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/index.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals Pipeline</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html?view=calendar" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/customers.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/vendors.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Vendors</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/quotes.html" class="sidebar-nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Quotes</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/invoices.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Invoices</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/payments.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/punch-list.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Punch List</a></li>
+        </ul>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Bookkeeping</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/banking.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>Banking</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/reports.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Reports</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Lead Capture</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/booking-forms.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Booking Forms</a></li>
+            <li class="sidebar-nav-item"><a href="/schedule" target="_blank" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Online Scheduling</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/bulk-email.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="2" y1="20" x2="8" y2="14"/><line x1="22" y1="20" x2="16" y2="14"/></svg>Bulk Email</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/sequences.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><polyline points="16 17 18 19 22 15"/></svg>Email Sequences</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Catalog</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/catalog.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Custom Library</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/email-templates.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Templates</a></li>
+          </ul>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/settings.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    <main class="app-main">
+      <header class="app-header">
+        <h2>Quotes</h2>
+        <a href="/admin/quote-builder.html" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          New Quote
+        </a>
+      </header>
+      
+      <div class="app-content">
+        <!-- Filters -->
+        <div class="card mb-xl">
+          <div class="card-body">
+            <div class="flex gap-md items-center">
+              <input type="text" id="search-input" class="form-input" placeholder="Search quotes..." style="max-width: 300px;">
+              <select id="status-filter" class="form-select" style="max-width: 150px;">
+                <option value="">All Status</option>
+                <option value="draft">Draft</option>
+                <option value="sent">Sent</option>
+                <option value="viewed">Viewed</option>
+                <option value="accepted">Accepted</option>
+                <option value="declined">Declined</option>
+                <option value="expired">Expired</option>
+                <option value="archived">Archived</option>
+              </select>
+              <label class="form-check" style="margin-left: auto;">
+                <input type="checkbox" id="hide-archived" checked>
+                <span class="form-check-label">Hide archived</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quotes Table -->
+        <div class="card">
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Quote #</th>
+                  <th>Customer</th>
+                  <th>Title</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Expires</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="quotes-tbody">
+                <tr>
+                  <td colspan="8" style="text-align: center; padding: 40px;">
+                    <div class="loading-spinner" style="margin: 0 auto;"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script src="/js/share-link.js"></script>
+  <script>
+    let quotes = [];
+    
+    async function loadQuotes() {
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        // First get quotes
+        const { data, error } = await supabase
+          .from('quotes')
+          .select('*, customers(name, email)')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        // Try to get packages separately (may not exist)
+        let packagesMap = {};
+        try {
+          const { data: pkgData } = await supabase
+            .from('quote_packages')
+            .select('quote_id, id, name, price, is_selected, quote_package_items(price, quantity, is_included)');
+          
+          if (pkgData) {
+            pkgData.forEach(pkg => {
+              if (!packagesMap[pkg.quote_id]) {
+                packagesMap[pkg.quote_id] = [];
+              }
+              packagesMap[pkg.quote_id].push(pkg);
+            });
+          }
+        } catch (e) {
+          console.log('Could not load packages:', e.message);
+        }
+        
+        // Calculate display total for each quote
+        quotes = (data || []).map(quote => {
+          const packages = packagesMap[quote.id] || [];
+          
+          // If quote has packages, use selected package price or calculate from items
+          if (packages.length > 0) {
+            const selectedPkg = packages.find(p => p.is_selected) || packages[0];
+            let subtotal = 0;
+            
+            // Use package price if set, otherwise calculate from items
+            if (selectedPkg.price !== null && selectedPkg.price !== undefined && selectedPkg.price !== '') {
+              subtotal = parseFloat(selectedPkg.price) || 0;
+            } else if (selectedPkg.quote_package_items && selectedPkg.quote_package_items.length > 0) {
+              // Calculate from package items
+              subtotal = selectedPkg.quote_package_items
+                .filter(item => item.is_included !== false)
+                .reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * (item.quantity || 1)), 0);
+            }
+            
+            // Add tax if applicable (use stored tax_amount or calculate)
+            // For consistency, just use subtotal since that's what we show in Quote Summary
+            quote.display_total = subtotal;
+          } else {
+            // Use stored subtotal for line-item based quotes (not total which includes tax)
+            quote.display_total = quote.subtotal || quote.total || 0;
+          }
+          return quote;
+        });
+        
+        renderQuotes(quotes);
+      } catch (err) {
+        console.error('Load error:', err);
+        showToast('Failed to load quotes', 'error');
+      }
+    }
+    
+    function renderQuotes(data) {
+      const tbody = $('#quotes-tbody');
+      clearElement(tbody);
+      
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted p-xl">No quotes found</td></tr>';
+        return;
+      }
+      
+      data.forEach(quote => {
+        const hasRange = quote.total_low && quote.total_high && quote.total_low !== quote.total_high;
+        // Use display_total (calculated from packages) or fall back to total
+        const displayAmount = hasRange 
+          ? formatCurrencyRange(quote.total_low, quote.total_high) 
+          : formatCurrency(quote.display_total || quote.total || 0);
+        
+        const row = createElement('tr');
+        row.innerHTML = `
+          <td><a href="/admin/quote-detail.html?id=${quote.id}" style="color: var(--color-primary); font-weight: 600;">${quote.quote_number}</a></td>
+          <td>
+            <div>${quote.customers?.name || '—'}</div>
+            <div class="text-sm text-muted">${quote.customers?.email || ''}</div>
+          </td>
+          <td>${quote.title}</td>
+          <td>${displayAmount}</td>
+          <td><span class="badge badge-${quote.status}">${quote.status}</span></td>
+          <td>${formatDate(quote.created_at)}</td>
+          <td>${quote.expires_at ? formatDate(quote.expires_at) : '—'}</td>
+          <td class="table-actions">
+            <a href="/admin/quote-detail.html?id=${quote.id}" class="btn btn-ghost btn-sm">View</a>
+            <a href="/admin/quote-builder.html?id=${quote.id}" class="btn btn-ghost btn-sm">Edit</a>
+            ${quote.access_token ? `<a href="/portal/quote.html?token=${quote.access_token}&admin=1" target="_blank" class="btn btn-ghost btn-sm" title="View as customer">👁️</a>` : `<button class="btn btn-ghost btn-sm" onclick="generateToken('${quote.id}')" title="Generate customer link">🔗</button>`}
+            <button class="btn btn-ghost btn-sm" onclick="textQuoteLink('${quote.id}')" title="Text or copy customer link">💬</button>
+            <button class="btn btn-ghost btn-sm" onclick="duplicateQuote('${quote.id}')">Duplicate</button>
+            ${hasPermission('can_accept_quotes') && ['draft', 'sent', 'viewed'].includes(quote.status) ? `<button class="btn btn-ghost btn-sm" onclick="markAccepted('${quote.id}')">✓ Accept</button>` : ''}
+            ${hasPermission('can_convert_quotes') && quote.status === 'accepted' ? `<button class="btn btn-ghost btn-sm" onclick="createInvoice('${quote.id}')">→ Invoice</button>` : ''}
+            <button class="btn btn-ghost btn-sm" onclick="syncEstimateToQB('${quote.id}', this)" title="${quote.qb_synced_at ? 'Synced ' + new Date(quote.qb_synced_at).toLocaleDateString() : 'Sync to QuickBooks'}">${quote.qb_estimate_id ? '✅ QB' : '📤 QB'}</button>
+            ${quote.status === 'archived' 
+              ? `<button class="btn btn-ghost btn-sm" onclick="unarchiveQuote('${quote.id}')" title="Unarchive">📤</button>`
+              : `<button class="btn btn-ghost btn-sm" onclick="archiveQuote('${quote.id}')" title="Archive">📥</button>`}
+            ${hasPermission('can_delete') ? `<button class="btn btn-ghost btn-sm text-danger" onclick="deleteQuote('${quote.id}')" title="Delete">🗑️</button>` : ''}
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+    
+    // Search & Filter
+    const searchInput = $('#search-input');
+    const statusFilter = $('#status-filter');
+    const hideArchivedCheckbox = $('#hide-archived');
+    
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase();
+      const status = statusFilter.value;
+      const hideArchived = hideArchivedCheckbox.checked;
+      
+      let filtered = quotes;
+      
+      // Hide archived unless specifically filtering for them
+      if (hideArchived && status !== 'archived') {
+        filtered = filtered.filter(q => q.status !== 'archived');
+      }
+      
+      if (query) {
+        filtered = filtered.filter(q => 
+          q.quote_number.toLowerCase().includes(query) ||
+          q.title.toLowerCase().includes(query) ||
+          q.customers?.name?.toLowerCase().includes(query) ||
+          q.customers?.email?.toLowerCase().includes(query)
+        );
+      }
+      
+      if (status) {
+        filtered = filtered.filter(q => q.status === status);
+      }
+      
+      renderQuotes(filtered);
+    }
+    
+    searchInput.addEventListener('input', debounce(applyFilters, 300));
+    statusFilter.addEventListener('change', applyFilters);
+    hideArchivedCheckbox.addEventListener('change', applyFilters);
+    
+    window.duplicateQuote = async (id) => {
+      const quote = quotes.find(q => q.id === id);
+      if (!quote) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        // Get line items
+        const { data: lineItems } = await supabase
+          .from('quote_line_items')
+          .select('*')
+          .eq('quote_id', id);
+        
+        // Generate new quote number
+        const { data: quoteNumber } = await supabase.rpc('generate_quote_number');
+        
+        // Create duplicate quote
+        const { data: newQuote, error } = await supabase
+          .from('quotes')
+          .insert({
+            quote_number: quoteNumber,
+            customer_id: quote.customer_id,
+            title: quote.title + ' (Copy)',
+            description: quote.description,
+            quote_type: quote.quote_type,
+            status: 'draft',
+            valid_days: quote.valid_days,
+            expires_at: new Date(Date.now() + quote.valid_days * 24 * 60 * 60 * 1000).toISOString(),
+            deposit_type: quote.deposit_type,
+            deposit_value: quote.deposit_value,
+            video_url: quote.video_url,
+            footer_button_ids: quote.footer_button_ids ?? null,
+            notes: quote.notes,
+            internal_notes: quote.internal_notes,
+            tax_rate: quote.tax_rate,
+            subtotal: quote.subtotal,
+            subtotal_low: quote.subtotal_low,
+            subtotal_high: quote.subtotal_high,
+            discount_type: quote.discount_type,
+            discount_value: quote.discount_value,
+            discount_amount: quote.discount_amount,
+            tax_amount: quote.tax_amount,
+            total: quote.total,
+            total_low: quote.total_low,
+            total_high: quote.total_high
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        // Copy line items
+        if (lineItems?.length) {
+          await supabase.from('quote_line_items').insert(
+            lineItems.map(item => ({
+              ...item,
+              id: undefined,
+              quote_id: newQuote.id
+            }))
+          );
+        }
+        
+        showToast('Quote duplicated', 'success');
+        window.location.href = `/admin/quote-builder.html?id=${newQuote.id}`;
+      } catch (err) {
+        showToast('Failed to duplicate: ' + err.message, 'error');
+      }
+    };
+    
+    window.markAccepted = async (quoteId) => {
+      if (!hasPermission('can_accept_quotes')) { showToast('You do not have permission to accept quotes', 'error'); return; }
+      if (!confirm('Mark this quote as accepted?')) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quoteId);
+        if (error) throw error;
+        showToast('Quote marked as accepted', 'success');
+        loadQuotes();
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to update quote status', 'error');
+      }
+    };
+
+
+    // Bundle-aware invoice lines: when a quote has bundles, use the selected bundle's included items
+    function bundleInvoiceLines(pkgs, quote) {
+      if (!pkgs || pkgs.length === 0) return null;
+      const pkg = pkgs.find(p => p.id === quote.selected_package_id) || pkgs.find(p => p.is_selected) || pkgs[0];
+      const taxable = pkg.apply_tax !== false;
+      const items = (pkg.quote_package_items || [])
+        .filter(i => i.is_included !== false)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      const lines = items.map((i, idx) => {
+        const qty = parseFloat(i.quantity) || 1;
+        const unit = parseFloat(i.price) || 0;
+        const attrs = (i.attribute_selections || []).filter(s => s && s.option_name)
+          .map(s => `${s.attribute_name}: ${s.option_name}`).join('\n');
+        return {
+          description: i.name,
+          details: [i.description || '', attrs].filter(Boolean).join('\n'),
+          quantity: qty,
+          unit_price: unit,
+          line_total: Math.round(unit * qty * 100) / 100,
+          is_taxable: taxable,
+          apply_discount: true,
+          sort_order: idx
+        };
+      });
+      const itemsTotal = lines.reduce((s, l) => s + l.line_total, 0);
+      if (pkg.price !== null && pkg.price !== undefined && pkg.price !== '') {
+        const override = Math.round((parseFloat(pkg.price) || 0) * 100) / 100;
+        if (items.length === 0) {
+          lines.push({ description: pkg.name || quote.title, details: pkg.description || '', quantity: 1,
+            unit_price: override, line_total: override, is_taxable: taxable, apply_discount: true, sort_order: 0 });
+        } else {
+          const diff = Math.round((override - itemsTotal) * 100) / 100;
+          if (diff !== 0) lines.push({ description: `${pkg.name || 'Bundle'} - bundle price adjustment`, details: '',
+            quantity: 1, unit_price: diff, line_total: diff, is_taxable: taxable, apply_discount: true, sort_order: lines.length });
+        }
+      }
+      return lines;
+    }
+
+    // Payment schedule to store on the invoice (null when the quote has none)
+    function scheduleForInvoice(quote) {
+      return Array.isArray(quote.payment_schedule) && quote.payment_schedule.length > 0 ? quote.payment_schedule : null;
+    }
+
+    window.createInvoice = async (quoteId) => {
+      if (!hasPermission('can_convert_quotes')) { showToast('You do not have permission to convert quotes', 'error'); return; }
+      if (!confirm('Create an invoice from this quote?')) return;
+
+      try {
+        const supabase = await app.waitForSupabase();
+        const quote = quotes.find(q => q.id === quoteId);
+
+        // Guard: if an invoice already exists for this quote, don't create another
+        const { data: existingInvoices } = await supabase
+          .from('invoices')
+          .select('id, invoice_number')
+          .eq('quote_id', quoteId)
+          .limit(1);
+        if (existingInvoices && existingInvoices.length > 0) {
+          showToast(`Invoice ${existingInvoices[0].invoice_number} already exists for this quote`, 'error');
+          return;
+        }
+
+        // Get line items
+        const { data: lineItems } = await supabase
+          .from('quote_line_items')
+          .select('*')
+          .eq('quote_id', quoteId);
+        
+        // Get accepted change orders with items
+        const { data: changeOrders } = await supabase
+          .from('change_orders')
+          .select('*, change_order_items(*)')
+          .eq('quote_id', quoteId)
+          .eq('status', 'accepted');
+        
+        // Calculate totals including change orders
+        let subtotal = 0;
+        let taxableSubtotal = 0;
+        let discountableSubtotal = 0;
+        let taxableDiscountable = 0;
+        const taxRate = quote.tax_rate || 0;
+
+        // Bundles: use the selected bundle's items; otherwise the selected line items
+        const { data: quotePackages } = await supabase
+          .from('quote_packages')
+          .select('*, quote_package_items(*)')
+          .eq('quote_id', quoteId);
+        const selectedItems = bundleInvoiceLines(quotePackages, quote)
+          || (lineItems || []).filter(i => !i.is_optional || i.is_selected);
+        selectedItems.forEach(item => {
+          const lineTotal = (item.unit_price || item.price_range_low || 0) * item.quantity;
+          subtotal += lineTotal;
+          if (item.is_taxable) taxableSubtotal += lineTotal;
+          if (item.apply_discount !== false) {
+            discountableSubtotal += lineTotal;
+            if (item.is_taxable) taxableDiscountable += lineTotal;
+          }
+        });
+        
+        // Change order items
+        const changeOrderItems = [];
+        (changeOrders || []).forEach(co => {
+          (co.change_order_items || []).forEach(item => {
+            const lineTotal = (item.unit_price || 0) * (item.quantity || 1);
+            subtotal += lineTotal;
+            taxableSubtotal += lineTotal;
+            changeOrderItems.push({
+              description: item.description,
+              details: `Change Order #${co.change_order_number}`,
+              quantity: item.quantity || 1,
+              unit_price: item.unit_price || 0,
+              line_total: lineTotal,
+              is_taxable: true,
+              change_order_id: co.id
+            });
+          });
+        });
+        
+        // Carry the quote's discount over to the invoice (applied before tax)
+        const discType = quote.discount_type || 'percentage';
+        const discValue = parseFloat(quote.discount_value) || 0;
+        let discAmount = discType === 'percentage'
+          ? discountableSubtotal * (discValue / 100)
+          : Math.min(discValue, discountableSubtotal);
+        if (!(discAmount > 0)) discAmount = 0;
+        discAmount = Math.round(discAmount * 100) / 100;
+        const taxableShare = discountableSubtotal > 0 ? (taxableDiscountable / discountableSubtotal) : 0;
+
+        const taxAmount = Math.max(0, taxableSubtotal - discAmount * taxableShare) * taxRate;
+        const total = subtotal - discAmount + taxAmount;
+
+        // Generate invoice number
+        const { data: invoiceNumber } = await supabase.rpc('generate_invoice_number');
+
+        // Create invoice
+        const { data: invoice, error } = await supabase
+          .from('invoices')
+          .insert({
+            invoice_number: invoiceNumber,
+            quote_id: quoteId,
+            payment_schedule: scheduleForInvoice(quote),
+            customer_id: quote.customer_id,
+            title: quote.title,
+            status: 'draft',
+            subtotal: subtotal,
+            discount_type: discType,
+            discount_value: discValue,
+            discount_amount: discAmount,
+            tax_rate: taxRate,
+            tax_amount: taxAmount,
+            total: total,
+            amount_due: total,
+            due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        // Copy line items to invoice
+        const allInvoiceItems = [];
+        
+        selectedItems.forEach((item, index) => {
+          allInvoiceItems.push({
+            invoice_id: invoice.id,
+            description: item.description,
+            details: item.details,
+            quantity: item.quantity,
+            unit_price: item.unit_price || item.price_range_low,
+            line_total: (item.unit_price || item.price_range_low) * item.quantity,
+            is_taxable: item.is_taxable,
+            apply_discount: item.apply_discount !== false,
+            sort_order: index
+          });
+        });
+        
+        changeOrderItems.forEach((item, index) => {
+          allInvoiceItems.push({
+            invoice_id: invoice.id,
+            description: item.description,
+            details: item.details,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            line_total: item.line_total,
+            is_taxable: item.is_taxable,
+            change_order_id: item.change_order_id || null,
+            sort_order: selectedItems.length + index
+          });
+        });
+        
+        if (allInvoiceItems.length > 0) {
+          await supabase.from('invoice_line_items').insert(allInvoiceItems);
+        }
+        
+        // Update quote status
+        await supabase.from('quotes').update({ status: 'converted' }).eq('id', quoteId);
+        
+        showToast('Invoice created', 'success');
+        window.location.href = '/admin/invoices.html';
+      } catch (err) {
+        showToast('Failed to create invoice: ' + err.message, 'error');
+      }
+    };
+    
+    window.approveQuote = async (id) => {
+      if (!hasPermission('can_accept_quotes')) { showToast('You do not have permission to accept quotes', 'error'); return; }
+      if (!confirm('Manually approve this quote? This will mark it as accepted.')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        await supabase
+          .from('quotes')
+          .update({ 
+            status: 'accepted',
+            accepted_at: new Date().toISOString()
+          })
+          .eq('id', id);
+        
+        showToast('Quote approved', 'success');
+        loadQuotes();
+      } catch (err) {
+        showToast('Failed to approve: ' + err.message, 'error');
+      }
+    };
+    
+    window.archiveQuote = async (id) => {
+      if (!confirm('Archive this quote? It will be hidden from the default view.')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('quotes').update({ status: 'archived' }).eq('id', id);
+        showToast('Quote archived', 'success');
+        loadQuotes();
+      } catch (err) {
+        showToast('Failed to archive: ' + err.message, 'error');
+      }
+    };
+    
+    window.unarchiveQuote = async (id) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('quotes').update({ status: 'draft' }).eq('id', id);
+        showToast('Quote unarchived', 'success');
+        loadQuotes();
+      } catch (err) {
+        showToast('Failed to unarchive: ' + err.message, 'error');
+      }
+    };
+    
+    window.deleteQuote = async (id) => {
+      if (!hasPermission('can_delete')) { showToast('You do not have permission to delete quotes', 'error'); return; }
+      const quote = quotes.find(q => q.id === id);
+      if (!confirm(`Permanently delete quote ${quote?.quote_number || ''}? This cannot be undone.`)) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('quotes').delete().eq('id', id);
+        if (error) throw error;
+        showToast('Quote deleted', 'success');
+        loadQuotes();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    };
+    
+    window.textQuoteLink = async (quoteId) => {
+      const q = quotes.find(x => x.id === quoteId);
+      if (!q) return;
+      const hadToken = !!q.access_token;
+      await ShareLink.open({ table: 'quotes', record: q, customer: q.customers, onSent: () => loadQuotes() });
+      if (!hadToken && q.access_token) loadQuotes();
+    };
+
+    window.generateToken = async (quoteId) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        const token = crypto.randomUUID();
+        
+        const { error } = await supabase
+          .from('quotes')
+          .update({ access_token: token })
+          .eq('id', quoteId);
+        
+        if (error) throw error;
+        
+        // Open the customer view
+        window.open(`/portal/quote.html?token=${token}&admin=1`, '_blank');
+        
+        // Refresh the list
+        loadQuotes();
+        showToast('Customer link generated', 'success');
+      } catch (err) {
+        showToast('Failed to generate link: ' + err.message, 'error');
+      }
+    };
+    
+    window.syncEstimateToQB = async (quoteId, btn) => {
+      const originalText = btn.textContent;
+      btn.textContent = '⏳';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/.netlify/functions/qb-sync-estimate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quoteId })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Sync failed');
+        }
+
+        btn.textContent = '✅ QB';
+        btn.title = 'Synced ' + new Date().toLocaleDateString();
+        showToast(result.message || 'Synced to QuickBooks', 'success');
+      } catch (err) {
+        btn.textContent = originalText;
+        showToast('QB sync failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    // Initialize
+    loadQuotes();
+  </script>
+</body>
+</html>

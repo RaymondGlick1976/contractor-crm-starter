@@ -1,0 +1,52 @@
+Contractor CRM Starter — Source License
+Copyright (c) 2026 Raymond Glick. All rights reserved.
+
+This is a source-available license, not an open-source license. It is written
+in plain language; the plain meaning governs.
+
+1. WHAT YOU MAY DO
+
+   a. Use, copy, modify and build on this software for your own business.
+
+   b. Use it to build and operate a CRM for a client's business, including as
+      paid work, provided each client deployment is its own separate copy with
+      its own database, and the client receives the right to keep using and
+      modifying that copy under these same terms.
+
+   c. Deploy it to any hosting you like, under any name, with your own branding.
+
+   d. Keep your modifications private. You have no obligation to publish them.
+
+2. WHAT YOU MAY NOT DO
+
+   a. Sell, license, rent, or give away this software, or a modified version
+      of it, as a template, starter kit, boilerplate, course material or
+      similar product whose value is the software itself.
+
+   b. Operate this software, or a modified version of it, as a hosted service
+      in which multiple unrelated businesses are customers of a single
+      deployment (a "multi-tenant" or "SaaS" offering). One deployment, one
+      business.
+
+   c. Remove or alter this notice in copies of the source code. You may remove
+      all references to the original author from the user-facing product.
+
+3. NO WARRANTY
+
+   The software is provided "as is", without warranty of any kind, express or
+   implied, including but not limited to the warranties of merchantability,
+   fitness for a particular purpose and non-infringement. In no event shall
+   the author be liable for any claim, damages or other liability arising
+   from, out of or in connection with the software or its use. You are
+   responsible for securing your own deployment and for complying with laws
+   that apply to the data you store in it.
+
+4. TERMINATION
+
+   Your rights under this license end automatically if you breach section 2.
+   Rights already granted to your clients under 1(b) are not affected.
+
+5. OTHER USES
+
+   Want to do something section 2 doesn't allow? Ask. Permission may be
+   granted in writing on a case-by-case basis.

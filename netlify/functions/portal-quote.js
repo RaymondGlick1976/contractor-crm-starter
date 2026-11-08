@@ -1,0 +1,145 @@
+// =============================================
+// PORTAL QUOTE - Get single quote with line items
+// =============================================
+
+const { getSupabase, success, error, handleCors, validateSession } = require('./utils');
+
+exports.handler = async (event) => {
+  const corsResponse = handleCors(event);
+  if (corsResponse) return corsResponse;
+  
+  const customer = await validateSession(event);
+  if (!customer) {
+    return error('Unauthorized', 401);
+  }
+  
+  const quoteId = event.queryStringParameters?.id;
+  if (!quoteId) {
+    return error('Quote ID required');
+  }
+  
+  const supabase = getSupabase();
+  
+  try {
+    // Get quote with customer info
+    const { data: quote, error: quoteError } = await supabase
+      .from('quotes')
+      .select('*, customers(name, email, phone, address, city, state, zip)')
+      .eq('id', quoteId)
+      .eq('customer_id', customer.id)
+      .single();
+    
+    if (quoteError || !quote) {
+      return error('Quote not found', 404);
+    }
+    
+    // Get line items
+    const { data: lineItems } = await supabase
+      .from('quote_line_items')
+      .select('*')
+      .eq('quote_id', quoteId)
+      .order('sort_order');
+    
+    // Get attachments
+    const { data: attachments } = await supabase
+      .from('quote_attachments')
+      .select('*')
+      .eq('quote_id', quoteId)
+      .order('display_order');
+    
+    // Get change orders with their items
+    const { data: changeOrders } = await supabase
+      .from('change_orders')
+      .select('*, change_order_items(*)')
+      .eq('quote_id', quoteId)
+      .order('created_at');
+    
+    // Get payments for this quote
+    const { data: payments } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('quote_id', quoteId)
+      .order('created_at', { ascending: false });
+    
+    // Get packages with items (with error handling in case table doesn't exist)
+    let packages = [];
+    try {
+      const { data: pkgData, error: pkgError } = await supabase
+        .from('quote_packages')
+        .select('*, items:quote_package_items(*)')
+        .eq('quote_id', quoteId)
+        .order('sort_order');
+      
+      if (!pkgError && pkgData) {
+        packages = pkgData;
+      }
+    } catch (e) {
+      console.log('Packages table may not exist yet:', e.message);
+    }
+    
+    // Get company settings for header
+    let companySettings = null;
+    try {
+      const { data: companyData } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('org_id', quote.org_id)
+        .eq('key', 'company')
+        .single();
+      
+      if (companyData && companyData.value) {
+        companySettings = companyData.value;
+      }
+    } catch (e) {
+      console.log('Company settings not found');
+    }
+    
+    // Log this view
+    try {
+      await supabase.from('quote_views').insert({
+        quote_id: quote.id,
+        source: 'portal',
+        ip_address: event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || null,
+        user_agent: event.headers['user-agent'] || null
+      });
+      
+      // Increment view count
+      await supabase.rpc('increment_quote_views', { quote_uuid: quote.id });
+    } catch (viewErr) {
+      // Don't fail the request if view logging fails
+      console.log('View logging error (non-fatal):', viewErr.message);
+    }
+    
+    // Fetch linked invoice if quote is accepted/converted
+    let linkedInvoice = null;
+    if (quote.status === 'accepted' || quote.status === 'converted') {
+      try {
+        const { data: inv } = await supabase
+          .from('invoices')
+          .select('id')
+          .eq('quote_id', quote.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (inv) linkedInvoice = inv;
+      } catch (e) {
+        // Non-fatal
+      }
+    }
+
+    return success({
+      quote,
+      line_items: quote.document_mode === 'attachment' ? [] : (lineItems || []),
+      attachments: attachments || [],
+      change_orders: changeOrders || [],
+      payments: payments || [],
+      packages: quote.document_mode === 'attachment' ? [] : (packages || []),
+      company: companySettings,
+      linked_invoice: linkedInvoice,
+    });
+    
+  } catch (err) {
+    console.error('Quote fetch error:', err);
+    return error('Failed to load quote', 500);
+  }
+};

@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Pricing Attributes | Admin | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=44">
+  <style>
+    .attributes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+      gap: var(--space-lg);
+    }
+    .attribute-card {
+      background: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .attribute-card.inactive { opacity: 0.6; }
+    .attribute-header {
+      padding: var(--space-md) var(--space-lg);
+      background: var(--color-bg);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .attribute-title { font-weight: 600; color: var(--color-text); }
+    .attribute-description { font-size: 0.875rem; color: var(--color-text-muted); margin-top: 2px; }
+    .attribute-actions { display: flex; gap: var(--space-xs); }
+    .options-list { padding: var(--space-md) var(--space-lg); }
+    .option-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border-light);
+    }
+    .option-item:last-child { border-bottom: none; }
+    .option-info { flex: 1; min-width: 0; padding-right: var(--space-sm); }
+    .option-name { font-weight: 500; }
+    .option-description { display: block; font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 2px; white-space: pre-line; }
+    .option-name.is-default::after { content: ' ✓'; color: var(--color-success); font-size: 0.875rem; }
+    .option-actions { display: flex; gap: var(--space-xs); flex-shrink: 0; }
+    .attribute-actions { flex-shrink: 0; }
+    .option-actions .btn:disabled { opacity: 0.3; cursor: default; }
+    .add-option-btn {
+      width: 100%;
+      padding: var(--space-sm);
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      margin-top: var(--space-sm);
+    }
+    .add-option-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-primary-soft);
+    }
+    .no-options { color: var(--color-text-muted); font-style: italic; padding: var(--space-md) 0; }
+    .pricing-type-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      background: var(--color-bg-soft);
+      border-radius: var(--radius-sm);
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+      margin-left: var(--space-xs);
+    }
+  </style>
+</head>
+<body>
+  <script>
+    const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+    if (!user) {
+      window.location.href = '/admin/login.html';
+    }
+  </script>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-logo">
+        <img data-brand-logo src="" alt="Company Logo" style="height: 40px; filter: brightness(0) invert(1); display: none;">
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item"><a href="/admin/today.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Today</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/index.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals Pipeline</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html?view=calendar" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/customers.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/vendors.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Vendors</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/quotes.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Quotes</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/invoices.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Invoices</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/payments.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/punch-list.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Punch List</a></li>
+        </ul>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Bookkeeping</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/banking.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>Banking</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/reports.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Reports</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Lead Capture</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/booking-forms.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Booking Forms</a></li>
+            <li class="sidebar-nav-item"><a href="/schedule" target="_blank" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Online Scheduling</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/bulk-email.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="2" y1="20" x2="8" y2="14"/><line x1="22" y1="20" x2="16" y2="14"/></svg>Bulk Email</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/sequences.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><polyline points="16 17 18 19 22 15"/></svg>Email Sequences</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Catalog</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/catalog.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Custom Library</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/pricing-attributes.html" class="sidebar-nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>Pricing Attributes</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/email-templates.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Templates</a></li>
+          </ul>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/settings.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    <main class="app-main">
+      <header class="app-header">
+        <h2>Pricing Attributes</h2>
+        <div style="display: flex; gap: var(--space-sm);">
+          <button class="btn btn-secondary" id="price-types-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+            </svg>
+            Price Types
+          </button>
+          <button class="btn btn-primary" id="new-attribute-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            New Attribute
+          </button>
+        </div>
+      </header>
+      
+      <div class="app-content">
+        <p class="text-muted mb-lg">
+          Create pricing attributes with options (like Material Type → Cherry, Maple, Oak). 
+          Each option can have a price per unit type (sq. ft., lin. ft., each, or percentage).
+        </p>
+        
+        <div id="attributes-container" class="attributes-grid">
+          <div class="loading-spinner"></div>
+        </div>
+        
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+            <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>
+          </svg>
+          <h3>No Pricing Attributes Yet</h3>
+          <p>Create attributes like "Material Type" with pricing options like Cherry, Maple, Oak.</p>
+          <button class="btn btn-primary mt-md" id="empty-state-btn">Create Your First Attribute</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script>
+    let attributes = [];
+    let catalogUsage = [];
+    let pricingTypes = [];
+    
+    // Default pricing types (used if none in database)
+    const DEFAULT_PRICING_TYPES = [
+      { id: 'sqft', code: 'sqft', name: 'Square Feet', label: 'per Sq. Ft.', is_builtin: true },
+      { id: 'linft', code: 'linft', name: 'Linear Feet', label: 'per Lin. Ft.', is_builtin: true },
+      { id: 'each', code: 'each', name: 'Each', label: 'Each', is_builtin: true },
+      { id: 'percentage', code: 'percentage', name: 'Percentage', label: '%', is_builtin: true }
+    ];
+    
+    function getPricingTypeLabel(code) {
+      const pt = pricingTypes.find(p => p.code === code);
+      return pt ? pt.label : code;
+    }
+    
+    async function init() {
+      try {
+        await loadPricingTypes();
+        await loadAttributes();
+        await loadCatalogUsage();
+        
+        $('#new-attribute-btn').addEventListener('click', () => showAttributeModal());
+        $('#empty-state-btn').addEventListener('click', () => showAttributeModal());
+        $('#price-types-btn').addEventListener('click', () => showPriceTypesModal());
+      } catch (err) {
+        console.error('Init error:', err);
+        showToast('Failed to initialize', 'error');
+      }
+    }
+    
+    async function loadPricingTypes() {
+      const supabase = await app.waitForSupabase();
+      try {
+        const { data, error } = await supabase
+          .from('pricing_types')
+          .select('*')
+          .order('sort_order, name');
+        
+        if (error) throw error;
+        pricingTypes = data && data.length > 0 ? data : DEFAULT_PRICING_TYPES;
+      } catch (err) {
+        // Table might not exist yet, use defaults
+        pricingTypes = DEFAULT_PRICING_TYPES;
+      }
+    }
+    
+    function showPriceTypesModal() {
+      const content = createElement('div');
+      
+      function renderPriceTypes() {
+        content.innerHTML = `
+          <p class="text-muted mb-md">Manage the unit types available for pricing options.</p>
+          <div class="price-types-list" style="margin-bottom: var(--space-lg);">
+            ${pricingTypes.map((pt, idx) => `
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-sm) var(--space-md); background: var(--color-bg); border-radius: var(--radius-md); margin-bottom: var(--space-sm);">
+                <div>
+                  <strong>${escapeHtml(pt.name)}</strong>
+                  <span class="text-muted text-sm" style="margin-left: var(--space-sm);">${escapeHtml(pt.label)}</span>
+                  ${pt.is_builtin ? '<span class="text-muted text-sm" style="margin-left: var(--space-sm);">(built-in)</span>' : ''}
+                </div>
+                ${!pt.is_builtin ? `
+                  <div style="display: flex; gap: var(--space-xs);">
+                    <button class="btn btn-ghost btn-sm edit-pt-btn" data-id="${pt.id}" title="Edit">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="btn btn-ghost btn-sm delete-pt-btn" data-id="${pt.id}" title="Delete">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+          <div style="padding: var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md);">
+            <label class="form-label">Add New Price Type</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--space-sm); align-items: end;">
+              <div>
+                <input type="text" class="form-input" id="new-pt-name" placeholder="Name (e.g., Board Feet)">
+              </div>
+              <div>
+                <input type="text" class="form-input" id="new-pt-label" placeholder="Label (e.g., per Bd. Ft.)">
+              </div>
+              <button class="btn btn-primary" id="add-pt-btn">Add</button>
+            </div>
+          </div>
+        `;
+        
+        // Attach listeners
+        content.querySelectorAll('.edit-pt-btn').forEach(btn => {
+          btn.addEventListener('click', () => editPriceType(btn.dataset.id));
+        });
+        content.querySelectorAll('.delete-pt-btn').forEach(btn => {
+          btn.addEventListener('click', () => deletePriceType(btn.dataset.id));
+        });
+        content.querySelector('#add-pt-btn').addEventListener('click', addPriceType);
+      }
+      
+      async function addPriceType() {
+        const name = content.querySelector('#new-pt-name').value.trim();
+        const label = content.querySelector('#new-pt-label').value.trim();
+        
+        if (!name || !label) {
+          showToast('Name and label are required', 'error');
+          return;
+        }
+        
+        // Generate code from name
+        const code = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        try {
+          const supabase = await app.waitForSupabase();
+          const { error } = await supabase.from('pricing_types').insert({
+            code,
+            name,
+            label,
+            is_builtin: false,
+            sort_order: pricingTypes.length
+          });
+          
+          if (error) throw error;
+          
+          showToast('Price type added', 'success');
+          await loadPricingTypes();
+          renderPriceTypes();
+        } catch (err) {
+          showToast('Failed to add price type: ' + err.message, 'error');
+        }
+      }
+      
+      async function deletePriceType(id) {
+        if (!confirm('Delete this price type?')) return;
+        
+        try {
+          const supabase = await app.waitForSupabase();
+          const { error } = await supabase.from('pricing_types').delete().eq('id', id);
+          if (error) throw error;
+          
+          showToast('Price type deleted', 'success');
+          await loadPricingTypes();
+          renderPriceTypes();
+        } catch (err) {
+          showToast('Failed to delete: ' + err.message, 'error');
+        }
+      }
+      
+      renderPriceTypes();
+      
+      const footer = createElement('div', { className: 'btn-group' });
+      const closeBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Close' });
+      footer.appendChild(closeBtn);
+      
+      const modal = createModal({ title: 'Price Types', content, footer, size: 'md' });
+      closeBtn.addEventListener('click', () => closeModal(modal));
+    }
+    
+    async function loadAttributes() {
+      const supabase = await app.waitForSupabase();
+      
+      const { data, error } = await supabase
+        .from('pricing_attributes')
+        .select('*, options:pricing_attribute_options(*)')
+        .order('sort_order, name');
+      
+      if (error) {
+        console.error('Error loading attributes:', error);
+        showToast('Failed to load attributes', 'error');
+        return;
+      }
+      
+      attributes = data || [];
+      attributes.forEach(attr => {
+        attr.options = (attr.options || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      });
+      
+      renderAttributes();
+    }
+    
+    async function loadCatalogUsage() {
+      const supabase = await app.waitForSupabase();
+      try {
+        const { data } = await supabase.from('catalog_item_attributes').select('attribute_id, item_id');
+        catalogUsage = data || [];
+      } catch (err) {
+        catalogUsage = [];
+      }
+    }
+    
+    function getUsageCount(attributeId) {
+      return catalogUsage.filter(cu => cu.attribute_id === attributeId).length;
+    }
+    
+    function formatPrice(option) {
+      const price = parseFloat(option.unit_price ?? option.flat_adjustment ?? 0);
+      const type = option.pricing_type || 'each';
+      if (price === 0 && type === 'each') return 'Base price';
+      if (type === 'percentage') return `${price}%`;
+      return `$${price.toFixed(2)} ${getPricingTypeLabel(type)}`;
+    }
+    
+    function renderAttributes() {
+      const container = $('#attributes-container');
+      const emptyState = $('#empty-state');
+      
+      if (attributes.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      
+      container.innerHTML = attributes.map(attr => {
+        const usageCount = getUsageCount(attr.id);
+        
+        const optionsHtml = attr.options.length > 0 
+          ? attr.options.map((opt, idx) => `
+              <div class="option-item">
+                <div class="option-info">
+                  <span class="option-name ${opt.is_default ? 'is-default' : ''}">${escapeHtml(opt.name)}</span>
+                  ${opt.description ? `<span class="option-description">${escapeHtml(opt.description)}</span>` : ''}
+                  <span class="pricing-type-badge">${formatPrice(opt)}</span>
+                </div>
+                <div class="option-actions">
+                  <button class="btn btn-ghost btn-sm" onclick="moveOption('${attr.id}', '${opt.id}', -1)" title="Move up" ${idx === 0 ? 'disabled' : ''}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="moveOption('${attr.id}', '${opt.id}', 1)" title="Move down" ${idx === attr.options.length - 1 ? 'disabled' : ''}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="copyOption('${attr.id}', '${opt.id}', false)" title="Copy">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="copyOption('${attr.id}', '${opt.id}', true)" title="Move (cut)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="showOptionModal('${attr.id}', '${opt.id}')" title="Edit">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button class="btn btn-ghost btn-sm" onclick="deleteOption('${opt.id}')" title="Delete">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                  </button>
+                </div>
+              </div>
+            `).join('')
+          : '<div class="no-options">No options yet. Add options below.</div>';
+        
+        return `
+          <div class="attribute-card ${attr.is_active ? '' : 'inactive'}">
+            <div class="attribute-header">
+              <div>
+                <div class="attribute-title">${escapeHtml(attr.name)}</div>
+                ${attr.description ? `<div class="attribute-description">${escapeHtml(attr.description)}</div>` : ''}
+                ${usageCount > 0 ? `<div class="attribute-description">Used in ${usageCount} catalog item(s)</div>` : ''}
+              </div>
+              <div class="attribute-actions">
+                <button class="btn btn-ghost btn-sm" onclick="openWorksheet('${attr.id}')" title="Print Worksheet">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="duplicateAttribute('${attr.id}')" title="Duplicate">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="showAttributeModal('${attr.id}')" title="Edit">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="deleteAttribute('${attr.id}')" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="options-list">
+              ${optionsHtml}
+              ${clipboardOption ? `<button class="add-option-btn" onclick="pasteOption('${attr.id}')">Paste "${escapeHtml(clipboardOption.name)}"${clipboardOption.move ? ' (move)' : ''}</button>` : ''}
+              <button class="add-option-btn" onclick="showOptionModal('${attr.id}')">+ Add Option</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    let optionMoveBusy = false;
+    let clipboardOption = null; // { name, unit_price, pricing_type, cost, markup_percentage, move, sourceId }
+    let pasteBusy = false;
+
+    function copyOption(attributeId, optionId, move) {
+      const attr = attributes.find(a => a.id === attributeId);
+      const opt = attr?.options.find(o => o.id === optionId);
+      if (!opt) return;
+      clipboardOption = {
+        name: opt.name,
+        description: opt.description ?? null,
+        unit_price: opt.unit_price ?? 0,
+        pricing_type: opt.pricing_type || 'each',
+        cost: opt.cost ?? null,
+        markup_percentage: opt.markup_percentage ?? null,
+        move,
+        sourceId: opt.id
+      };
+      showToast(`${move ? 'Cut' : 'Copied'} "${opt.name}" — paste into any attribute`, 'success');
+      renderAttributes();
+    }
+
+    async function pasteOption(attributeId) {
+      if (!clipboardOption || pasteBusy) return;
+      const attr = attributes.find(a => a.id === attributeId);
+      if (!attr) return;
+      const item = clipboardOption;
+      pasteBusy = true;
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('pricing_attribute_options').insert({
+          attribute_id: attributeId,
+          name: item.name,
+          description: item.description,
+          unit_price: item.unit_price,
+          pricing_type: item.pricing_type,
+          cost: item.cost,
+          markup_percentage: item.markup_percentage,
+          is_default: false,
+          sort_order: attr.options.length
+        });
+        if (error) throw error;
+
+        if (item.move) {
+          const { error: delErr } = await supabase.from('pricing_attribute_options').delete().eq('id', item.sourceId);
+          if (delErr) throw delErr;
+          clipboardOption = null;
+        }
+        showToast(`${item.move ? 'Moved' : 'Pasted'} "${item.name}" into ${attr.name}`, 'success');
+        await loadAttributes();
+      } catch (err) {
+        console.error('Error pasting option:', err);
+        showToast('Failed to paste option: ' + err.message, 'error');
+        await loadAttributes();
+      } finally {
+        pasteBusy = false;
+      }
+    }
+
+    // Swap an option with its neighbour, then renumber sort_order 0..n-1 for the attribute
+    async function moveOption(attributeId, optionId, direction) {
+      if (optionMoveBusy) return;
+      const attr = attributes.find(a => a.id === attributeId);
+      if (!attr) return;
+
+      const from = attr.options.findIndex(o => o.id === optionId);
+      const to = from + direction;
+      if (from < 0 || to < 0 || to >= attr.options.length) return;
+
+      const reordered = [...attr.options];
+      [reordered[from], reordered[to]] = [reordered[to], reordered[from]];
+      reordered.forEach((opt, i) => { opt.sort_order = i; });
+      attr.options = reordered;
+      renderAttributes();
+
+      optionMoveBusy = true;
+      try {
+        const supabase = await app.waitForSupabase();
+        const results = await Promise.all(
+          reordered.map((opt, i) =>
+            supabase.from('pricing_attribute_options').update({ sort_order: i }).eq('id', opt.id)
+          )
+        );
+        const failed = results.find(r => r.error);
+        if (failed) throw failed.error;
+      } catch (err) {
+        console.error('Error moving option:', err);
+        showToast('Failed to move option: ' + err.message, 'error');
+        await loadAttributes();
+      } finally {
+        optionMoveBusy = false;
+      }
+    }
+
+    function openWorksheet(attributeId) {
+      window.open(`/admin/print-worksheet.html?id=${attributeId}`, '_blank');
+    }
+
+    function showAttributeModal(attributeId = null) {
+      const attr = attributeId ? attributes.find(a => a.id === attributeId) : null;
+      const isEdit = !!attr;
+      
+      const content = createElement('div');
+      content.innerHTML = `
+        <form id="attribute-form">
+          <div class="form-group">
+            <label class="form-label">Attribute Name *</label>
+            <input type="text" class="form-input" id="attr-name" value="${attr?.name || ''}" placeholder="e.g., Material Type" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description <span class="text-muted">(optional)</span></label>
+            <input type="text" class="form-input" id="attr-description" value="${attr?.description || ''}" placeholder="Brief description">
+          </div>
+          <div class="form-group">
+            <label class="form-check">
+              <input type="checkbox" id="attr-active" ${attr?.is_active !== false ? 'checked' : ''}>
+              <span>Active</span>
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default Markup % <span class="text-muted">(optional)</span></label>
+            <div class="input-with-prefix">
+              <span class="input-prefix">%</span>
+              <input type="number" class="form-input" id="attr-default-markup" value="${attr?.default_markup_percentage ?? ''}" step="0.01" min="0" placeholder="e.g., 40">
+            </div>
+            <small class="text-muted">Applied as the default markup when adding new options</small>
+          </div>
+        </form>
+      `;
+      
+      const footer = createElement('div', { className: 'btn-group' });
+      const cancelBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Cancel' });
+      const saveBtn = createElement('button', { type: 'button', className: 'btn btn-primary', textContent: isEdit ? 'Save Changes' : 'Create Attribute' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(saveBtn);
+      
+      const modal = createModal({ title: isEdit ? 'Edit Attribute' : 'New Attribute', content, footer });
+      
+      cancelBtn.addEventListener('click', () => closeModal(modal));
+      saveBtn.addEventListener('click', () => saveAttribute(attributeId, modal));
+      
+      $('#attr-name').focus();
+    }
+    
+    async function saveAttribute(attributeId, modal) {
+      const name = $('#attr-name').value.trim();
+      const description = $('#attr-description').value.trim();
+      const isActive = $('#attr-active').checked;
+
+      if (!name) {
+        showToast('Attribute name is required', 'error');
+        return;
+      }
+
+      try {
+        const supabase = await app.waitForSupabase();
+        const existingAttr = attributeId ? attributes.find(a => a.id === attributeId) : null;
+        const defaultMarkupVal = $('#attr-default-markup').value;
+        const defaultMarkup = defaultMarkupVal !== '' ? parseFloat(defaultMarkupVal) : null;
+        const data = { name, description: description || null, is_active: isActive, is_public: existingAttr?.is_public || false, default_markup_percentage: defaultMarkup };
+
+        let error;
+        if (attributeId) {
+          ({ error } = await supabase.from('pricing_attributes').update(data).eq('id', attributeId));
+        } else {
+          ({ error } = await supabase.from('pricing_attributes').insert(data));
+        }
+
+        if (error) throw error;
+
+        showToast(attributeId ? 'Attribute updated' : 'Attribute created', 'success');
+
+        // Check if we should prompt to apply markup to options
+        const attr = attributeId ? attributes.find(a => a.id === attributeId) : null;
+        const hasOptions = attr?.options?.length > 0;
+        if (defaultMarkup != null && hasOptions) {
+          // Show inline confirmation inside the modal
+          const modalBody = modal.querySelector('.modal-body');
+          const modalFooter = modal.querySelector('.modal-footer');
+          modalBody.innerHTML = `
+            <div style="text-align: center; padding: var(--space-md) 0;">
+              <p style="font-weight: 500; margin-bottom: var(--space-md);">Apply new markup to all options?</p>
+              <div style="display: flex; gap: var(--space-sm); justify-content: center; flex-wrap: wrap;">
+                <button type="button" class="btn btn-primary" id="markup-apply-all">All Options</button>
+                <button type="button" class="btn btn-secondary" id="markup-apply-unset">Unset Only</button>
+                <button type="button" class="btn btn-secondary" id="markup-apply-skip">Skip</button>
+              </div>
+              <p class="text-muted" style="font-size: 0.85em; margin-top: var(--space-sm);">Options without a cost will not be changed.</p>
+            </div>
+          `;
+          if (modalFooter) modalFooter.style.display = 'none';
+
+          const finish = async (mode) => {
+            if (mode !== 'skip') {
+              const options = attr.options.filter(o => o.cost && o.cost > 0);
+              const toUpdate = mode === 'all' ? options : options.filter(o => !o.markup_percentage);
+              for (const opt of toUpdate) {
+                const newPrice = +(opt.cost * (1 + defaultMarkup / 100)).toFixed(2);
+                await supabase.from('pricing_attribute_options')
+                  .update({ markup_percentage: defaultMarkup, unit_price: newPrice })
+                  .eq('id', opt.id);
+              }
+              if (toUpdate.length > 0) {
+                showToast(`Updated ${toUpdate.length} option${toUpdate.length === 1 ? '' : 's'}`, 'success');
+              }
+            }
+            closeModal(modal);
+            await loadAttributes();
+          };
+
+          modal.querySelector('#markup-apply-all').addEventListener('click', () => finish('all'));
+          modal.querySelector('#markup-apply-unset').addEventListener('click', () => finish('unset'));
+          modal.querySelector('#markup-apply-skip').addEventListener('click', () => finish('skip'));
+          return;
+        }
+
+        closeModal(modal);
+        await loadAttributes();
+      } catch (err) {
+        console.error('Error saving attribute:', err);
+        showToast('Failed to save attribute: ' + err.message, 'error');
+      }
+    }
+    
+    async function deleteAttribute(attributeId) {
+      const usageCount = getUsageCount(attributeId);
+      const message = usageCount > 0 
+        ? `This attribute is used in ${usageCount} catalog item(s). Deleting it will remove it from those items. Continue?`
+        : 'Delete this attribute and all its options?';
+      
+      if (!confirm(message)) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('pricing_attributes').delete().eq('id', attributeId);
+        if (error) throw error;
+        
+        showToast('Attribute deleted', 'success');
+        await loadAttributes();
+        await loadCatalogUsage();
+      } catch (err) {
+        console.error('Error deleting attribute:', err);
+        showToast('Failed to delete attribute', 'error');
+      }
+    }
+    
+    async function duplicateAttribute(attributeId) {
+      const attr = attributes.find(a => a.id === attributeId);
+      if (!attr) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        // Create the new attribute with "Copy of" prefix
+        const newAttrData = {
+          name: `Copy of ${attr.name}`,
+          description: attr.description || null,
+          is_active: attr.is_active,
+          is_public: attr.is_public || false,
+          default_markup_percentage: attr.default_markup_percentage ?? null
+        };
+        
+        const { data: newAttr, error: attrError } = await supabase
+          .from('pricing_attributes')
+          .insert(newAttrData)
+          .select()
+          .single();
+        
+        if (attrError) throw attrError;
+        
+        // Copy all options to the new attribute
+        if (attr.options && attr.options.length > 0) {
+          const newOptions = attr.options.map((opt, index) => ({
+            attribute_id: newAttr.id,
+            name: opt.name,
+            description: opt.description ?? null,
+            unit_price: opt.unit_price || 0,
+            pricing_type: opt.pricing_type || 'each',
+            is_default: opt.is_default || false,
+            sort_order: index,
+            cost: opt.cost ?? null,
+            markup_percentage: opt.markup_percentage ?? null
+          }));
+          
+          const { error: optError } = await supabase
+            .from('pricing_attribute_options')
+            .insert(newOptions);
+          
+          if (optError) throw optError;
+        }
+        
+        showToast(`Attribute duplicated as "${newAttr.name}"`, 'success');
+        await loadAttributes();
+      } catch (err) {
+        console.error('Error duplicating attribute:', err);
+        showToast('Failed to duplicate attribute: ' + err.message, 'error');
+      }
+    }
+    
+    function showOptionModal(attributeId, optionId = null) {
+      const attr = attributes.find(a => a.id === attributeId);
+      const opt = optionId ? attr?.options.find(o => o.id === optionId) : null;
+      const isEdit = !!opt;
+      const existingPrice = opt?.unit_price ?? opt?.flat_adjustment ?? 0;
+      const existingCost = opt?.cost ?? '';
+      // Use option's markup if set, otherwise fall back to parent attribute's default
+      const existingMarkup = opt?.markup_percentage ?? attr?.default_markup_percentage ?? '';
+
+      // Build pricing type options dynamically
+      const pricingTypeOptions = pricingTypes.map(pt =>
+        `<option value="${pt.code}" ${opt?.pricing_type === pt.code || (!opt?.pricing_type && pt.code === 'each') ? 'selected' : ''}>${pt.name} (${pt.label})</option>`
+      ).join('');
+
+      const content = createElement('div');
+      content.innerHTML = `
+        <form id="option-form">
+          <div class="form-group">
+            <label class="form-label">Option Name *</label>
+            <input type="text" class="form-input" id="opt-name" value="${opt?.name || ''}" placeholder="e.g., Cherry, Maple, Oak" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" id="opt-description" rows="3" placeholder="Optional — what's included, notes for quotes, etc.">${escapeHtml(opt?.description || '')}</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cost</label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">$</span>
+                <input type="number" class="form-input" id="opt-cost" value="${existingCost}" step="0.01" min="0">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Markup %</label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">%</span>
+                <input type="number" class="form-input" id="opt-markup" value="${existingMarkup}" step="0.01" min="0">
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Price</label>
+              <div class="input-with-prefix">
+                <span class="input-prefix">$</span>
+                <input type="number" class="form-input" id="opt-price" value="${existingPrice}" step="0.01" min="0">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pricing Type</label>
+              <select class="form-select" id="opt-pricing-type">
+                ${pricingTypeOptions}
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-check">
+              <input type="checkbox" id="opt-default" ${opt?.is_default ? 'checked' : ''}>
+              <span>Set as default option</span>
+            </label>
+            <small class="text-muted">The default option will be pre-selected when adding to quotes</small>
+          </div>
+        </form>
+      `;
+
+      const footer = createElement('div', { className: 'btn-group' });
+      const cancelBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Cancel' });
+      const saveBtn = createElement('button', { type: 'button', className: 'btn btn-primary', textContent: isEdit ? 'Save Option' : 'Add Option' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(saveBtn);
+
+      const modal = createModal({ title: isEdit ? 'Edit Option' : `Add Option to "${attr.name}"`, content, footer });
+
+      // Auto-calculate price when cost or markup changes
+      const costInput = $('#opt-cost');
+      const markupInput = $('#opt-markup');
+      const priceInput = $('#opt-price');
+      function calcPriceFromCostMarkup() {
+        const cost = parseFloat(costInput.value);
+        const markup = parseFloat(markupInput.value);
+        if (!isNaN(cost) && !isNaN(markup)) {
+          priceInput.value = (cost * (1 + markup / 100)).toFixed(2);
+        }
+      }
+      costInput.addEventListener('input', calcPriceFromCostMarkup);
+      markupInput.addEventListener('input', calcPriceFromCostMarkup);
+
+      cancelBtn.addEventListener('click', () => closeModal(modal));
+      saveBtn.addEventListener('click', () => saveOption(attributeId, optionId, modal));
+
+      $('#opt-name').focus();
+    }
+    
+    async function saveOption(attributeId, optionId, modal) {
+      const name = $('#opt-name').value.trim();
+      const description = $('#opt-description').value.trim() || null;
+      const unitPrice = parseFloat($('#opt-price').value) || 0;
+      const pricingType = $('#opt-pricing-type').value;
+      const isDefault = $('#opt-default').checked;
+      
+      if (!name) {
+        showToast('Option name is required', 'error');
+        return;
+      }
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        if (isDefault) {
+          await supabase.from('pricing_attribute_options').update({ is_default: false }).eq('attribute_id', attributeId);
+        }
+        
+        const costVal = $('#opt-cost').value;
+        const markupVal = $('#opt-markup').value;
+        const cost = costVal !== '' ? parseFloat(costVal) : null;
+        const markupPct = markupVal !== '' ? parseFloat(markupVal) : null;
+        const data = { attribute_id: attributeId, name, description, unit_price: unitPrice, pricing_type: pricingType, is_default: isDefault, cost, markup_percentage: markupPct };
+        
+        let error;
+        if (optionId) {
+          ({ error } = await supabase.from('pricing_attribute_options').update(data).eq('id', optionId));
+        } else {
+          const attr = attributes.find(a => a.id === attributeId);
+          data.sort_order = (attr?.options?.length || 0);
+          ({ error } = await supabase.from('pricing_attribute_options').insert(data));
+        }
+        
+        if (error) throw error;
+        
+        closeModal(modal);
+        showToast(optionId ? 'Option updated' : 'Option added', 'success');
+        await loadAttributes();
+      } catch (err) {
+        console.error('Error saving option:', err);
+        showToast('Failed to save option: ' + err.message, 'error');
+      }
+    }
+    
+    async function deleteOption(optionId) {
+      if (!confirm('Delete this option?')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('pricing_attribute_options').delete().eq('id', optionId);
+        if (error) throw error;
+        
+        showToast('Option deleted', 'success');
+        await loadAttributes();
+      } catch (err) {
+        console.error('Error deleting option:', err);
+        showToast('Failed to delete option', 'error');
+      }
+    }
+    
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    init();
+  </script>
+</body>
+</html>

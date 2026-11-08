@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join your team | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=40">
+  <link rel="stylesheet" href="/css/auth.css?v=1">
+</head>
+<body class="auth-page">
+  <div class="auth-wrap">
+    <div class="auth-brand"><span class="auth-brand-mark">Y</span> YourCRM</div>
+    <div class="auth-card">
+      <h1 id="title">Join your team</h1>
+      <p class="auth-sub" id="sub">Loading your invitation…</p>
+
+      <form id="form" novalidate style="display:none;">
+        <div class="auth-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" class="form-input" readonly>
+        </div>
+        <div class="auth-field" id="name-field">
+          <label for="name">Your name</label>
+          <input type="text" id="name" class="form-input" autocomplete="name">
+        </div>
+        <div class="auth-field">
+          <label for="password" id="password-label">Create a password</label>
+          <input type="password" id="password" class="form-input" autocomplete="new-password" minlength="8" placeholder="At least 8 characters">
+        </div>
+        <button type="submit" class="btn btn-primary auth-btn" id="submit-btn">Join</button>
+      </form>
+      <div class="auth-error" id="error"></div>
+      <div class="auth-links" id="links" style="display:none;"><a href="/admin/forgot-password.html">Forgot your password?</a></div>
+    </div>
+  </div>
+  <script src="/js/utils.js?v=40"></script>
+  <script>
+    const token = new URLSearchParams(location.search).get('token');
+    const errEl = document.getElementById('error');
+    const form = document.getElementById('form');
+    let invite = null;
+
+    (async () => {
+      const supabase = await app.waitForSupabase();
+      if (!token) { document.getElementById('sub').textContent = 'This invitation link is missing its code.'; return; }
+      const { data, error } = await supabase.rpc('get_invitation', { p_token: token });
+      if (error || !data) { document.getElementById('sub').textContent = 'Invitation not found.'; return; }
+      invite = data;
+      if (!data.valid) { document.getElementById('sub').textContent = 'This invitation has expired or was already used. Ask your admin to send a new one.'; return; }
+
+      document.getElementById('title').textContent = 'Join ' + data.business;
+      document.getElementById('email').value = data.email;
+      document.getElementById('name').value = data.name || '';
+
+      // Already signed in as the invited person? Accept right away.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && session.user.email.toLowerCase() === data.email.toLowerCase()) {
+        return accept();
+      }
+      if (session) await supabase.auth.signOut();
+
+      if (data.has_account) {
+        document.getElementById('sub').textContent = 'Sign in with your existing YourCRM password to join.';
+        document.getElementById('name-field').style.display = 'none';
+        document.getElementById('password-label').textContent = 'Your password';
+        document.getElementById('password').setAttribute('autocomplete', 'current-password');
+        document.getElementById('submit-btn').textContent = 'Sign in & join';
+        document.getElementById('links').style.display = 'block';
+      } else {
+        document.getElementById('sub').textContent = 'You\'ve been invited to ' + data.business + '. Set a password to get started.';
+        document.getElementById('submit-btn').textContent = 'Create login & join';
+      }
+      form.style.display = 'block';
+    })();
+
+    async function accept() {
+      const supabase = await app.waitForSupabase();
+      const { error } = await supabase.rpc('accept_invitation', { p_token: token });
+      if (error) { errEl.textContent = error.message; return; }
+      await app.loadUserContext();
+      location.href = '/admin/index.html';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errEl.textContent = '';
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('submit-btn');
+      if (password.length < (invite.has_account ? 1 : 8)) {
+        errEl.textContent = invite.has_account ? 'Enter your password.' : 'Password must be at least 8 characters.';
+        return;
+      }
+      btn.disabled = true;
+      try {
+        const supabase = await app.waitForSupabase();
+        if (!invite.has_account) {
+          const res = await fetch('/api/auth-signup', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ inviteToken: token, name: document.getElementById('name').value.trim(), password })
+          });
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) { errEl.textContent = body.error || 'Could not create your login.'; return; }
+        }
+        const { error } = await supabase.auth.signInWithPassword({ email: invite.email, password });
+        if (error) { errEl.textContent = 'Incorrect password.'; return; }
+        await accept();
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

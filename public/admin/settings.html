@@ -1,0 +1,4009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Settings | Admin | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=39">
+</head>
+<body>
+  <script>
+    // Admin-only page check (before content loads)
+    const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+    if (!user) {
+      window.location.href = '/admin/login.html';
+    } else if (!user.permissions?.can_access_settings) {
+      window.location.href = '/admin/index.html';
+    }
+  </script>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-logo">
+        <img data-brand-logo src="" alt="Company Logo" style="height: 40px; filter: brightness(0) invert(1); display: none;">
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item"><a href="/admin/today.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Today</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/index.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals Pipeline</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html?view=calendar" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/customers.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/vendors.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Vendors</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/quotes.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Quotes</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/invoices.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Invoices</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/payments.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/punch-list.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Punch List</a></li>
+        </ul>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Bookkeeping</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/banking.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>Banking</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/reports.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Reports</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Lead Capture</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/booking-forms.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Booking Forms</a></li>
+            <li class="sidebar-nav-item"><a href="/schedule" target="_blank" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Online Scheduling</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/bulk-email.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="2" y1="20" x2="8" y2="14"/><line x1="22" y1="20" x2="16" y2="14"/></svg>Bulk Email</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/sequences.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><polyline points="16 17 18 19 22 15"/></svg>Email Sequences</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Catalog</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/catalog.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Custom Library</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/pricing-attributes.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>Pricing Attributes</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/email-templates.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Templates</a></li>
+          </ul>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/settings.html" class="sidebar-nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    <main class="app-main">
+      <header class="app-header">
+        <h2>Settings</h2>
+      </header>
+      
+      <div class="app-content">
+        <!-- Logo & Branding -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Logo & Branding</h3>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-2 gap-xl">
+              <div>
+                <div class="form-group">
+                  <label class="form-label">Company Logo</label>
+                  <div style="background: var(--color-bg-soft); border: 2px dashed var(--color-border); border-radius: var(--radius-lg); padding: var(--space-xl); text-align: center;">
+                    <img id="logo-preview" src="/images/logo-placeholder.svg" alt="Logo" style="max-width: 200px; max-height: 80px; margin-bottom: var(--space-md);">
+                    <div class="form-group" style="margin-top: var(--space-md); text-align: left;">
+                      <label class="form-label">Logo URL</label>
+                      <input type="url" id="logo-url" class="form-input" placeholder="https://example.com/logo.png">
+                      <div class="form-help">URL to your logo image. Used on booking forms and scheduling pages.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="form-group">
+                  <label class="form-label">Tagline</label>
+                  <input type="text" id="company-tagline" class="form-input" value="" placeholder="e.g. Quality work, on time">
+                  <div class="form-help">Shown in emails and portal header</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Primary Brand Color</label>
+                  <div style="display: flex; gap: var(--space-sm); align-items: center;">
+                    <input type="color" id="brand-color" value="#3e855f" style="width: 50px; height: 38px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); cursor: pointer;">
+                    <input type="text" id="brand-color-hex" class="form-input" value="#3e855f" style="width: 100px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Customer Portal Link -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Customer Portal Access</h3>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-md);">Share this link with customers so they can access their quotes, invoices, and make payments:</p>
+            <div style="display: flex; gap: var(--space-sm); align-items: center;">
+              <input type="text" id="portal-link" class="form-input" readonly style="flex: 1; background: var(--color-bg-soft);">
+              <button type="button" class="btn btn-secondary" onclick="copyPortalLink()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                Copy Link
+              </button>
+            </div>
+            <p class="form-help" style="margin-top: var(--space-sm);">Customers will enter their email to receive a secure login link.</p>
+          </div>
+        </div>
+        
+        <!-- Company Information -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Company Information</h3>
+          </div>
+          <div class="card-body">
+            <form id="company-form">
+              <div class="grid grid-cols-2 gap-lg">
+                <div class="form-group">
+                  <label class="form-label">Company Name</label>
+                  <input type="text" name="name" id="company-name" class="form-input" value="">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email" id="company-email" class="form-input">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-lg">
+                <div class="form-group">
+                  <label class="form-label">Sending Email (From Address)</label>
+                  <input type="email" name="from_email" id="company-from-email" class="form-input" placeholder="you@yourbusiness.com">
+                  <p class="form-help">Must match your verified Resend domain. Emails are sent from this address.</p>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Notification Email</label>
+                  <input type="email" name="notification_email" id="company-notification-email" class="form-input" placeholder="Where to send new lead alerts (defaults to company email)">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-lg">
+                <div class="form-group">
+                  <label class="form-label">Phone</label>
+                  <input type="tel" name="phone" id="company-phone" class="form-input">
+                </div>
+                <div class="form-group"></div>
+              </div>
+              <div class="grid grid-cols-2 gap-lg">
+                <div class="form-group">
+                  <label class="form-label">Website</label>
+                  <input type="url" name="website" id="company-website" class="form-input" value="">
+                </div>
+                <div class="form-group"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Address</label>
+                <input type="text" name="address" id="company-address" class="form-input">
+              </div>
+              <div class="grid grid-cols-3 gap-lg">
+                <div class="form-group">
+                  <label class="form-label">City</label>
+                  <input type="text" name="city" id="company-city" class="form-input">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">State</label>
+                  <input type="text" name="state" id="company-state" class="form-input" value="MA">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ZIP</label>
+                  <input type="text" name="zip" id="company-zip" class="form-input">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Company Info</button>
+            </form>
+          </div>
+        </div>
+        
+        <!-- Quote Settings -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Quote Settings</h3>
+          </div>
+          <div class="card-body">
+            <form id="quote-settings-form">
+              <div class="grid grid-cols-3 gap-lg">
+                <div class="form-group">
+                  <label class="form-label">Default Valid Days</label>
+                  <input type="number" name="default_valid_days" id="default-valid-days" class="form-input" value="30" min="1">
+                  <div class="form-help">How many days quotes are valid by default</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Default Tax Rate (%)</label>
+                  <input type="number" name="default_tax_rate" id="default-tax-rate" class="form-input" value="6.25" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Default Deposit (%)</label>
+                  <input type="number" name="default_deposit" id="default-deposit" class="form-input" value="50" min="0" max="100">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Quote Settings</button>
+            </form>
+          </div>
+        </div>
+        
+        <!-- Payment Schedule Templates -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Payment Schedule Templates</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addPaymentTemplate()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Template
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Create reusable payment schedules for quotes. Each template can have multiple payments (e.g., deposit, progress payment, final payment).
+            </p>
+            <div id="payment-templates-list">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Quote Footer / Promotional Banner -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Quote Footer</h3>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Add link buttons (hardware, paint colors, door styles, etc.) and an optional promotional banner to the bottom of customer quotes. Pick which buttons show on each quote in the Quote Builder.
+            </p>
+            <form id="quote-footer-form">
+
+              <!-- Link Buttons Section -->
+              <div style="background: var(--color-bg-soft); padding: var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-xl);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+                  <h4 style="margin: 0; font-size: 1rem;">Link Buttons</h4>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="addFooterButton()">+ Add Button</button>
+                </div>
+                <div class="form-help" style="margin-bottom: var(--space-md);">"On by default" buttons are pre-checked on new quotes. You can turn any button on or off per quote.</div>
+                <div id="footer-buttons-list"></div>
+              </div>
+              
+              <!-- Banner Section -->
+              <div style="background: var(--color-bg-soft); padding: var(--space-lg); border-radius: var(--radius-lg); margin-bottom: var(--space-xl);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                  <h4 style="margin: 0; font-size: 1rem;">Promotional Banner</h4>
+                  <label class="form-check" style="margin: 0;">
+                    <input type="checkbox" id="quote-footer-enabled">
+                    <span class="form-check-label">Enable</span>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Banner Image URL</label>
+                  <input type="url" id="quote-footer-image" class="form-input" placeholder="https://example.com/banner.jpg">
+                  <div class="form-help">URL to an image (recommended size: 800x200 or similar banner ratio)</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Link URL</label>
+                  <input type="url" id="quote-footer-link" class="form-input" placeholder="https://example.com/catalog">
+                  <div class="form-help">Where customers go when they click the banner</div>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label class="form-label">Banner Title (optional)</label>
+                  <input type="text" id="quote-footer-title" class="form-input" placeholder="e.g., View Our Portfolio">
+                </div>
+              </div>
+              
+              <div style="display: flex; gap: var(--space-md);">
+                <button type="submit" class="btn btn-primary">Save Quote Footer</button>
+                <button type="button" class="btn btn-secondary" onclick="previewQuoteFooter()">Preview Footer</button>
+              </div>
+            </form>
+            
+            <!-- Preview Area -->
+            <div id="quote-footer-preview" style="display: none; margin-top: var(--space-xl); padding: var(--space-lg); background: var(--color-bg-soft); border-radius: var(--radius-lg);">
+              <div class="text-sm text-muted mb-sm">Preview:</div>
+              <div id="quote-footer-preview-content" style="text-align: center;"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Invoice Settings -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Invoice Settings</h3>
+          </div>
+          <div class="card-body">
+            <form id="invoice-settings-form">
+              <div class="grid grid-cols-2 gap-lg">
+                <div class="form-group">
+                  <label class="form-label">Default Payment Terms (Days)</label>
+                  <input type="number" name="default_payment_terms" id="default-payment-terms" class="form-input" value="30" min="0">
+                  <div class="form-help">Days until invoice is due (0 = due on receipt)</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Late Fee (%)</label>
+                  <input type="number" name="late_fee_percent" id="late-fee-percent" class="form-input" value="0" step="0.1" min="0">
+                  <div class="form-help">Optional late fee percentage for overdue invoices</div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Save Invoice Settings</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Dashboard Preferences -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Dashboard Preferences</h3>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-lg">Choose which pipeline stages appear in the Deals Pipeline widget on the dashboard.</p>
+            <div id="dashboard-stages-list">
+              <div class="text-muted">Loading stages...</div>
+            </div>
+            <button type="button" class="btn btn-primary mt-lg" onclick="saveDashboardPreferences()">Save Dashboard Preferences</button>
+          </div>
+        </div>
+
+        <!-- Lead Sources -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Lead Sources</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addLeadSource()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Source
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Manage the list of lead sources for tracking where customers come from.
+            </p>
+            <div id="lead-sources-list">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Appointment Types -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Appointment Types</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addAppointmentType()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Type
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Customize appointment types shown in the "New Appointment" dropdown on the Deals Pipeline.
+            </p>
+            <div id="appointment-types-list">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Online Scheduling -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Online Scheduling</h3>
+            <a href="/schedule" target="_blank" class="btn btn-secondary btn-sm">Preview Page</a>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Let customers book appointments online. Enable types below and configure availability windows.
+            </p>
+
+            <!-- Share & Embed -->
+            <div style="margin-bottom: var(--space-xl); padding: var(--space-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-soft);">
+              <label class="form-label" style="font-weight: 600; margin-bottom: var(--space-md);">Share & Embed</label>
+
+              <div class="form-group" style="margin-bottom: var(--space-md);">
+                <label class="form-label" style="font-size: 0.85rem;">Direct Link</label>
+                <div style="display: flex; gap: var(--space-sm);">
+                  <input type="text" id="schedule-link" class="form-input" readonly style="flex:1;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="copyScheduleText('schedule-link')">Copy</button>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: var(--space-md);">
+                <label class="form-label" style="font-size: 0.85rem;">Text Message</label>
+                <div style="display: flex; gap: var(--space-sm);">
+                  <input type="text" id="schedule-sms" class="form-input" readonly style="flex:1;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="copyScheduleText('schedule-sms')">Copy</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" style="font-size: 0.85rem;">Iframe Embed Code</label>
+                <div style="display: flex; gap: var(--space-sm);">
+                  <input type="text" id="schedule-iframe" class="form-input" readonly style="flex:1; font-family: monospace; font-size: 0.8rem;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="copyScheduleText('schedule-iframe')">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Blocked Dates -->
+            <div style="margin-bottom: var(--space-xl);">
+              <label class="form-label" style="font-weight: 600;">Blocked Dates</label>
+              <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: var(--space-sm);">Days when no online bookings are allowed (holidays, vacations, etc.)</p>
+              <div style="display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; margin-bottom: var(--space-sm);">
+                <input type="date" id="scheduling-blocked-date-from" class="form-input" style="width: auto;">
+                <span style="color: var(--color-text-muted); font-size: 0.8rem;">to</span>
+                <input type="date" id="scheduling-blocked-date-to" class="form-input" style="width: auto;" placeholder="Optional">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addBlockedDate()">Add</button>
+              </div>
+              <div id="scheduling-blocked-date-error" style="color: var(--color-danger, #dc3545); font-size: 0.8rem; margin-bottom: var(--space-sm); display: none;"></div>
+              <div id="scheduling-blocked-dates" style="display: flex; flex-wrap: wrap; gap: var(--space-xs);"></div>
+            </div>
+
+            <!-- Blocked Time Ranges -->
+            <div style="margin-bottom: var(--space-xl);">
+              <label class="form-label" style="font-weight: 600;">Blocked Time Ranges</label>
+              <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: var(--space-sm);">Block specific hours on a date (e.g., morning only) while keeping the rest of the day open.</p>
+              <div style="display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; margin-bottom: var(--space-sm);">
+                <input type="date" id="scheduling-blocked-time-date" class="form-input" style="width: auto;">
+                <input type="time" id="scheduling-blocked-time-start" class="form-input" style="width: auto;" value="09:00">
+                <span style="color: var(--color-text-muted);">to</span>
+                <input type="time" id="scheduling-blocked-time-end" class="form-input" style="width: auto;" value="12:00">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="addBlockedTime()">Add</button>
+              </div>
+              <div id="scheduling-blocked-times" style="display: flex; flex-wrap: wrap; gap: var(--space-xs);"></div>
+            </div>
+
+            <!-- Global Scheduling Limits -->
+            <div id="global-limits-section" style="margin-bottom: var(--space-xl); padding: var(--space-md); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-bg-soft);">
+              <label class="form-label" style="font-weight: 600; margin-bottom: var(--space-sm);">Global Defaults</label>
+              <p style="color: var(--color-text-muted); font-size: 0.8rem; margin-bottom: var(--space-md);">Default lead time and max advance days for all types (can be overridden per type).</p>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                <div>
+                  <label class="form-label" style="font-size: 0.8rem;">Lead Time</label>
+                  <select id="global-lead-time" class="form-input" style="padding: 6px 8px;">
+                    <option value="1">1 hour</option>
+                    <option value="2">2 hours</option>
+                    <option value="4">4 hours</option>
+                    <option value="8">8 hours</option>
+                    <option value="12">12 hours</option>
+                    <option value="24">24 hours</option>
+                    <option value="48">48 hours</option>
+                    <option value="72">72 hours</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 0.8rem;">Max Advance Booking (days)</label>
+                  <input type="number" id="global-max-advance" class="form-input" min="1" max="365" style="padding: 6px 8px; width: 100px;">
+                </div>
+              </div>
+            </div>
+
+            <!-- Per-type config -->
+            <div id="scheduling-types-list">
+              <div class="loading-spinner"></div>
+            </div>
+
+            <button type="button" class="btn btn-primary" onclick="saveSchedulingConfig()" style="margin-top: var(--space-lg);">Save Scheduling Settings</button>
+          </div>
+        </div>
+
+        <!-- Scheduled Date Types (Job Event Types) -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Scheduled Date Types</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addEventType()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Type
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Manage date types for deals (e.g., "Shop Date", "Installation", "Delivery"). These appear in the Scheduled Dates dropdown when editing a deal.
+            </p>
+            <div id="event-types-list">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Deal Item Types -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Deal Item Types</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addDealItemType()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Item Type
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Define the types of items that can be added to deals (e.g., "Cabinet Doors", "Hardware", "Installation").
+            </p>
+            <div id="deal-item-types-list">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Finish Types -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Finish Types</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addFinishType()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Finish
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Define finish options that can be added to deals (e.g., "Natural Oak", "White Paint", "Walnut Stain").
+            </p>
+            <div id="finish-types-list">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- User Management -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Team Members</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addUser()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Invite Team Member
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Everyone signs in with their own email and password. Invite teammates by email and pick a role to control what they can see and do.
+            </p>
+            <div id="users-list">
+              <div class="loading-spinner"></div>
+            </div>
+            <div id="invites-list" style="margin-top: var(--space-lg);"></div>
+          </div>
+        </div>
+        
+        <!-- Roles Management -->
+        <div class="card mb-xl">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">Roles & Permissions</h3>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addRole()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Role
+            </button>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Define roles with specific permissions. Users inherit permissions from their assigned role.
+            </p>
+            <div id="roles-list">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Notification Settings -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Notification Settings</h3>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              Choose which notifications you'd like to receive via email.
+            </p>
+            <form id="notification-form">
+              <div class="notification-grid">
+                <div class="notification-row">
+                  <span class="notification-label">New Appointment</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_new_appointment" id="notify-new-appointment" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="notification-row">
+                  <span class="notification-label">New Booking Form Submission</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_new_booking" id="notify-new-booking" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="notification-row">
+                  <span class="notification-label">Quote Accepted</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_quote_accepted" id="notify-quote-accepted" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="notification-row">
+                  <span class="notification-label">Quote Declined</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_quote_declined" id="notify-quote-declined" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="notification-row">
+                  <span class="notification-label">Quote Viewed</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_quote_viewed" id="notify-quote-viewed" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="notification-row">
+                  <span class="notification-label">Invoice Viewed</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_invoice_viewed" id="notify-invoice-viewed" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="notification-row">
+                  <span class="notification-label">Payment Received</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_payment_received" id="notify-payment-received" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="notification-row">
+                  <span class="notification-label">Customer Photo Upload</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_customer_upload" id="notify-customer-upload" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                
+                <div class="notification-row">
+                  <span class="notification-label">Job Stage Changed</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" name="notify_job_stage_changed" id="notify-job-stage-changed">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              
+              <div style="margin-top: var(--space-xl); padding-top: var(--space-lg); border-top: 1px solid var(--color-border);">
+                <div class="form-group" style="max-width: 400px; margin-bottom: var(--space-lg);">
+                  <label class="form-label">Appointment Reminder Email</label>
+                  <select id="reminder-hours" class="form-input">
+                    <option value="0">None (disabled)</option>
+                    <option value="0.2">12 minutes before</option>
+                    <option value="1">1 hour before</option>
+                    <option value="4">4 hours before</option>
+                    <option value="24" selected>24 hours before</option>
+                    <option value="48">48 hours before</option>
+                  </select>
+                  <div class="form-help">Default reminder timing. Can be overridden per appointment type in Scheduling Settings below.</div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Notification Settings</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        
+        <style>
+          .notification-grid {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            max-width: 400px;
+          }
+          
+          .notification-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm) 0;
+          }
+          
+          .notification-label {
+            font-size: 0.9375rem;
+            color: var(--color-text);
+          }
+          
+          /* Toggle Switch */
+          .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 26px;
+            flex-shrink: 0;
+          }
+          
+          .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+          }
+          
+          .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e2e8f0;
+            transition: 0.3s;
+            border-radius: 26px;
+          }
+          
+          .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+          }
+          
+          .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--color-primary);
+          }
+          
+          .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(22px);
+          }
+          
+          .toggle-switch input:focus + .toggle-slider {
+            box-shadow: 0 0 0 3px rgba(62, 133, 95, 0.2);
+          }
+        </style>
+        
+        <!-- Terms and Conditions -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Terms and Conditions</h3>
+          </div>
+          <div class="card-body">
+            <p style="color: var(--color-text-light); margin-bottom: var(--space-lg);">
+              These terms will appear at the bottom of your quotes and invoices. You can customize them for each document type.
+            </p>
+            
+            <div class="form-group">
+              <label class="form-label">Quote Terms & Conditions</label>
+              <textarea id="quote-terms" class="form-input" rows="6" placeholder="Enter your quote terms and conditions...">• This quote is valid for 30 days from the date issued.
+• A 50% deposit is required to schedule your project.
+• Final payment is due upon completion of work.
+• Any changes to the scope of work may result in additional charges.
+• Customer is responsible for clearing work areas before project start.
+• We are fully licensed and insured.</textarea>
+              <div class="form-help">Displayed on all quotes sent to customers.</div>
+            </div>
+            
+            <div class="form-group" style="margin-top: var(--space-xl);">
+              <label class="form-label">Invoice Terms & Conditions</label>
+              <textarea id="invoice-terms" class="form-input" rows="6" placeholder="Enter your invoice terms and conditions...">• Payment is due within 30 days of invoice date unless otherwise specified.
+• We accept check, credit card, and bank transfer.
+• A late fee of 1.5% per month may be applied to overdue balances.
+• Please reference invoice number with your payment.
+• Questions? Just reply to this email.</textarea>
+              <div class="form-help">Displayed on all invoices sent to customers.</div>
+            </div>
+            
+            <button type="button" class="btn btn-primary" onclick="saveTerms()">Save Terms & Conditions</button>
+          </div>
+        </div>
+        
+        <!-- Email Templates Link -->
+        <div class="card mb-xl">
+          <div class="card-header">
+            <h3 class="card-title">Email Templates</h3>
+          </div>
+          <div class="card-body">
+            <p class="text-muted mb-md">Manage all your email templates including quotes, invoices, payment confirmations, and deal stage notifications.</p>
+            <a href="/admin/email-templates.html" class="btn btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              Manage Email Templates
+            </a>
+          </div>
+        </div>
+        
+        <!-- Online Payments (Stripe Connect) -->
+        <div class="card mb-xl" id="payments">
+          <div class="card-header"><h3 class="card-title">Online Payments</h3></div>
+          <div class="card-body">
+            <p class="text-muted" style="margin-bottom: var(--space-md);">
+              Let customers pay deposits and invoices by card. Payments go straight into <strong>your own Stripe account</strong> — YourCRM never holds your money.
+            </p>
+            <div id="stripe-status"><div class="loading">Checking…</div></div>
+          </div>
+        </div>
+
+        <!-- Google Calendar -->
+        <div class="card mb-xl" id="calendar">
+          <div class="card-header"><h3 class="card-title">Google Calendar &amp; Online Booking</h3></div>
+          <div class="card-body">
+            <p class="text-muted" style="margin-bottom: var(--space-md);">
+              Connect your Google Calendar so appointments sync automatically and customers can book open times from your booking forms.
+            </p>
+            <div id="gcal-status-ll"><div class="loading">Checking…</div></div>
+          </div>
+        </div>
+
+        <!-- More integrations -->
+        <div class="card mb-xl">
+          <div class="card-header"><h3 class="card-title">More Integrations</h3></div>
+          <div class="card-body">
+            <p class="text-muted" style="margin: 0;">Coming soon: QuickBooks Online sync and Google Photos job albums.</p>
+          </div>
+        </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script>
+    
+    let settings = {};
+    
+    // Set portal link
+    const siteUrl = window.location.origin;
+    document.getElementById('portal-link').value = siteUrl + '/portal/login.html';
+    
+    function copyPortalLink() {
+      const link = document.getElementById('portal-link');
+      link.select();
+      document.execCommand('copy');
+      showToast('Portal link copied to clipboard', 'success');
+    }
+
+    // Scheduling share fields
+    const scheduleUrl = siteUrl + '/schedule';
+    document.getElementById('schedule-link').value = scheduleUrl;
+    document.getElementById('schedule-sms').value = 'Book an appointment online at your convenience: ' + scheduleUrl;
+    document.getElementById('schedule-iframe').value = '<iframe src="' + scheduleUrl + '" width="100%" height="700" frameborder="0"></iframe>';
+
+    function copyScheduleText(elementId) {
+      const el = document.getElementById(elementId);
+      el.select();
+      document.execCommand('copy');
+      showToast('Copied to clipboard', 'success');
+    }
+
+    // Logo URL preview
+    document.getElementById('logo-url').addEventListener('input', function(e) {
+      const url = e.target.value.trim();
+      if (url) {
+        document.getElementById('logo-preview').src = url;
+        document.getElementById('logo-preview').style.display = '';
+      } else {
+        document.getElementById('logo-preview').src = '/images/logo-placeholder.svg';
+      }
+    });
+    
+    // Brand color sync
+    document.getElementById('brand-color').addEventListener('input', function(e) {
+      document.getElementById('brand-color-hex').value = e.target.value;
+      // Preview the color change immediately
+      if (window.applyBrandColor) {
+        applyBrandColor(e.target.value);
+      }
+    });
+    
+    document.getElementById('brand-color-hex').addEventListener('input', function(e) {
+      if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+        document.getElementById('brand-color').value = e.target.value;
+        // Preview the color change immediately
+        if (window.applyBrandColor) {
+          applyBrandColor(e.target.value);
+        }
+      }
+    });
+    
+    async function loadSettings() {
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        const { data, error } = await supabase
+          .from('settings')
+          .select('*');
+        
+        if (error) throw error;
+        
+        // Convert to key-value object
+        settings = {};
+        (data || []).forEach(row => {
+          settings[row.key] = row.value;
+        });
+        
+        // Populate forms
+        if (settings.company) {
+          const company = settings.company;
+          $('#company-name').value = company.name || '';
+          $('#company-email').value = company.email || '';
+          $('#company-from-email').value = company.from_email || '';
+          $('#company-notification-email').value = company.notification_email || '';
+          $('#company-phone').value = company.phone || '';
+          $('#company-website').value = company.website || '';
+          $('#company-address').value = company.address || '';
+          $('#company-city').value = company.city || '';
+          $('#company-state').value = company.state || 'MA';
+          $('#company-zip').value = company.zip || '';
+        }
+        
+        if (settings.branding) {
+          const branding = settings.branding;
+          $('#company-tagline').value = branding.tagline || '';
+          $('#brand-color').value = branding.color || '#3e855f';
+          $('#brand-color-hex').value = branding.color || '#3e855f';
+          if (branding.logo_url) {
+            $('#logo-url').value = branding.logo_url;
+            $('#logo-preview').src = branding.logo_url;
+          }
+        }
+        
+        if (settings.quotes) {
+          const quotes = settings.quotes;
+          $('#default-valid-days').value = quotes.default_valid_days ?? 30;
+          $('#default-tax-rate').value = quotes.default_tax_rate ?? 6.25;
+          $('#default-deposit').value = quotes.default_deposit ?? 50;
+        }
+        
+        if (settings.invoices) {
+          const invoices = settings.invoices;
+          $('#default-payment-terms').value = invoices.default_payment_terms || 30;
+          $('#late-fee-percent').value = invoices.late_fee_percent || 0;
+        }
+        
+        if (settings.notifications) {
+          const notifs = settings.notifications;
+          $('#notify-new-appointment').checked = notifs.new_appointment !== false;
+          $('#notify-new-booking').checked = notifs.new_booking !== false;
+          $('#notify-quote-accepted').checked = notifs.quote_accepted !== false;
+          $('#notify-quote-declined').checked = notifs.quote_declined !== false;
+          $('#notify-quote-viewed').checked = notifs.quote_viewed !== false;
+          $('#notify-invoice-viewed').checked = notifs.invoice_viewed !== false;
+          $('#notify-payment-received').checked = notifs.payment_received !== false;
+          $('#notify-customer-upload').checked = notifs.customer_upload !== false;
+          $('#notify-job-stage-changed').checked = notifs.job_stage_changed === true;
+          if (notifs.reminder_hours != null) {
+            $('#reminder-hours').value = notifs.reminder_hours;
+          }
+        }
+        
+        if (settings.terms_and_conditions) {
+          const terms = settings.terms_and_conditions;
+          if (terms.quote) $('#quote-terms').value = terms.quote;
+          if (terms.invoice) $('#invoice-terms').value = terms.invoice;
+        }
+        
+      } catch (err) {
+        console.error('Load settings error:', err);
+        showToast('Failed to load settings', 'error');
+      }
+    }
+    
+    async function saveSetting(key, value) {
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        const { error } = await supabase
+          .from('settings')
+          .upsert({ key, value }, { onConflict: 'org_id,key' });
+        
+        if (error) throw error;
+        showToast('Settings saved', 'success');
+      } catch (err) {
+        console.error('Save error:', err);
+        showToast('Failed to save: ' + err.message, 'error');
+      }
+    }
+    
+    // Dashboard Preferences
+    async function loadDashboardStages() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: stages } = await supabase
+          .from('job_stages')
+          .select('stage_id, label, color')
+          .order('sort_order');
+
+        if (!stages || stages.length === 0) {
+          $('#dashboard-stages-list').innerHTML = '<div class="text-muted">No pipeline stages found.</div>';
+          return;
+        }
+
+        // Get saved preferences (default: all visible)
+        const savedStages = settings.dashboard?.pipeline_stages || null;
+
+        const container = $('#dashboard-stages-list');
+        container.innerHTML = stages.map(stage => {
+          const checked = savedStages === null || savedStages.includes(stage.stage_id);
+          return `
+            <label style="display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) 0; cursor: pointer;">
+              <input type="checkbox" class="dashboard-stage-toggle" value="${stage.stage_id}" ${checked ? 'checked' : ''}>
+              <span style="width: 12px; height: 12px; background: ${stage.color}; border-radius: 50%; display: inline-block;"></span>
+              <span>${stage.label}</span>
+            </label>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Load dashboard stages error:', err);
+      }
+    }
+
+    async function saveDashboardPreferences() {
+      const checkboxes = document.querySelectorAll('.dashboard-stage-toggle');
+      const visibleStages = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+      await saveSetting('dashboard', { pipeline_stages: visibleStages });
+    }
+
+    async function saveTerms() {
+      const value = {
+        quote: $('#quote-terms').value,
+        invoice: $('#invoice-terms').value
+      };
+      await saveSetting('terms_and_conditions', value);
+    }
+    
+    // Company form
+    $('#company-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const value = {
+        name: $('#company-name').value,
+        email: $('#company-email').value,
+        from_email: $('#company-from-email').value,
+        notification_email: $('#company-notification-email').value,
+        phone: $('#company-phone').value,
+        website: $('#company-website').value,
+        address: $('#company-address').value,
+        city: $('#company-city').value,
+        state: $('#company-state').value,
+        zip: $('#company-zip').value
+      };
+      await saveSetting('company', value);
+      
+      // Also save branding
+      const branding = {
+        tagline: $('#company-tagline').value,
+        color: $('#brand-color').value,
+        logo_url: $('#logo-url').value.trim() || null
+      };
+      await saveSetting('branding', branding);
+    });
+    
+    // Quote settings form
+    $('#quote-settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const validDays = parseInt($('#default-valid-days').value);
+      const taxRate = parseFloat($('#default-tax-rate').value);
+      const deposit = parseInt($('#default-deposit').value);
+      const value = {
+        default_valid_days: Number.isFinite(validDays) ? validDays : 30,
+        default_tax_rate: Number.isFinite(taxRate) ? taxRate : 6.25,
+        default_deposit: Number.isFinite(deposit) ? deposit : 50
+      };
+      await saveSetting('quotes', value);
+    });
+    
+    // Quote footer form
+    $('#quote-footer-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const value = {
+        // Banner settings
+        enabled: $('#quote-footer-enabled').checked,
+        image_url: $('#quote-footer-image').value.trim(),
+        link_url: $('#quote-footer-link').value.trim(),
+        title: $('#quote-footer-title').value.trim(),
+        // Link buttons
+        buttons: collectFooterButtons(),
+      };
+      const bad = value.buttons.find(b => !b.label || !b.url);
+      if (bad) {
+        showToast('Each button needs a name and a link', 'error');
+        return;
+      }
+      await saveSetting('quote_footer', value);
+    });
+    
+    // ---- Quote footer link buttons ----
+    let footerButtons = [];
+
+    document.addEventListener('DOMContentLoaded', () => renderFooterButtons());
+
+    function newFooterButtonId() {
+      return 'btn_' + Math.random().toString(36).slice(2, 10);
+    }
+
+    function renderFooterButtons() {
+      const list = $('#footer-buttons-list');
+      if (!list) return;
+      if (footerButtons.length === 0) {
+        list.innerHTML = '<div class="text-sm text-muted" style="padding: var(--space-sm) 0;">No buttons yet. Click "+ Add Button" to create one.</div>';
+        return;
+      }
+      list.innerHTML = footerButtons.map((b, i) => `
+        <div class="footer-btn-row" data-id="${escapeHtml(b.id)}" style="display: grid; grid-template-columns: minmax(140px, 1fr) minmax(200px, 2fr) auto auto; gap: var(--space-sm); align-items: center; margin-bottom: var(--space-sm);">
+          <input type="text" class="form-input fb-label" placeholder="Button name (e.g., Cabinet Hardware)" value="${escapeHtml(b.label)}">
+          <input type="url" class="form-input fb-url" placeholder="https://..." value="${escapeHtml(b.url)}">
+          <label class="form-check" style="margin: 0; white-space: nowrap;">
+            <input type="checkbox" class="fb-default" ${b.default_on ? 'checked' : ''}>
+            <span class="form-check-label">On by default</span>
+          </label>
+          <div style="display: flex; gap: 4px;">
+            <button type="button" class="btn btn-ghost btn-sm" title="Move up" onclick="moveFooterButton(${i}, -1)" ${i === 0 ? 'disabled' : ''}>&uarr;</button>
+            <button type="button" class="btn btn-ghost btn-sm" title="Move down" onclick="moveFooterButton(${i}, 1)" ${i === footerButtons.length - 1 ? 'disabled' : ''}>&darr;</button>
+            <button type="button" class="btn btn-ghost btn-sm" title="Remove" onclick="removeFooterButton(${i})" style="color: var(--color-danger, #dc2626);">&times;</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Pull current values out of the inputs (keeps edits when re-rendering)
+    function syncFooterButtonsFromDom() {
+      const rows = document.querySelectorAll('#footer-buttons-list .footer-btn-row');
+      if (!rows.length) return;
+      footerButtons = Array.from(rows).map(row => ({
+        id: row.dataset.id,
+        label: row.querySelector('.fb-label').value.trim(),
+        url: row.querySelector('.fb-url').value.trim(),
+        default_on: row.querySelector('.fb-default').checked
+      }));
+    }
+
+    function collectFooterButtons() {
+      syncFooterButtonsFromDom();
+      // Drop completely empty rows
+      return footerButtons.filter(b => b.label || b.url);
+    }
+
+    function addFooterButton() {
+      syncFooterButtonsFromDom();
+      footerButtons.push({ id: newFooterButtonId(), label: '', url: '', default_on: true });
+      renderFooterButtons();
+      const rows = document.querySelectorAll('#footer-buttons-list .fb-label');
+      if (rows.length) rows[rows.length - 1].focus();
+    }
+
+    function removeFooterButton(index) {
+      syncFooterButtonsFromDom();
+      footerButtons.splice(index, 1);
+      renderFooterButtons();
+    }
+
+    function moveFooterButton(index, dir) {
+      syncFooterButtonsFromDom();
+      const j = index + dir;
+      if (j < 0 || j >= footerButtons.length) return;
+      [footerButtons[index], footerButtons[j]] = [footerButtons[j], footerButtons[index]];
+      renderFooterButtons();
+    }
+
+    function footerButtonsPreviewHtml() {
+      const btns = collectFooterButtons().filter(b => b.label && b.url);
+      if (!btns.length) return '';
+      return '<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-sm); margin-bottom: var(--space-lg);">' +
+        btns.map(b => `<a href="${escapeHtml(b.url)}" target="_blank" rel="noopener noreferrer" class="btn ${b.default_on ? 'btn-primary' : 'btn-secondary'}" title="${b.default_on ? 'On by default' : 'Off by default'}">${escapeHtml(b.label)}</a>`).join('') +
+        '</div>';
+    }
+
+    function previewQuoteFooter() {
+      const imageUrl = $('#quote-footer-image').value.trim();
+      const linkUrl = $('#quote-footer-link').value.trim();
+      const title = $('#quote-footer-title').value.trim();
+      const enabled = $('#quote-footer-enabled').checked;
+      
+      const preview = $('#quote-footer-preview');
+      const content = $('#quote-footer-preview-content');
+      
+      let html = footerButtonsPreviewHtml();
+
+      if (!enabled || !imageUrl) {
+        if (!html) {
+          preview.style.display = 'none';
+          showToast('Nothing to preview — add a button or enable the banner', 'info');
+          return;
+        }
+        content.innerHTML = html;
+        preview.style.display = 'block';
+        return;
+      }
+
+      if (title) {
+        html += `<p style="font-weight: 600; margin-bottom: var(--space-sm); color: var(--color-text);">${title}</p>`;
+      }
+      
+      if (linkUrl) {
+        html += `<a href="${linkUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block;"><img src="${imageUrl}" alt="${title || 'View More'}" style="max-width: 100%; max-height: 200px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);"></a>`;
+      } else {
+        html += `<img src="${imageUrl}" alt="${title || 'Banner'}" style="max-width: 100%; max-height: 200px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm);">`;
+      }
+      
+      content.innerHTML = html;
+      preview.style.display = 'block';
+    }
+    
+    
+    // Invoice settings form
+    $('#invoice-settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const value = {
+        default_payment_terms: parseInt($('#default-payment-terms').value) || 30,
+        late_fee_percent: parseFloat($('#late-fee-percent').value) || 0
+      };
+      await saveSetting('invoices', value);
+    });
+    
+    // Notification form
+    $('#notification-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const value = {
+        new_appointment: $('#notify-new-appointment').checked,
+        new_booking: $('#notify-new-booking').checked,
+        quote_accepted: $('#notify-quote-accepted').checked,
+        quote_declined: $('#notify-quote-declined').checked,
+        quote_viewed: $('#notify-quote-viewed').checked,
+        invoice_viewed: $('#notify-invoice-viewed').checked,
+        payment_received: $('#notify-payment-received').checked,
+        customer_upload: $('#notify-customer-upload').checked,
+        job_stage_changed: $('#notify-job-stage-changed').checked,
+        reminder_hours: parseInt($('#reminder-hours').value) || 0
+      };
+      await saveSetting('notifications', value);
+    });
+    
+    // Lead Sources Management
+    let leadSources = [];
+    
+    async function loadLeadSources() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data, error } = await supabase
+          .from('lead_sources')
+          .select('*')
+          .order('sort_order');
+        
+        if (error) throw error;
+        leadSources = data || [];
+        renderLeadSources();
+      } catch (err) {
+        console.error('Failed to load lead sources:', err);
+        $('#lead-sources-list').innerHTML = '<p class="text-muted">Failed to load lead sources</p>';
+      }
+    }
+    
+    function renderLeadSources() {
+      const container = $('#lead-sources-list');
+      
+      if (leadSources.length === 0) {
+        container.innerHTML = '<p class="text-muted">No lead sources defined. Click "Add Source" to create one.</p>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div id="lead-sources-sortable" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${leadSources.map((ls, idx) => `
+            <div class="sortable-item" draggable="true" data-id="${ls.id}" data-idx="${idx}"
+                 ondragstart="handleLeadSourceDragStart(event)" ondragover="handleLeadSourceDragOver(event)" 
+                 ondrop="handleLeadSourceDrop(event)" ondragend="handleLeadSourceDragEnd(event)"
+                 style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md); cursor: grab;">
+              <span style="color: var(--color-text-muted); cursor: grab;">⋮⋮</span>
+              <span style="flex: 1; font-weight: 500;">${ls.name}</span>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); font-size: 0.75rem; color: var(--color-text-muted);">
+                <input type="checkbox" ${ls.is_active ? 'checked' : ''} onchange="toggleLeadSource('${ls.id}', this.checked)">
+                Active
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="editLeadSource('${ls.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm text-danger" onclick="deleteLeadSource('${ls.id}')">×</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    let draggedLeadSourceId = null;
+    
+    window.handleLeadSourceDragStart = (e) => {
+      draggedLeadSourceId = e.target.closest('.sortable-item').dataset.id;
+      e.target.closest('.sortable-item').style.opacity = '0.5';
+    };
+    
+    window.handleLeadSourceDragOver = (e) => {
+      e.preventDefault();
+      const item = e.target.closest('.sortable-item');
+      if (item) item.style.borderTop = '2px solid var(--color-primary)';
+    };
+    
+    window.handleLeadSourceDragEnd = (e) => {
+      e.target.closest('.sortable-item').style.opacity = '1';
+      document.querySelectorAll('#lead-sources-sortable .sortable-item').forEach(el => el.style.borderTop = '');
+      draggedLeadSourceId = null;
+    };
+    
+    window.handleLeadSourceDrop = async (e) => {
+      e.preventDefault();
+      const targetItem = e.target.closest('.sortable-item');
+      if (!targetItem || !draggedLeadSourceId) return;
+      
+      const targetId = targetItem.dataset.id;
+      if (targetId === draggedLeadSourceId) return;
+      
+      const draggedIdx = leadSources.findIndex(t => t.id === draggedLeadSourceId);
+      const targetIdx = leadSources.findIndex(t => t.id === targetId);
+      
+      if (draggedIdx === -1 || targetIdx === -1) return;
+      
+      // Reorder array
+      const [dragged] = leadSources.splice(draggedIdx, 1);
+      leadSources.splice(targetIdx, 0, dragged);
+      
+      // Update sort_order in database
+      try {
+        const supabase = await app.waitForSupabase();
+        const updates = leadSources.map((t, i) => 
+          supabase.from('lead_sources').update({ sort_order: i }).eq('id', t.id)
+        );
+        await Promise.all(updates);
+        renderLeadSources();
+      } catch (err) {
+        console.error('Reorder failed:', err);
+        showToast('Failed to reorder', 'error');
+        loadLeadSources();
+      }
+    };
+    
+    window.addLeadSource = async () => {
+      const name = prompt('Enter lead source name:');
+      if (!name?.trim()) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const maxOrder = Math.max(...leadSources.map(ls => ls.sort_order || 0), 0);
+        
+        const { error } = await supabase
+          .from('lead_sources')
+          .insert({ name: name.trim(), sort_order: maxOrder + 1 });
+        
+        if (error) throw error;
+        showToast('Lead source added', 'success');
+        loadLeadSources();
+      } catch (err) {
+        showToast('Failed to add: ' + err.message, 'error');
+      }
+    };
+    
+    window.editLeadSource = async (id) => {
+      const ls = leadSources.find(l => l.id === id);
+      if (!ls) return;
+      
+      const newName = prompt('Edit lead source name:', ls.name);
+      if (!newName?.trim() || newName === ls.name) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase
+          .from('lead_sources')
+          .update({ name: newName.trim() })
+          .eq('id', id);
+        
+        if (error) throw error;
+        showToast('Lead source updated', 'success');
+        loadLeadSources();
+      } catch (err) {
+        showToast('Failed to update: ' + err.message, 'error');
+      }
+    };
+    
+    window.toggleLeadSource = async (id, isActive) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase
+          .from('lead_sources')
+          .update({ is_active: isActive })
+          .eq('id', id);
+        
+        if (error) throw error;
+      } catch (err) {
+        showToast('Failed to update: ' + err.message, 'error');
+        loadLeadSources(); // Revert UI
+      }
+    };
+    
+    window.deleteLeadSource = async (id) => {
+      if (!confirm('Delete this lead source?')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase
+          .from('lead_sources')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        showToast('Lead source deleted', 'success');
+        loadLeadSources();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    };
+    
+    // ==========================================
+    // APPOINTMENT TYPES MANAGEMENT
+    // ==========================================
+    let appointmentTypes = [];
+    const defaultIcons = ['📅', '📏', '🏠', '👁️', '✅', '🔍', '💰', '🚚', '📞', '🔨', '⭐', '📋'];
+    const defaultColors = ['#3e855f', '#8b5cf6', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b', '#f97316', '#ec4899', '#64748b'];
+    
+    async function loadAppointmentTypes() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data, error } = await supabase
+          .from('appointment_types')
+          .select('*')
+          .order('sort_order');
+        
+        if (error) throw error;
+        appointmentTypes = data || [];
+        renderAppointmentTypes();
+      } catch (err) {
+        console.error('Failed to load appointment types:', err);
+        $('#appointment-types-list').innerHTML = '<p class="text-muted">Failed to load appointment types</p>';
+      }
+    }
+    
+    function renderAppointmentTypes() {
+      const container = $('#appointment-types-list');
+      
+      if (appointmentTypes.length === 0) {
+        container.innerHTML = '<p class="text-muted">No appointment types defined. Click "Add Type" to create one.</p>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div id="appt-types-sortable" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${appointmentTypes.map((at, idx) => `
+            <div class="sortable-item" draggable="true" data-id="${at.id}" data-idx="${idx}"
+                 ondragstart="handleApptTypeDragStart(event)" ondragover="handleApptTypeDragOver(event)" 
+                 ondrop="handleApptTypeDrop(event)" ondragend="handleApptTypeDragEnd(event)"
+                 style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md); cursor: grab;">
+              <span style="color: var(--color-text-muted); cursor: grab;">⋮⋮</span>
+              <span style="font-size: 1.25rem;">${at.icon || '📅'}</span>
+              <span style="flex: 1; font-weight: 500;">${at.name}</span>
+              <span style="width: 20px; height: 20px; border-radius: 4px; background: ${at.color || '#3e855f'};"></span>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); font-size: 0.75rem; color: var(--color-text-muted);">
+                <input type="checkbox" ${at.is_active ? 'checked' : ''} onchange="toggleAppointmentType('${at.id}', this.checked)">
+                Active
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="editAppointmentType('${at.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm text-danger" onclick="deleteAppointmentType('${at.id}')">×</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    let draggedApptTypeId = null;
+    
+    window.handleApptTypeDragStart = (e) => {
+      draggedApptTypeId = e.target.closest('.sortable-item').dataset.id;
+      e.target.closest('.sortable-item').style.opacity = '0.5';
+    };
+    
+    window.handleApptTypeDragOver = (e) => {
+      e.preventDefault();
+      const item = e.target.closest('.sortable-item');
+      if (item) item.style.borderTop = '2px solid var(--color-primary)';
+    };
+    
+    window.handleApptTypeDragEnd = (e) => {
+      e.target.closest('.sortable-item').style.opacity = '1';
+      document.querySelectorAll('#appt-types-sortable .sortable-item').forEach(el => el.style.borderTop = '');
+      draggedApptTypeId = null;
+    };
+    
+    window.handleApptTypeDrop = async (e) => {
+      e.preventDefault();
+      const targetItem = e.target.closest('.sortable-item');
+      if (!targetItem || !draggedApptTypeId) return;
+      
+      const targetId = targetItem.dataset.id;
+      if (targetId === draggedApptTypeId) return;
+      
+      const draggedIdx = appointmentTypes.findIndex(t => t.id === draggedApptTypeId);
+      const targetIdx = appointmentTypes.findIndex(t => t.id === targetId);
+      
+      if (draggedIdx === -1 || targetIdx === -1) return;
+      
+      // Reorder array
+      const [dragged] = appointmentTypes.splice(draggedIdx, 1);
+      appointmentTypes.splice(targetIdx, 0, dragged);
+      
+      // Update sort_order in database
+      try {
+        const supabase = await app.waitForSupabase();
+        const updates = appointmentTypes.map((t, i) => 
+          supabase.from('appointment_types').update({ sort_order: i }).eq('id', t.id)
+        );
+        await Promise.all(updates);
+        renderAppointmentTypes();
+      } catch (err) {
+        console.error('Reorder failed:', err);
+        showToast('Failed to reorder', 'error');
+        loadAppointmentTypes();
+      }
+    };
+    
+    window.addAppointmentType = () => showAppointmentTypeModal();
+    
+    window.editAppointmentType = (id) => {
+      const at = appointmentTypes.find(t => t.id === id);
+      if (at) showAppointmentTypeModal(at);
+    };
+    
+    function showAppointmentTypeModal(apptType = null) {
+      const isEdit = !!apptType;
+      
+      const content = createElement('div');
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Name *</label>
+          <input type="text" id="at-name" class="form-input" value="${apptType?.name || ''}" placeholder="e.g., Site Visit">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Icon</label>
+          <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm);">
+            ${defaultIcons.map(icon => `
+              <button type="button" class="btn btn-ghost" style="font-size: 1.25rem; padding: 8px; ${apptType?.icon === icon ? 'outline: 2px solid var(--color-primary);' : ''}" 
+                onclick="$('#at-icon').value='${icon}'; this.parentElement.querySelectorAll('button').forEach(b => b.style.outline=''); this.style.outline='2px solid var(--color-primary)';">
+                ${icon}
+              </button>
+            `).join('')}
+          </div>
+          <input type="text" id="at-icon" class="form-input" value="${apptType?.icon || '📅'}" placeholder="Emoji icon" style="width: 80px;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm);">
+            ${defaultColors.map(color => `
+              <button type="button" style="width: 32px; height: 32px; border-radius: 6px; background: ${color}; border: 2px solid ${apptType?.color === color ? 'var(--color-text)' : 'transparent'}; cursor: pointer;"
+                onclick="$('#at-color').value='${color}'; this.parentElement.querySelectorAll('button').forEach(b => b.style.borderColor='transparent'); this.style.borderColor='var(--color-text)';">
+              </button>
+            `).join('')}
+          </div>
+          <input type="color" id="at-color" value="${apptType?.color || '#3e855f'}" style="width: 60px; height: 38px;">
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'flex justify-end gap-md' });
+      const cancelBtn = createElement('button', { className: 'btn btn-secondary', textContent: 'Cancel' });
+      const saveBtn = createElement('button', { className: 'btn btn-primary', textContent: isEdit ? 'Save Changes' : 'Add Type' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(saveBtn);
+      
+      const modal = createModal({
+        title: isEdit ? 'Edit Appointment Type' : 'Add Appointment Type',
+        content,
+        footer
+      });
+      
+      cancelBtn.onclick = () => closeModal(modal);
+      saveBtn.onclick = async () => {
+        const name = $('#at-name').value.trim();
+        const icon = $('#at-icon').value.trim() || '📅';
+        const color = $('#at-color').value;
+        
+        if (!name) {
+          showToast('Name is required', 'error');
+          return;
+        }
+        
+        try {
+          const supabase = await app.waitForSupabase();
+          
+          if (isEdit) {
+            await supabase.from('appointment_types').update({ name, icon, color }).eq('id', apptType.id);
+            showToast('Appointment type updated', 'success');
+          } else {
+            const maxOrder = Math.max(...appointmentTypes.map(t => t.sort_order || 0), 0);
+            await supabase.from('appointment_types').insert({ name, icon, color, sort_order: maxOrder + 1 });
+            showToast('Appointment type added', 'success');
+          }
+          
+          closeModal(modal);
+          loadAppointmentTypes();
+        } catch (err) {
+          showToast('Failed to save: ' + err.message, 'error');
+        }
+      };
+    }
+    
+    window.toggleAppointmentType = async (id, isActive) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('appointment_types').update({ is_active: isActive }).eq('id', id);
+      } catch (err) {
+        showToast('Failed to update: ' + err.message, 'error');
+        loadAppointmentTypes();
+      }
+    };
+    
+    window.deleteAppointmentType = async (id) => {
+      if (!confirm('Delete this appointment type?')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('appointment_types').delete().eq('id', id);
+        showToast('Appointment type deleted', 'success');
+        loadAppointmentTypes();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    };
+    
+    // ==========================================
+    // ONLINE SCHEDULING CONFIG
+    // ==========================================
+    let schedulingConfig = { blocked_dates: [], global: {}, types: {} };
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Normalize old-format type config to schedule format (for display in admin)
+    function normalizeTypeSchedule(cfg) {
+      if (cfg.schedule) return cfg.schedule;
+      const start = cfg.start_time || '09:00';
+      const end = cfg.end_time || '17:00';
+      const days = cfg.days || [1,2,3,4,5];
+      const schedule = {};
+      for (let d = 1; d <= 7; d++) {
+        schedule[String(d)] = days.includes(d) ? [{ start, end }] : [];
+      }
+      return schedule;
+    }
+
+    function loadSchedulingConfig(settingsData) {
+      const sched = settingsData?.find(s => s.key === 'scheduling');
+      if (sched?.value) {
+        schedulingConfig = sched.value;
+        if (!schedulingConfig.blocked_dates) schedulingConfig.blocked_dates = [];
+        if (!schedulingConfig.blocked_times) schedulingConfig.blocked_times = [];
+        if (!schedulingConfig.global) schedulingConfig.global = {};
+        if (!schedulingConfig.types) schedulingConfig.types = {};
+      }
+      renderBlockedDates();
+      renderBlockedTimes();
+      renderGlobalLimits();
+      renderSchedulingTypes();
+    }
+
+    // Group sorted dates into consecutive ranges for display
+    function groupConsecutiveDates(dates) {
+      if (!dates.length) return [];
+      const sorted = [...dates].sort();
+      const groups = [];
+      let start = sorted[0], prev = sorted[0];
+      for (let i = 1; i < sorted.length; i++) {
+        const next = sorted[i];
+        const prevDate = new Date(prev + 'T00:00:00');
+        const nextDate = new Date(next + 'T00:00:00');
+        const diff = (nextDate - prevDate) / (1000 * 60 * 60 * 24);
+        if (diff === 1) {
+          prev = next;
+        } else {
+          groups.push({ start, end: prev });
+          start = next;
+          prev = next;
+        }
+      }
+      groups.push({ start, end: prev });
+      return groups;
+    }
+
+    function formatDateShort(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function renderBlockedDates() {
+      const container = $('#scheduling-blocked-dates');
+      if (!schedulingConfig.blocked_dates.length) {
+        container.innerHTML = '<span style="color: var(--color-text-muted); font-size: 0.8rem;">No blocked dates</span>';
+        return;
+      }
+      const sorted = [...schedulingConfig.blocked_dates].sort();
+      const groups = groupConsecutiveDates(sorted);
+      container.innerHTML = groups.map(g => {
+        const label = g.start === g.end
+          ? formatDateShort(g.start)
+          : `${formatDateShort(g.start)} – ${formatDateShort(g.end)}`;
+        return `<span style="display: inline-flex; align-items: center; gap: 4px; background: var(--color-bg-soft); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">${label}<button type="button" onclick="removeBlockedDateRange('${g.start}','${g.end}')" style="background: none; border: none; cursor: pointer; color: var(--color-text-muted); font-size: 1rem; line-height: 1; padding: 0 0 0 4px;">&times;</button></span>`;
+      }).join('');
+    }
+
+    window.addBlockedDate = () => {
+      const fromInput = $('#scheduling-blocked-date-from');
+      const toInput = $('#scheduling-blocked-date-to');
+      const errorEl = $('#scheduling-blocked-date-error');
+      errorEl.style.display = 'none';
+
+      const fromVal = fromInput.value;
+      const toVal = toInput.value;
+      if (!fromVal) return;
+
+      // If no end date, treat as single date
+      const startDate = new Date(fromVal + 'T00:00:00');
+      const endDate = toVal ? new Date(toVal + 'T00:00:00') : startDate;
+
+      if (endDate < startDate) {
+        errorEl.textContent = 'End date must be on or after the start date.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
+      // Expand range into individual dates
+      const datesToAdd = [];
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        const ds = current.toISOString().split('T')[0];
+        if (!schedulingConfig.blocked_dates.includes(ds)) {
+          datesToAdd.push(ds);
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      if (datesToAdd.length > 0) {
+        schedulingConfig.blocked_dates.push(...datesToAdd);
+        renderBlockedDates();
+      }
+
+      fromInput.value = '';
+      toInput.value = '';
+    };
+
+    window.removeBlockedDateRange = (start, end) => {
+      schedulingConfig.blocked_dates = schedulingConfig.blocked_dates.filter(d => d < start || d > end);
+      renderBlockedDates();
+    };
+
+    function renderBlockedTimes() {
+      const container = $('#scheduling-blocked-times');
+      if (!schedulingConfig.blocked_times || !schedulingConfig.blocked_times.length) {
+        container.innerHTML = '<span style="color: var(--color-text-muted); font-size: 0.8rem;">No blocked time ranges</span>';
+        return;
+      }
+      container.innerHTML = schedulingConfig.blocked_times
+        .map((bt, i) => `<span style="display: inline-flex; align-items: center; gap: 4px; background: var(--color-bg-soft); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">${bt.date} ${bt.start}\u2013${bt.end}<button type="button" onclick="removeBlockedTime(${i})" style="background: none; border: none; cursor: pointer; color: var(--color-text-muted); font-size: 1rem; line-height: 1; padding: 0 0 0 4px;">&times;</button></span>`)
+        .join('');
+    }
+
+    window.addBlockedTime = () => {
+      const dateInput = $('#scheduling-blocked-time-date');
+      const startInput = $('#scheduling-blocked-time-start');
+      const endInput = $('#scheduling-blocked-time-end');
+      const date = dateInput.value;
+      const start = startInput.value;
+      const end = endInput.value;
+      if (!date || !start || !end) return;
+      if (start >= end) { alert('Start time must be before end time'); return; }
+      if (!schedulingConfig.blocked_times) schedulingConfig.blocked_times = [];
+      schedulingConfig.blocked_times.push({ date, start, end });
+      renderBlockedTimes();
+      dateInput.value = '';
+    };
+
+    window.removeBlockedTime = (idx) => {
+      schedulingConfig.blocked_times.splice(idx, 1);
+      renderBlockedTimes();
+    };
+
+    function renderGlobalLimits() {
+      const g = schedulingConfig.global || {};
+      const leadEl = $('#global-lead-time');
+      const maxEl = $('#global-max-advance');
+      if (leadEl) leadEl.value = String(g.lead_time_hours || 24);
+      if (maxEl) maxEl.value = g.max_advance_days || 60;
+    }
+
+    // Snapshot current DOM values back into schedulingConfig so edits aren't lost on re-render
+    function snapshotSchedulingDOM() {
+      appointmentTypes.forEach(at => {
+        const enabledEl = document.querySelector(`.sched-enabled[data-type-id="${at.id}"]`);
+        if (!enabledEl) return;
+        if (!schedulingConfig.types[at.id]) schedulingConfig.types[at.id] = {};
+        const cfg = schedulingConfig.types[at.id];
+        cfg.enabled = enabledEl.checked;
+
+        const durEl = document.querySelector(`.sched-duration-${at.id}`);
+        if (durEl) cfg.slot_duration = parseInt(durEl.value) || 60;
+        const bufEl = document.querySelector(`.sched-buffer-${at.id}`);
+        if (bufEl) cfg.buffer_minutes = parseInt(bufEl.value) || 0;
+        const maxPerDayEl = document.querySelector(`.sched-maxperday-${at.id}`);
+        if (maxPerDayEl) cfg.max_per_day = parseInt(maxPerDayEl.value) || 0;
+
+        // Lead time override
+        const leadOverrideEl = document.querySelector(`.sched-lead-override-${at.id}`);
+        if (leadOverrideEl) {
+          if (leadOverrideEl.checked) {
+            const leadValEl = document.querySelector(`.sched-lead-${at.id}`);
+            cfg.lead_time_hours = leadValEl ? parseInt(leadValEl.value) : null;
+          } else {
+            cfg.lead_time_hours = null;
+          }
+        }
+
+        // Max advance override
+        const maxOverrideEl = document.querySelector(`.sched-maxadvance-override-${at.id}`);
+        if (maxOverrideEl) {
+          if (maxOverrideEl.checked) {
+            const maxValEl = document.querySelector(`.sched-maxadvance-${at.id}`);
+            cfg.max_advance_days = maxValEl ? parseInt(maxValEl.value) : null;
+          } else {
+            cfg.max_advance_days = null;
+          }
+        }
+
+        // Reminder override
+        const reminderOverrideEl = document.querySelector(`.sched-reminder-override-${at.id}`);
+        if (reminderOverrideEl) {
+          if (reminderOverrideEl.checked) {
+            const reminderValEl = document.querySelector(`.sched-reminder-${at.id}`);
+            cfg.reminder_hours = reminderValEl ? parseFloat(reminderValEl.value) : null;
+          } else {
+            cfg.reminder_hours = null;
+          }
+        }
+
+        // Snapshot schedule windows from DOM
+        if (!cfg.schedule) cfg.schedule = normalizeTypeSchedule(cfg);
+        for (let d = 1; d <= 7; d++) {
+          const windowEls = document.querySelectorAll(`.sched-window-${at.id}-${d}`);
+          if (windowEls.length > 0 || document.querySelector(`.sched-day-row-${at.id}-${d}`)) {
+            cfg.schedule[String(d)] = Array.from(windowEls).map(el => ({
+              start: el.querySelector('.win-start')?.value || '09:00',
+              end: el.querySelector('.win-end')?.value || '17:00'
+            }));
+          }
+        }
+      });
+    }
+
+    function renderSchedulingTypes() {
+      const container = $('#scheduling-types-list');
+      if (!appointmentTypes.length) {
+        container.innerHTML = '<p class="text-muted">No appointment types defined. Create appointment types above first.</p>';
+        return;
+      }
+      container.innerHTML = appointmentTypes.map(at => {
+        const cfg = schedulingConfig.types[at.id] || {};
+        const enabled = cfg.enabled || false;
+        const schedule = normalizeTypeSchedule(cfg);
+        // Store normalized schedule back
+        if (!cfg.schedule) {
+          if (!schedulingConfig.types[at.id]) schedulingConfig.types[at.id] = {};
+          schedulingConfig.types[at.id].schedule = schedule;
+        }
+        const slotDuration = cfg.slot_duration || 60;
+        const buffer = cfg.buffer_minutes || 0;
+        const hasLeadOverride = cfg.lead_time_hours != null;
+        const leadTime = cfg.lead_time_hours || 24;
+        const hasMaxAdvanceOverride = cfg.max_advance_days != null;
+        const maxAdvance = cfg.max_advance_days || 60;
+        const hasReminderOverride = cfg.reminder_hours != null;
+        const reminderHours = cfg.reminder_hours || 24;
+        const maxPerDay = cfg.max_per_day || 0;
+
+        const scheduleRows = dayNames.map((name, i) => {
+          const dayNum = i + 1;
+          const windows = schedule[String(dayNum)] || [];
+          const windowsHtml = windows.length === 0
+            ? '<span style="color: var(--color-text-muted); font-size: 0.8rem; font-style: italic;">Closed</span>'
+            : windows.map((w, wi) => `
+                <span class="sched-window-${at.id}-${dayNum}" style="display: inline-flex; align-items: center; gap: 4px;">
+                  <input type="time" class="form-input win-start" value="${w.start}" style="padding: 4px 6px; width: 110px; font-size: 0.8rem;">
+                  <span style="color: var(--color-text-muted);">–</span>
+                  <input type="time" class="form-input win-end" value="${w.end}" style="padding: 4px 6px; width: 110px; font-size: 0.8rem;">
+                  <button type="button" onclick="removeScheduleWindow('${at.id}', ${dayNum}, ${wi})" style="background: none; border: none; cursor: pointer; color: var(--color-danger); font-size: 1.1rem; padding: 0 2px;" title="Remove window">&times;</button>
+                </span>
+              `).join('');
+
+          return `
+            <div class="sched-day-row-${at.id}-${dayNum}" style="display: flex; align-items: center; gap: var(--space-sm); padding: 6px 0; border-bottom: 1px solid var(--color-border-light, #f0f0f0);">
+              <span style="width: 36px; font-size: 0.8rem; font-weight: 600; color: ${windows.length ? 'var(--color-text)' : 'var(--color-text-muted)'};">${name}</span>
+              <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                ${windowsHtml}
+              </div>
+              <button type="button" onclick="addScheduleWindow('${at.id}', ${dayNum})" style="background: none; border: 1px solid var(--color-border); border-radius: 4px; cursor: pointer; color: var(--color-primary); font-size: 0.8rem; padding: 2px 8px;" title="Add window">+ Add</button>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-md); ${enabled ? 'border-left: 3px solid var(--color-primary);' : ''}">
+            <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: ${enabled ? 'var(--space-md)' : '0'};">
+              <span style="font-size: 1.25rem;">${at.icon || '📅'}</span>
+              <span style="flex: 1; font-weight: 500;">${at.name}</span>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); cursor: pointer;">
+                <input type="checkbox" class="sched-enabled" data-type-id="${at.id}" ${enabled ? 'checked' : ''} onchange="toggleSchedulingType('${at.id}', this.checked)">
+                Enable online booking
+              </label>
+            </div>
+            <div class="sched-config-${at.id}" style="display: ${enabled ? 'block' : 'none'};">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">
+                <div>
+                  <label class="form-label" style="font-size: 0.8rem;">Slot Duration</label>
+                  <select class="form-input sched-duration-${at.id}" style="padding: 6px 8px;">
+                    ${[15,30,45,60,90,120].map(m => `<option value="${m}" ${slotDuration === m ? 'selected' : ''}>${m} min</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 0.8rem;">Buffer Between</label>
+                  <select class="form-input sched-buffer-${at.id}" style="padding: 6px 8px;">
+                    ${[0,15,30,45,60].map(m => `<option value="${m}" ${buffer === m ? 'selected' : ''}>${m} min</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 0.8rem;">Max Per Day</label>
+                  <input type="number" class="form-input sched-maxperday-${at.id}" value="${maxPerDay}" min="0" max="50" style="padding: 6px 8px; width: 80px;" placeholder="0">
+                  <div style="font-size: 0.7rem; color: var(--color-text-muted);">0 = no limit</div>
+                </div>
+              </div>
+
+              <!-- Per-day schedule windows -->
+              <div style="margin-bottom: var(--space-md);">
+                <label class="form-label" style="font-size: 0.8rem;">Schedule (per day)</label>
+                <div style="border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: var(--space-sm);">
+                  ${scheduleRows}
+                </div>
+              </div>
+
+              <!-- Lead time, max advance, & reminder overrides -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md);">
+                <div>
+                  <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; margin-bottom: 6px;">
+                    <input type="checkbox" class="sched-lead-override-${at.id}" ${hasLeadOverride ? 'checked' : ''} onchange="toggleLeadOverride('${at.id}', this.checked)">
+                    Override lead time
+                  </label>
+                  <div class="sched-lead-input-${at.id}" style="display: ${hasLeadOverride ? 'block' : 'none'};">
+                    <select class="form-input sched-lead-${at.id}" style="padding: 6px 8px;">
+                      ${[1,2,4,8,12,24,48,72].map(h => `<option value="${h}" ${leadTime === h ? 'selected' : ''}>${h}h</option>`).join('')}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; margin-bottom: 6px;">
+                    <input type="checkbox" class="sched-maxadvance-override-${at.id}" ${hasMaxAdvanceOverride ? 'checked' : ''} onchange="toggleMaxAdvanceOverride('${at.id}', this.checked)">
+                    Override max advance
+                  </label>
+                  <div class="sched-maxadvance-input-${at.id}" style="display: ${hasMaxAdvanceOverride ? 'block' : 'none'};">
+                    <input type="number" class="form-input sched-maxadvance-${at.id}" value="${maxAdvance}" min="1" max="365" style="padding: 6px 8px; width: 100px;">
+                  </div>
+                </div>
+                <div>
+                  <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer; margin-bottom: 6px;">
+                    <input type="checkbox" class="sched-reminder-override-${at.id}" ${hasReminderOverride ? 'checked' : ''} onchange="toggleReminderOverride('${at.id}', this.checked)">
+                    Override reminder
+                  </label>
+                  <div class="sched-reminder-input-${at.id}" style="display: ${hasReminderOverride ? 'block' : 'none'};">
+                    <select class="form-input sched-reminder-${at.id}" style="padding: 6px 8px;">
+                      ${[{v:0,l:'None'},{v:0.2,l:'12 min'},{v:1,l:'1h'},{v:4,l:'4h'},{v:24,l:'24h'},{v:48,l:'48h'}].map(o => `<option value="${o.v}" ${reminderHours === o.v ? 'selected' : ''}>${o.l}</option>`).join('')}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleSchedulingType = (typeId, checked) => {
+      const configDiv = document.querySelector(`.sched-config-${typeId}`);
+      if (configDiv) configDiv.style.display = checked ? 'block' : 'none';
+      const parentDiv = configDiv?.parentElement;
+      if (parentDiv) parentDiv.style.borderLeft = checked ? '3px solid var(--color-primary)' : '';
+    };
+
+    window.toggleLeadOverride = (typeId, checked) => {
+      const inputDiv = document.querySelector(`.sched-lead-input-${typeId}`);
+      if (inputDiv) inputDiv.style.display = checked ? 'block' : 'none';
+    };
+
+    window.toggleMaxAdvanceOverride = (typeId, checked) => {
+      const inputDiv = document.querySelector(`.sched-maxadvance-input-${typeId}`);
+      if (inputDiv) inputDiv.style.display = checked ? 'block' : 'none';
+    };
+
+    window.toggleReminderOverride = (typeId, checked) => {
+      const inputDiv = document.querySelector(`.sched-reminder-input-${typeId}`);
+      if (inputDiv) inputDiv.style.display = checked ? 'block' : 'none';
+    };
+
+    window.addScheduleWindow = (typeId, dayNum) => {
+      snapshotSchedulingDOM();
+      const cfg = schedulingConfig.types[typeId];
+      if (!cfg) return;
+      if (!cfg.schedule) cfg.schedule = normalizeTypeSchedule(cfg);
+      if (!cfg.schedule[String(dayNum)]) cfg.schedule[String(dayNum)] = [];
+      cfg.schedule[String(dayNum)].push({ start: '09:00', end: '17:00' });
+      renderSchedulingTypes();
+    };
+
+    window.removeScheduleWindow = (typeId, dayNum, windowIdx) => {
+      snapshotSchedulingDOM();
+      const cfg = schedulingConfig.types[typeId];
+      if (!cfg?.schedule?.[String(dayNum)]) return;
+      cfg.schedule[String(dayNum)].splice(windowIdx, 1);
+      renderSchedulingTypes();
+    };
+
+    window.saveSchedulingConfig = async () => {
+      const globalLeadEl = $('#global-lead-time');
+      const globalMaxEl = $('#global-max-advance');
+      const config = {
+        blocked_dates: schedulingConfig.blocked_dates,
+        blocked_times: schedulingConfig.blocked_times || [],
+        global: {
+          lead_time_hours: parseInt(globalLeadEl?.value) || 24,
+          max_advance_days: parseInt(globalMaxEl?.value) || 60
+        },
+        types: {}
+      };
+      appointmentTypes.forEach(at => {
+        const enabledEl = document.querySelector(`.sched-enabled[data-type-id="${at.id}"]`);
+        if (!enabledEl) return;
+        const enabled = enabledEl.checked;
+
+        // Collect schedule windows from DOM
+        const schedule = {};
+        for (let d = 1; d <= 7; d++) {
+          const windowEls = document.querySelectorAll(`.sched-window-${at.id}-${d}`);
+          schedule[String(d)] = Array.from(windowEls).map(el => ({
+            start: el.querySelector('.win-start')?.value || '09:00',
+            end: el.querySelector('.win-end')?.value || '17:00'
+          }));
+        }
+
+        // Lead time & max advance overrides
+        const leadOverride = document.querySelector(`.sched-lead-override-${at.id}`)?.checked;
+        const maxOverride = document.querySelector(`.sched-maxadvance-override-${at.id}`)?.checked;
+
+        config.types[at.id] = {
+          enabled,
+          schedule,
+          slot_duration: parseInt(document.querySelector(`.sched-duration-${at.id}`)?.value) || 60,
+          buffer_minutes: parseInt(document.querySelector(`.sched-buffer-${at.id}`)?.value) || 0,
+          lead_time_hours: leadOverride ? (parseInt(document.querySelector(`.sched-lead-${at.id}`)?.value) || 24) : null,
+          max_advance_days: maxOverride ? (parseInt(document.querySelector(`.sched-maxadvance-${at.id}`)?.value) || 60) : null
+        };
+      });
+      schedulingConfig = config;
+      await saveSetting('scheduling', config);
+    };
+
+    // ==========================================
+    // SCHEDULED DATE TYPES (Job Event Types)
+    // ==========================================
+    let eventTypes = [];
+    
+    async function loadEventTypes() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data, error } = await supabase
+          .from('job_event_types')
+          .select('*')
+          .order('sort_order');
+        
+        if (error) throw error;
+        eventTypes = data || [];
+        renderEventTypes();
+      } catch (err) {
+        console.error('Failed to load event types:', err);
+        $('#event-types-list').innerHTML = '<p class="text-muted">Failed to load event types</p>';
+      }
+    }
+    
+    function renderEventTypes() {
+      const container = $('#event-types-list');
+      
+      if (eventTypes.length === 0) {
+        container.innerHTML = '<p class="text-muted">No scheduled date types defined. Click "Add Type" to create one.</p>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div id="event-types-sortable" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${eventTypes.map((et, idx) => `
+            <div class="sortable-item" draggable="true" data-id="${et.id}" data-idx="${idx}"
+                 ondragstart="handleEventTypeDragStart(event)" ondragover="handleEventTypeDragOver(event)" 
+                 ondrop="handleEventTypeDrop(event)" ondragend="handleEventTypeDragEnd(event)"
+                 style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md); cursor: grab;">
+              <span style="color: var(--color-text-muted); cursor: grab;">⋮⋮</span>
+              <span style="font-size: 1.25rem;">${et.icon || '📅'}</span>
+              <span style="flex: 1; font-weight: 500;">${et.name}</span>
+              <span style="width: 20px; height: 20px; border-radius: 4px; background: ${et.color || '#3e855f'};"></span>
+              <label style="display: flex; align-items: center; gap: var(--space-xs); font-size: 0.75rem; color: var(--color-text-muted);">
+                <input type="checkbox" ${et.is_active ? 'checked' : ''} onchange="toggleEventType('${et.id}', this.checked)">
+                Active
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="editEventType('${et.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm text-danger" onclick="deleteEventType('${et.id}')">×</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    let draggedEventTypeId = null;
+    
+    window.handleEventTypeDragStart = (e) => {
+      draggedEventTypeId = e.target.closest('.sortable-item').dataset.id;
+      e.target.closest('.sortable-item').style.opacity = '0.5';
+    };
+    
+    window.handleEventTypeDragOver = (e) => {
+      e.preventDefault();
+      const item = e.target.closest('.sortable-item');
+      if (item) item.style.borderTop = '2px solid var(--color-primary)';
+    };
+    
+    window.handleEventTypeDragEnd = (e) => {
+      e.target.closest('.sortable-item').style.opacity = '1';
+      document.querySelectorAll('#event-types-sortable .sortable-item').forEach(el => el.style.borderTop = '');
+      draggedEventTypeId = null;
+    };
+    
+    window.handleEventTypeDrop = async (e) => {
+      e.preventDefault();
+      const targetItem = e.target.closest('.sortable-item');
+      if (!targetItem || !draggedEventTypeId) return;
+      
+      const targetId = targetItem.dataset.id;
+      if (targetId === draggedEventTypeId) return;
+      
+      const draggedIdx = eventTypes.findIndex(t => t.id === draggedEventTypeId);
+      const targetIdx = eventTypes.findIndex(t => t.id === targetId);
+      
+      if (draggedIdx === -1 || targetIdx === -1) return;
+      
+      // Reorder array
+      const [dragged] = eventTypes.splice(draggedIdx, 1);
+      eventTypes.splice(targetIdx, 0, dragged);
+      
+      // Update sort_order in database
+      try {
+        const supabase = await app.waitForSupabase();
+        const updates = eventTypes.map((t, i) => 
+          supabase.from('job_event_types').update({ sort_order: i }).eq('id', t.id)
+        );
+        await Promise.all(updates);
+        renderEventTypes();
+      } catch (err) {
+        console.error('Reorder failed:', err);
+        showToast('Failed to reorder', 'error');
+        loadEventTypes();
+      }
+    };
+    
+    window.addEventType = () => showEventTypeModal();
+    
+    window.editEventType = (id) => {
+      const et = eventTypes.find(t => t.id === id);
+      if (et) showEventTypeModal(et);
+    };
+    
+    function showEventTypeModal(eventType = null) {
+      const isEdit = !!eventType;
+      
+      const content = createElement('div');
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Name *</label>
+          <input type="text" id="et-name" class="form-input" value="${eventType?.name || ''}" placeholder="e.g., Shop Date, Installation">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Icon</label>
+          <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm);">
+            ${defaultIcons.map(icon => `
+              <button type="button" class="btn btn-ghost" style="font-size: 1.25rem; padding: 8px; ${eventType?.icon === icon ? 'outline: 2px solid var(--color-primary);' : ''}" 
+                onclick="$('#et-icon').value='${icon}'; this.parentElement.querySelectorAll('button').forEach(b => b.style.outline=''); this.style.outline='2px solid var(--color-primary)';">
+                ${icon}
+              </button>
+            `).join('')}
+          </div>
+          <input type="text" id="et-icon" class="form-input" value="${eventType?.icon || '📅'}" placeholder="Emoji icon" style="width: 80px;">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color</label>
+          <div style="display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm);">
+            ${defaultColors.map(color => `
+              <button type="button" style="width: 32px; height: 32px; border-radius: 6px; background: ${color}; border: 2px solid ${eventType?.color === color ? 'var(--color-text)' : 'transparent'}; cursor: pointer;"
+                onclick="$('#et-color').value='${color}'; this.parentElement.querySelectorAll('button').forEach(b => b.style.borderColor='transparent'); this.style.borderColor='var(--color-text)';">
+              </button>
+            `).join('')}
+          </div>
+          <input type="color" id="et-color" value="${eventType?.color || '#3e855f'}" style="width: 60px; height: 38px;">
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'flex justify-end gap-md' });
+      const cancelBtn = createElement('button', { className: 'btn btn-secondary', textContent: 'Cancel' });
+      const saveBtn = createElement('button', { className: 'btn btn-primary', textContent: isEdit ? 'Save Changes' : 'Add Type' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(saveBtn);
+      
+      const modal = createModal({
+        title: isEdit ? 'Edit Scheduled Date Type' : 'Add Scheduled Date Type',
+        content,
+        footer
+      });
+      
+      cancelBtn.onclick = () => closeModal(modal);
+      saveBtn.onclick = async () => {
+        const name = $('#et-name').value.trim();
+        const icon = $('#et-icon').value.trim() || '📅';
+        const color = $('#et-color').value;
+        
+        if (!name) {
+          showToast('Name is required', 'error');
+          return;
+        }
+        
+        try {
+          const supabase = await app.waitForSupabase();
+          
+          if (isEdit) {
+            await supabase.from('job_event_types').update({ name, icon, color }).eq('id', eventType.id);
+            showToast('Scheduled date type updated', 'success');
+          } else {
+            const maxOrder = Math.max(...eventTypes.map(t => t.sort_order || 0), 0);
+            await supabase.from('job_event_types').insert({ name, icon, color, sort_order: maxOrder + 1 });
+            showToast('Scheduled date type added', 'success');
+          }
+          
+          closeModal(modal);
+          loadEventTypes();
+        } catch (err) {
+          showToast('Failed to save: ' + err.message, 'error');
+        }
+      };
+    }
+    
+    window.toggleEventType = async (id, isActive) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('job_event_types').update({ is_active: isActive }).eq('id', id);
+      } catch (err) {
+        showToast('Failed to update: ' + err.message, 'error');
+        loadEventTypes();
+      }
+    };
+    
+    window.deleteEventType = async (id) => {
+      if (!confirm('Delete this scheduled date type?')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('job_event_types').delete().eq('id', id);
+        showToast('Scheduled date type deleted', 'success');
+        loadEventTypes();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    };
+    
+    // ==========================================
+    // USER MANAGEMENT
+    // ==========================================
+    let appUsers = [];
+    let appRoles = [];
+    
+    async function loadRoles() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data, error } = await supabase
+          .from('app_roles')
+          .select('*')
+          .order('sort_order');
+        
+        if (error) throw error;
+        appRoles = data || [];
+        renderRoles();
+      } catch (err) {
+        console.error('Failed to load roles:', err);
+        $('#roles-list').innerHTML = '<p class="text-muted">Failed to load roles</p>';
+      }
+    }
+    
+    let pendingInvites = [];
+
+    async function loadUsers() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const [{ data, error }, { data: invites }] = await Promise.all([
+          supabase.from('app_users').select('*, app_roles(name)').order('name'),
+          supabase.from('invitations').select('*, app_roles(name)')
+            .is('accepted_at', null).is('revoked_at', null).order('created_at', { ascending: false })
+        ]);
+        if (error) throw error;
+        appUsers = data || [];
+        pendingInvites = invites || [];
+        renderUsers();
+      } catch (err) {
+        console.error('Failed to load users:', err);
+        $('#users-list').innerHTML = '<p class="text-muted">Failed to load team members</p>';
+      }
+    }
+
+    function renderUsers() {
+      const container = $('#users-list');
+      const me = getCurrentUser();
+
+      container.innerHTML = appUsers.length === 0
+        ? '<p class="text-muted">No team members yet.</p>'
+        : `<div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${appUsers.map(user => `
+            <div style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md); flex-wrap: wrap;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+                ${escapeHtml(user.name.charAt(0).toUpperCase())}
+              </div>
+              <div style="flex: 1; min-width: 160px;">
+                <div style="font-weight: 500;">${escapeHtml(user.name)}${me?.id === user.id ? ' <span style="font-size:0.75rem;color:var(--color-text-muted);">(you)</span>' : ''}</div>
+                <div style="font-size: 0.75rem; color: var(--color-text-muted);">${escapeHtml(user.email || '')}</div>
+              </div>
+              <span class="badge badge-info">${escapeHtml(user.app_roles?.name || 'No Role')}</span>
+              ${user.last_login ? `<span style="font-size: 0.75rem; color: var(--color-text-muted);">Last sign-in: ${formatDate(user.last_login)}</span>` : ''}
+              <label style="display: flex; align-items: center; gap: var(--space-xs); font-size: 0.75rem; color: var(--color-text-muted);">
+                <input type="checkbox" ${user.is_active ? 'checked' : ''} onchange="toggleUser('${user.id}', this.checked)">
+                Active
+              </label>
+              <button class="btn btn-ghost btn-sm" onclick="editUser('${user.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm text-danger" title="Remove from team" onclick="deleteUser('${user.id}')">×</button>
+            </div>
+          `).join('')}
+        </div>`;
+
+      const inv = $('#invites-list');
+      if (!inv) return;
+      inv.innerHTML = pendingInvites.length === 0 ? '' : `
+        <div style="font-size: 0.8125rem; font-weight: 600; color: var(--color-text-muted); margin-bottom: var(--space-sm);">Pending invitations</div>
+        <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${pendingInvites.map(i => `
+            <div style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); border: 1px dashed var(--color-border); border-radius: var(--radius-md); flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 160px;">
+                <div style="font-weight: 500;">${escapeHtml(i.name || i.email)}</div>
+                <div style="font-size: 0.75rem; color: var(--color-text-muted);">${escapeHtml(i.email)} · ${new Date(i.expires_at) < new Date() ? 'expired' : 'expires ' + formatDate(i.expires_at)}</div>
+              </div>
+              <span class="badge">${escapeHtml(i.app_roles?.name || 'No Role')}</span>
+              <button class="btn btn-ghost btn-sm" onclick="resendInvite('${i.id}')">Resend</button>
+              <button class="btn btn-ghost btn-sm" onclick="copyInviteLink('${i.token}')">Copy link</button>
+              <button class="btn btn-ghost btn-sm text-danger" title="Cancel invitation" onclick="revokeInvite('${i.id}')">×</button>
+            </div>`).join('')}
+        </div>`;
+    }
+
+    function inviteLink(token) {
+      return `${location.origin}/admin/accept-invite.html?token=${token}`;
+    }
+
+    async function sendInviteEmail(invitationId) {
+      const res = await fetch('/api/send-invite', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invitationId })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || 'Could not send invitation');
+      return body;
+    }
+
+    window.resendInvite = async (id) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('invitations')
+          .update({ expires_at: new Date(Date.now() + 14 * 864e5).toISOString() }).eq('id', id);
+        await sendInviteEmail(id);
+        showToast('Invitation sent', 'success');
+        loadUsers();
+      } catch (err) { showToast(err.message, 'error'); }
+    };
+
+    window.copyInviteLink = async (token) => {
+      try { await navigator.clipboard.writeText(inviteLink(token)); showToast('Invite link copied', 'success'); }
+      catch { prompt('Copy this invite link:', inviteLink(token)); }
+    };
+
+    window.revokeInvite = async (id) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('invitations').update({ revoked_at: new Date().toISOString() }).eq('id', id);
+        if (error) throw error;
+        showToast('Invitation cancelled', 'success');
+        loadUsers();
+      } catch (err) { showToast('Failed: ' + err.message, 'error'); }
+    };
+
+    function renderRoles() {
+      const container = $('#roles-list');
+      
+      if (appRoles.length === 0) {
+        container.innerHTML = '<p class="text-muted">No roles found. Click "Add Role" to create one.</p>';
+        return;
+      }
+      
+      const permissionLabels = {
+        can_access_settings: 'Settings',
+        can_view_financials: 'Financials',
+        can_delete: 'Delete',
+        can_manage_users: 'Users',
+        can_view_pipeline: 'View Pipeline',
+        can_edit_pipeline: 'Edit Pipeline',
+        can_view_customers: 'View Customers',
+        can_edit_customers: 'Edit Customers',
+        can_view_quotes: 'View Quotes',
+        can_edit_quotes: 'Edit Quotes',
+        can_view_invoices: 'View Invoices',
+        can_send_invoices: 'Send Invoices'
+      };
+      
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${appRoles.map(role => {
+            const permissions = Object.entries(permissionLabels)
+              .filter(([key]) => role[key])
+              .map(([, label]) => label);
+            
+            return `
+              <div style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md);">
+                <div style="flex: 1;">
+                  <div style="font-weight: 600;">${role.name} ${role.is_system ? '<span style="font-size: 0.7rem; color: var(--color-text-muted);">(System)</span>' : ''}</div>
+                  <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 2px;">
+                    ${permissions.length > 0 ? permissions.join(' • ') : 'No permissions'}
+                  </div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="editRole('${role.id}')">Edit</button>
+                ${!role.is_system ? `<button class="btn btn-ghost btn-sm text-danger" onclick="deleteRole('${role.id}')">×</button>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+    
+    window.addUser = () => showUserModal();
+    
+    window.editUser = (id) => {
+      const user = appUsers.find(u => u.id === id);
+      if (user) showUserModal(user);
+    };
+    
+    function showUserModal(user = null) {
+      const isEdit = !!user;
+      const roleOptions = appRoles.map(r =>
+        `<option value="${r.id}" ${user?.role_id === r.id ? 'selected' : ''}>${escapeHtml(r.name)}</option>`
+      ).join('');
+
+      const content = createElement('div');
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Name *</label>
+          <input type="text" id="user-name" class="form-input" value="${escapeHtml(user?.name || '')}" placeholder="e.g., John Smith">
+        </div>
+        ${isEdit ? `
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" value="${escapeHtml(user.email || '')}" readonly>
+          <div class="form-help">Team members change their own password from the sign-in page.</div>
+        </div>` : `
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" id="user-email" class="form-input" placeholder="name@example.com">
+          <div class="form-help">We'll email them a link to set a password and join.</div>
+        </div>`}
+        <div class="form-group">
+          <label class="form-label">Role *</label>
+          <select id="user-role" class="form-select">
+            <option value="">-- Select Role --</option>
+            ${roleOptions}
+          </select>
+        </div>
+      `;
+
+      const footer = createElement('div', { className: 'flex justify-end gap-md' });
+      const cancelBtn = createElement('button', { className: 'btn btn-secondary', textContent: 'Cancel' });
+      const saveBtn = createElement('button', { className: 'btn btn-primary', textContent: isEdit ? 'Save Changes' : 'Send Invitation' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(saveBtn);
+
+      const modal = createModal({ title: isEdit ? 'Edit Team Member' : 'Invite Team Member', content, footer });
+
+      cancelBtn.onclick = () => closeModal(modal);
+      saveBtn.onclick = async () => {
+        const name = $('#user-name').value.trim();
+        const role_id = $('#user-role').value;
+        if (!name) { showToast('Name is required', 'error'); return; }
+        if (!role_id) { showToast('Role is required', 'error'); return; }
+
+        saveBtn.disabled = true;
+        try {
+          const supabase = await app.waitForSupabase();
+          if (isEdit) {
+            const me = getCurrentUser();
+            if (me?.id === user.id && role_id !== user.role_id) {
+              const newRole = appRoles.find(r => r.id === role_id);
+              if (!newRole?.can_manage_users) { showToast('You can\'t remove your own user-management access', 'error'); return; }
+            }
+            const { error } = await supabase.from('app_users').update({ name, role_id }).eq('id', user.id);
+            if (error) throw error;
+            showToast('Team member updated', 'success');
+          } else {
+            const email = ($('#user-email').value || '').trim().toLowerCase();
+            if (!isValidEmail(email)) { showToast('Enter a valid email', 'error'); return; }
+            if (appUsers.some(u => (u.email || '').toLowerCase() === email)) { showToast('That person is already on your team', 'error'); return; }
+            const me = getCurrentUser();
+            const { data: inv, error } = await supabase.from('invitations')
+              .insert({ email, name, role_id, invited_by: me?.auth_user_id || null })
+              .select('id, token').single();
+            if (error) throw error;
+            try {
+              const r = await sendInviteEmail(inv.id);
+              showToast(r.emailed === false ? 'Invitation created — copy the link to share it' : `Invitation sent to ${email}`, 'success');
+            } catch (mailErr) {
+              showToast(mailErr.message + ' — use "Copy link" to share it.', 'warning');
+            }
+          }
+          closeModal(modal);
+          loadUsers();
+        } catch (err) {
+          showToast('Failed to save: ' + err.message, 'error');
+        } finally {
+          saveBtn.disabled = false;
+        }
+      };
+    }
+
+    window.toggleUser = async (id, isActive) => {
+      const currentUser = getCurrentUser();
+      if (currentUser?.id === id && !isActive) {
+        showToast('Cannot deactivate your own account', 'error');
+        loadUsers();
+        return;
+      }
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('app_users').update({ is_active: isActive }).eq('id', id);
+      } catch (err) {
+        showToast('Failed to update: ' + err.message, 'error');
+        loadUsers();
+      }
+    };
+    
+    window.deleteUser = async (id) => {
+      const currentUser = getCurrentUser();
+      if (currentUser?.id === id) {
+        showToast('Cannot delete your own account', 'error');
+        return;
+      }
+      
+      if (!(await confirm('Remove this person from your team? Their login will no longer open this business.'))) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('app_users').delete().eq('id', id);
+        if (error) throw error;
+        showToast('Team member removed', 'success');
+        loadUsers();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    };
+    
+    // ==========================================
+    // ROLES MANAGEMENT
+    // ==========================================
+    
+    window.addRole = () => showRoleModal();
+    
+    window.editRole = (id) => {
+      const role = appRoles.find(r => r.id === id);
+      if (role) showRoleModal(role);
+    };
+    
+    function showRoleModal(role = null) {
+      const isEdit = !!role;
+      
+      const permissions = [
+        { key: 'can_access_settings', label: 'Access Settings', desc: 'Can view and modify system settings', section: 'Admin' },
+        { key: 'can_view_financials', label: 'View Financials', desc: 'Can see payment info, balances, totals', section: 'Admin' },
+        { key: 'can_delete', label: 'Delete Items', desc: 'Can delete customers, quotes, jobs, etc.', section: 'Admin' },
+        { key: 'can_manage_users', label: 'Manage Users', desc: 'Can add/edit/remove users and roles', section: 'Admin' },
+        { key: 'can_view_pipeline', label: 'View Pipeline', desc: 'Can see the deals pipeline page', section: 'Pipeline' },
+        { key: 'can_edit_pipeline', label: 'Edit Pipeline', desc: 'Can manage deals and job status', section: 'Pipeline' },
+        { key: 'can_view_customers', label: 'View Customers', desc: 'Can see the customers page', section: 'Customers' },
+        { key: 'can_edit_customers', label: 'Edit Customers', desc: 'Can add and edit customer info', section: 'Customers' },
+        { key: 'can_view_quotes', label: 'View Quotes', desc: 'Can see quotes and catalog pages', section: 'Quotes' },
+        { key: 'can_edit_quotes', label: 'Edit Quotes', desc: 'Can create and edit quotes', section: 'Quotes' },
+        { key: 'can_accept_quotes', label: 'Accept Quotes', desc: 'Can mark a quote as accepted / approve it on the customer\'s behalf', section: 'Quotes' },
+        { key: 'can_convert_quotes', label: 'Convert Quotes', desc: 'Can convert an accepted quote to an invoice (and unconvert)', section: 'Quotes' },
+        { key: 'can_view_invoices', label: 'View Invoices', desc: 'Can see the invoices page', section: 'Invoices' },
+        { key: 'can_send_invoices', label: 'Send Invoices', desc: 'Can create and send invoices', section: 'Invoices' }
+      ];
+      
+      // Group permissions by section
+      const sections = {};
+      permissions.forEach(p => {
+        if (!sections[p.section]) sections[p.section] = [];
+        sections[p.section].push(p);
+      });
+      
+      const content = createElement('div');
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Role Name *</label>
+          <input type="text" id="role-name" class="form-input" value="${role?.name || ''}" placeholder="e.g., Sales Rep" ${role?.is_system ? 'readonly style="background: var(--color-bg-soft);"' : ''}>
+          ${role?.is_system ? '<div class="form-help">System roles cannot be renamed</div>' : ''}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" id="role-desc" class="form-input" value="${role?.description || ''}" placeholder="Brief description of this role">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Permissions</label>
+          ${Object.entries(sections).map(([section, perms]) => `
+            <div style="margin-top: var(--space-md);">
+              <div style="font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); margin-bottom: var(--space-xs); text-transform: uppercase;">${section}</div>
+              <div style="display: flex; flex-direction: column; gap: var(--space-xs);">
+                ${perms.map(p => `
+                  <label style="display: flex; align-items: flex-start; gap: var(--space-sm); padding: var(--space-sm); background: var(--color-bg-soft); border-radius: var(--radius-sm); cursor: pointer;">
+                    <input type="checkbox" id="perm-${p.key}" ${role?.[p.key] ? 'checked' : ''} style="margin-top: 3px;">
+                    <div>
+                      <div style="font-weight: 500;">${p.label}</div>
+                      <div style="font-size: 0.75rem; color: var(--color-text-muted);">${p.desc}</div>
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'flex justify-end gap-md' });
+      const cancelBtn = createElement('button', { className: 'btn btn-secondary', textContent: 'Cancel' });
+      const saveBtn = createElement('button', { className: 'btn btn-primary', textContent: isEdit ? 'Save Changes' : 'Add Role' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(saveBtn);
+      
+      const modal = createModal({
+        title: isEdit ? 'Edit Role' : 'Add Role',
+        content,
+        footer,
+        size: 'lg'
+      });
+      
+      cancelBtn.onclick = () => closeModal(modal);
+      saveBtn.onclick = async () => {
+        const name = $('#role-name').value.trim();
+        const description = $('#role-desc').value.trim();
+        
+        if (!name) {
+          showToast('Role name is required', 'error');
+          return;
+        }
+        
+        const data = {
+          name: role?.is_system ? role.name : name,
+          description,
+          can_access_settings: $('#perm-can_access_settings').checked,
+          can_view_financials: $('#perm-can_view_financials').checked,
+          can_delete: $('#perm-can_delete').checked,
+          can_manage_users: $('#perm-can_manage_users').checked,
+          can_view_pipeline: $('#perm-can_view_pipeline').checked,
+          can_edit_pipeline: $('#perm-can_edit_pipeline').checked,
+          can_view_customers: $('#perm-can_view_customers').checked,
+          can_edit_customers: $('#perm-can_edit_customers').checked,
+          can_view_quotes: $('#perm-can_view_quotes').checked,
+          can_edit_quotes: $('#perm-can_edit_quotes').checked,
+          can_accept_quotes: $('#perm-can_accept_quotes').checked,
+          can_convert_quotes: $('#perm-can_convert_quotes').checked,
+          can_view_invoices: $('#perm-can_view_invoices').checked,
+          can_send_invoices: $('#perm-can_send_invoices').checked
+        };
+        
+        try {
+          const supabase = await app.waitForSupabase();
+          
+          if (isEdit) {
+            const { error } = await supabase.from('app_roles').update(data).eq('id', role.id);
+            if (error) throw error;
+            showToast('Role updated', 'success');
+          } else {
+            const maxOrder = Math.max(...appRoles.map(r => r.sort_order || 0), 0);
+            data.sort_order = maxOrder + 1;
+            const { error } = await supabase.from('app_roles').insert(data);
+            if (error) throw error;
+            showToast('Role added', 'success');
+          }
+          
+          closeModal(modal);
+          loadRoles();
+        } catch (err) {
+          showToast('Failed to save: ' + err.message, 'error');
+        }
+      };
+    }
+    
+    window.deleteRole = async (id) => {
+      const role = appRoles.find(r => r.id === id);
+      if (role?.is_system) {
+        showToast('Cannot delete system roles', 'error');
+        return;
+      }
+      
+      // Check if any users have this role
+      const usersWithRole = appUsers.filter(u => u.role_id === id);
+      if (usersWithRole.length > 0) {
+        showToast(`Cannot delete: ${usersWithRole.length} user(s) have this role`, 'error');
+        return;
+      }
+      
+      if (!confirm('Delete this role?')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('app_roles').delete().eq('id', id);
+        showToast('Role deleted', 'success');
+        loadRoles();
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    };
+    
+    // Deal Item Types Management (stored in settings table)
+    let dealItemTypes = [];
+    
+    function renderDealItemTypes() {
+      const container = $('#deal-item-types-list');
+      
+      if (dealItemTypes.length === 0) {
+        container.innerHTML = '<p class="text-muted">No deal item types defined. Click "Add Item Type" to create one.</p>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div id="deal-items-sortable" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${dealItemTypes.map((item, idx) => `
+            <div class="sortable-item" draggable="true" data-idx="${idx}"
+                 ondragstart="handleDealItemDragStart(event)" ondragover="handleDealItemDragOver(event)" 
+                 ondrop="handleDealItemDrop(event)" ondragend="handleDealItemDragEnd(event)"
+                 style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md); cursor: grab;">
+              <span style="color: var(--color-text-muted); cursor: grab;">⋮⋮</span>
+              <span style="flex: 1; font-weight: 500;">${item}</span>
+              <button class="btn btn-ghost btn-sm" onclick="editDealItemType(${idx})">Edit</button>
+              <button class="btn btn-ghost btn-sm text-danger" onclick="deleteDealItemType(${idx})">×</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    let draggedDealItemIdx = null;
+    
+    window.handleDealItemDragStart = (e) => {
+      draggedDealItemIdx = parseInt(e.target.closest('.sortable-item').dataset.idx);
+      e.target.closest('.sortable-item').style.opacity = '0.5';
+    };
+    
+    window.handleDealItemDragOver = (e) => {
+      e.preventDefault();
+      const item = e.target.closest('.sortable-item');
+      if (item) item.style.borderTop = '2px solid var(--color-primary)';
+    };
+    
+    window.handleDealItemDragEnd = (e) => {
+      e.target.closest('.sortable-item').style.opacity = '1';
+      document.querySelectorAll('#deal-items-sortable .sortable-item').forEach(el => el.style.borderTop = '');
+      draggedDealItemIdx = null;
+    };
+    
+    window.handleDealItemDrop = async (e) => {
+      e.preventDefault();
+      const targetItem = e.target.closest('.sortable-item');
+      if (!targetItem || draggedDealItemIdx === null) return;
+      
+      const targetIdx = parseInt(targetItem.dataset.idx);
+      if (targetIdx === draggedDealItemIdx) return;
+      
+      // Reorder array
+      const [dragged] = dealItemTypes.splice(draggedDealItemIdx, 1);
+      dealItemTypes.splice(targetIdx, 0, dragged);
+      
+      // Save and re-render
+      renderDealItemTypes();
+      await saveDealItemTypes();
+    };
+    
+    async function saveDealItemTypes() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase
+          .from('settings')
+          .upsert({ key: 'deal_item_types', value: dealItemTypes }, { onConflict: 'org_id,key' });
+        
+        if (error) throw error;
+      } catch (err) {
+        console.error('Failed to save deal item types:', err);
+        showToast('Failed to save: ' + err.message, 'error');
+      }
+    }
+    
+    window.addDealItemType = async () => {
+      const name = prompt('Enter deal item type name (e.g., "Cabinet Doors", "Hardware"):');
+      if (!name?.trim()) return;
+      
+      dealItemTypes.push(name.trim());
+      renderDealItemTypes();
+      await saveDealItemTypes();
+      showToast('Deal item type added', 'success');
+    };
+    
+    window.editDealItemType = async (idx) => {
+      const current = dealItemTypes[idx];
+      const newName = prompt('Edit deal item type name:', current);
+      if (!newName?.trim() || newName === current) return;
+      
+      dealItemTypes[idx] = newName.trim();
+      renderDealItemTypes();
+      await saveDealItemTypes();
+      showToast('Deal item type updated', 'success');
+    };
+    
+    window.deleteDealItemType = async (idx) => {
+      if (!confirm('Delete this deal item type?')) return;
+      
+      dealItemTypes.splice(idx, 1);
+      renderDealItemTypes();
+      await saveDealItemTypes();
+      showToast('Deal item type deleted', 'success');
+    };
+    
+    // Finish Types Management (stored in settings table)
+    let finishTypes = [];
+    
+    function renderFinishTypes() {
+      const container = $('#finish-types-list');
+      
+      if (finishTypes.length === 0) {
+        container.innerHTML = '<p class="text-muted">No finish types defined. Click "Add Finish" to create one.</p>';
+        return;
+      }
+      
+      container.innerHTML = `
+        <div id="finish-types-sortable" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+          ${finishTypes.map((item, idx) => `
+            <div class="sortable-item" draggable="true" data-idx="${idx}"
+                 ondragstart="handleFinishTypeDragStart(event)" ondragover="handleFinishTypeDragOver(event)" 
+                 ondrop="handleFinishTypeDrop(event)" ondragend="handleFinishTypeDragEnd(event)"
+                 style="display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-md); cursor: grab;">
+              <span style="color: var(--color-text-muted); cursor: grab;">⋮⋮</span>
+              <span style="flex: 1; font-weight: 500;">${item}</span>
+              <button class="btn btn-ghost btn-sm" onclick="editFinishType(${idx})">Edit</button>
+              <button class="btn btn-ghost btn-sm text-danger" onclick="deleteFinishType(${idx})">×</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+    
+    let draggedFinishTypeIdx = null;
+    
+    window.handleFinishTypeDragStart = (e) => {
+      draggedFinishTypeIdx = parseInt(e.target.closest('.sortable-item').dataset.idx);
+      e.target.closest('.sortable-item').style.opacity = '0.5';
+    };
+    
+    window.handleFinishTypeDragOver = (e) => {
+      e.preventDefault();
+      const item = e.target.closest('.sortable-item');
+      if (item) item.style.borderTop = '2px solid var(--color-primary)';
+    };
+    
+    window.handleFinishTypeDragEnd = (e) => {
+      e.target.closest('.sortable-item').style.opacity = '1';
+      document.querySelectorAll('#finish-types-sortable .sortable-item').forEach(el => el.style.borderTop = '');
+      draggedFinishTypeIdx = null;
+    };
+    
+    window.handleFinishTypeDrop = async (e) => {
+      e.preventDefault();
+      const targetItem = e.target.closest('.sortable-item');
+      if (!targetItem || draggedFinishTypeIdx === null) return;
+      
+      const targetIdx = parseInt(targetItem.dataset.idx);
+      if (targetIdx === draggedFinishTypeIdx) return;
+      
+      // Reorder array
+      const [dragged] = finishTypes.splice(draggedFinishTypeIdx, 1);
+      finishTypes.splice(targetIdx, 0, dragged);
+      
+      // Save and re-render
+      renderFinishTypes();
+      await saveFinishTypes();
+    };
+    
+    async function saveFinishTypes() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase
+          .from('settings')
+          .upsert({ key: 'finish_types', value: finishTypes }, { onConflict: 'org_id,key' });
+        
+        if (error) throw error;
+      } catch (err) {
+        console.error('Failed to save finish types:', err);
+        showToast('Failed to save: ' + err.message, 'error');
+      }
+    }
+    
+    window.addFinishType = async () => {
+      const name = prompt('Enter finish type name (e.g., "Natural Oak", "White Paint"):');
+      if (!name?.trim()) return;
+      
+      finishTypes.push(name.trim());
+      renderFinishTypes();
+      await saveFinishTypes();
+      showToast('Finish type added', 'success');
+    };
+    
+    window.editFinishType = async (idx) => {
+      const current = finishTypes[idx];
+      const newName = prompt('Edit finish type name:', current);
+      if (!newName?.trim() || newName === current) return;
+      
+      finishTypes[idx] = newName.trim();
+      renderFinishTypes();
+      await saveFinishTypes();
+      showToast('Finish type updated', 'success');
+    };
+    
+    window.deleteFinishType = async (idx) => {
+      if (!confirm('Delete this finish type?')) return;
+      
+      finishTypes.splice(idx, 1);
+      renderFinishTypes();
+      await saveFinishTypes();
+      showToast('Finish type deleted', 'success');
+    };
+    
+    // =============================================
+    // QUICKBOOKS FUNCTIONS
+    // =============================================
+    
+    async function checkQBStatus() {
+      try {
+        const response = await fetch('/.netlify/functions/qb-status');
+        const data = await response.json();
+        
+        document.getElementById('qb-status').style.display = 'none';
+        
+        if (data.error && data.error.includes('not configured')) {
+          document.getElementById('qb-not-configured').style.display = 'block';
+        } else if (data.connected) {
+          document.getElementById('qb-connected').style.display = 'block';
+          const connectedAt = new Date(data.connectedAt).toLocaleDateString();
+          document.getElementById('qb-connected-info').textContent = `Connected on ${connectedAt} • Company ID: ${data.realmId}`;
+        } else {
+          document.getElementById('qb-disconnected').style.display = 'block';
+        }
+      } catch (err) {
+        console.error('QB status check failed:', err);
+        document.getElementById('qb-status').innerHTML = '<span class="text-muted">Unable to check QuickBooks status</span>';
+      }
+    }
+    
+    async function connectQuickBooks() {
+      try {
+        const response = await fetch('/.netlify/functions/qb-auth');
+        const data = await response.json();
+        
+        if (data.error) {
+          if (data.error.includes('not configured')) {
+            document.getElementById('qb-disconnected').style.display = 'none';
+            document.getElementById('qb-not-configured').style.display = 'block';
+          } else {
+            showToast(data.error, 'error');
+          }
+          return;
+        }
+        
+        // Redirect to QuickBooks auth
+        window.location.href = data.authUrl;
+      } catch (err) {
+        showToast('Failed to start QuickBooks connection', 'error');
+      }
+    }
+    
+    async function disconnectQuickBooks() {
+      if (!confirm('Are you sure you want to disconnect QuickBooks? This won\'t affect data already synced.')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch('/.netlify/functions/qb-disconnect', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+          showToast('QuickBooks disconnected', 'success');
+          document.getElementById('qb-connected').style.display = 'none';
+          document.getElementById('qb-disconnected').style.display = 'block';
+        } else {
+          showToast(data.error || 'Failed to disconnect', 'error');
+        }
+      } catch (err) {
+        showToast('Failed to disconnect QuickBooks', 'error');
+      }
+    }
+    
+    // Check for QB callback params
+    function handleQBCallback() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('qb_connected') === '1') {
+        showToast('QuickBooks connected successfully!', 'success');
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      } else if (params.get('qb_error')) {
+        const errorMap = {
+          'missing_params': 'QuickBooks authorization was incomplete',
+          'token_exchange_failed': 'Failed to complete QuickBooks authorization',
+          'save_failed': 'Failed to save QuickBooks connection',
+          'not_configured': 'QuickBooks is not configured yet',
+          'unexpected': 'An unexpected error occurred'
+        };
+        const error = params.get('qb_error');
+        showToast(errorMap[error] || error, 'error');
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+    
+    // =============================================
+    // GOOGLE CALENDAR FUNCTIONS
+    // =============================================
+
+    async function checkGCalStatus() {
+      try {
+        const response = await fetch('/.netlify/functions/gcal-status');
+        const data = await response.json();
+
+        document.getElementById('gcal-status').style.display = 'none';
+
+        if (data.error && data.error.includes('not configured')) {
+          document.getElementById('gcal-not-configured').style.display = 'block';
+        } else if (data.connected) {
+          document.getElementById('gcal-connected').style.display = 'block';
+          const connectedAt = new Date(data.connectedAt).toLocaleDateString();
+          document.getElementById('gcal-connected-info').textContent = `Connected on ${connectedAt}`;
+        } else {
+          document.getElementById('gcal-disconnected').style.display = 'block';
+        }
+      } catch (err) {
+        console.error('GCal status check failed:', err);
+        document.getElementById('gcal-status').innerHTML = '<span class="text-muted">Unable to check Google Calendar status</span>';
+      }
+    }
+
+    async function connectGoogleCalendar() {
+      try {
+        const response = await fetch('/.netlify/functions/gcal-auth');
+        const data = await response.json();
+
+        if (data.error) {
+          if (data.error.includes('not configured')) {
+            document.getElementById('gcal-disconnected').style.display = 'none';
+            document.getElementById('gcal-not-configured').style.display = 'block';
+          } else {
+            showToast(data.error, 'error');
+          }
+          return;
+        }
+
+        // Redirect to Google auth
+        window.location.href = data.authUrl;
+      } catch (err) {
+        showToast('Failed to start Google Calendar connection', 'error');
+      }
+    }
+
+    async function syncAllAppointmentsToGCal() {
+      const btn = document.getElementById('sync-all-gcal-btn');
+      const originalHtml = btn.innerHTML;
+      try {
+        const supabase = await app.waitForSupabase();
+        const today = new Date().toISOString().split('T')[0];
+
+        const { data: appts, error } = await supabase
+          .from('appointments')
+          .select('id, title, appointment_date, gcal_event_id, status')
+          .gte('appointment_date', today)
+          .neq('status', 'cancelled')
+          .order('appointment_date', { ascending: true });
+
+        if (error) { showToast('Failed to load appointments: ' + error.message, 'error'); return; }
+        if (!appts || appts.length === 0) { showToast('No upcoming appointments to sync', 'info'); return; }
+
+        const msg = `Sync ${appts.length} upcoming appointment${appts.length === 1 ? '' : 's'} to your Google Calendar?\n\n` +
+                    `This creates events on your currently connected calendar. Any events already created on a previous calendar will remain there — delete them manually in Google Calendar if needed.`;
+        if (!confirm(msg)) return;
+
+        btn.disabled = true;
+        let success = 0, failed = 0;
+
+        for (let i = 0; i < appts.length; i++) {
+          btn.textContent = `Syncing ${i + 1} of ${appts.length}...`;
+          const appt = appts[i];
+          try {
+            // Best-effort: remove any prior event from the currently connected calendar
+            // (silently no-ops if the event lived on a previous calendar we no longer access)
+            if (appt.gcal_event_id) {
+              try {
+                await fetch(`/.netlify/functions/gcal-delete-event?event_id=${encodeURIComponent(appt.gcal_event_id)}`, { method: 'POST' });
+              } catch (_) { /* ignore */ }
+            }
+
+            const res = await fetch('/.netlify/functions/send-appointment-confirmation', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ appointment_id: appt.id, send_email: false, sync_gcal: true })
+            });
+            const result = await res.json();
+            if (result.gcal_synced) success++; else failed++;
+          } catch (e) {
+            console.error('Sync failed for appointment', appt.id, e);
+            failed++;
+          }
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+
+        if (failed === 0) {
+          showToast(`Synced ${success} appointment${success === 1 ? '' : 's'} to Google Calendar`, 'success');
+        } else if (success === 0) {
+          showToast(`Failed to sync all ${failed} appointments`, 'error');
+        } else {
+          showToast(`Synced ${success}, ${failed} failed`, 'warning');
+        }
+      } catch (err) {
+        console.error(err);
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        showToast('Sync failed: ' + err.message, 'error');
+      }
+    }
+
+    async function disconnectGoogleCalendar() {
+      if (!confirm('Are you sure you want to disconnect Google Calendar? Future appointments won\'t sync to your calendar.')) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/.netlify/functions/gcal-disconnect', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success) {
+          showToast('Google Calendar disconnected', 'success');
+          document.getElementById('gcal-connected').style.display = 'none';
+          document.getElementById('gcal-disconnected').style.display = 'block';
+        } else {
+          showToast(data.error || 'Failed to disconnect', 'error');
+        }
+      } catch (err) {
+        showToast('Failed to disconnect Google Calendar', 'error');
+      }
+    }
+
+    // Check for GCal callback params
+    function handleGCalCallback() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('gcal_connected') === '1') {
+        showToast('Google Calendar connected successfully!', 'success');
+        // Clean up URL
+        window.history.replaceState({}, '', window.location.pathname);
+      } else if (params.get('gcal_error')) {
+        const errorMap = {
+          'missing_params': 'Google Calendar authorization was incomplete',
+          'token_exchange_failed': 'Failed to complete Google Calendar authorization',
+          'save_failed': 'Failed to save Google Calendar connection',
+          'not_configured': 'Google Calendar is not configured yet',
+          'invalid_request': 'That Google sign-in link expired — please try connecting again',
+          'not_allowed': 'Your login is no longer part of this business',
+          'access_denied': 'Google Calendar access was not granted',
+          'unexpected': 'An unexpected error occurred'
+        };
+        const error = params.get('gcal_error');
+        showToast(errorMap[error] || error, 'error');
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+
+    // =============================================
+    // GOOGLE PHOTOS FUNCTIONS
+    // =============================================
+
+    async function checkGPhotoStatus() {
+      try {
+        const response = await fetch('/.netlify/functions/gphoto-status');
+        const data = await response.json();
+
+        document.getElementById('gphoto-status').style.display = 'none';
+
+        if (data.error && data.error.includes('not configured')) {
+          document.getElementById('gphoto-not-configured').style.display = 'block';
+        } else if (data.connected) {
+          document.getElementById('gphoto-connected').style.display = 'block';
+          const connectedAt = new Date(data.connectedAt).toLocaleDateString();
+          document.getElementById('gphoto-connected-info').textContent = `Connected on ${connectedAt}`;
+        } else {
+          document.getElementById('gphoto-disconnected').style.display = 'block';
+        }
+      } catch (err) {
+        console.error('GPhoto status check failed:', err);
+        document.getElementById('gphoto-status').innerHTML = '<span class="text-muted">Unable to check Google Photos status</span>';
+      }
+    }
+
+    async function connectGooglePhotos() {
+      try {
+        const response = await fetch('/.netlify/functions/gphoto-auth');
+        const data = await response.json();
+
+        if (data.error) {
+          if (data.error.includes('not configured')) {
+            document.getElementById('gphoto-disconnected').style.display = 'none';
+            document.getElementById('gphoto-not-configured').style.display = 'block';
+          } else {
+            showToast(data.error, 'error');
+          }
+          return;
+        }
+
+        window.location.href = data.authUrl;
+      } catch (err) {
+        showToast('Failed to start Google Photos connection', 'error');
+      }
+    }
+
+    async function disconnectGooglePhotos() {
+      if (!confirm('Are you sure you want to disconnect Google Photos?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/.netlify/functions/gphoto-disconnect', { method: 'POST' });
+        const data = await response.json();
+
+        if (data.success) {
+          showToast('Google Photos disconnected', 'success');
+          document.getElementById('gphoto-connected').style.display = 'none';
+          document.getElementById('gphoto-disconnected').style.display = 'block';
+        } else {
+          showToast(data.error || 'Failed to disconnect', 'error');
+        }
+      } catch (err) {
+        showToast('Failed to disconnect Google Photos', 'error');
+      }
+    }
+
+    function handleGPhotoCallback() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('gphoto_connected') === '1') {
+        showToast('Google Photos connected successfully!', 'success');
+        window.history.replaceState({}, '', window.location.pathname);
+      } else if (params.get('gphoto_error')) {
+        const errorMap = {
+          'missing_params': 'Google Photos authorization was incomplete',
+          'token_exchange_failed': 'Failed to complete Google Photos authorization',
+          'save_failed': 'Failed to save Google Photos connection',
+          'not_configured': 'Google Photos is not configured yet',
+          'unexpected': 'An unexpected error occurred'
+        };
+        const error = params.get('gphoto_error');
+        showToast(errorMap[error] || error, 'error');
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    }
+
+    // ==========================================
+    // Payment Schedule Templates
+    // ==========================================
+    let paymentTemplates = [];
+    
+    async function loadPaymentTemplates() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data, error } = await supabase
+          .from('payment_schedule_templates')
+          .select('*, payment_schedule_template_items(*)')
+          .order('name');
+        
+        if (error) throw error;
+        paymentTemplates = data || [];
+        renderPaymentTemplates();
+      } catch (err) {
+        console.error('Failed to load payment templates:', err);
+        document.getElementById('payment-templates-list').innerHTML = '<p class="text-muted">Failed to load payment templates</p>';
+      }
+    }
+    
+    function renderPaymentTemplates() {
+      const container = document.getElementById('payment-templates-list');
+      
+      if (paymentTemplates.length === 0) {
+        container.innerHTML = '<p class="text-muted">No payment templates yet. Click "Add Template" to create one.</p>';
+        return;
+      }
+      
+      container.innerHTML = paymentTemplates.map(template => {
+        const items = (template.payment_schedule_template_items || []).sort((a, b) => a.sort_order - b.sort_order);
+        const itemsHtml = items.map(item => `
+          <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: var(--color-bg); border-radius: var(--radius-sm); margin-bottom: 4px;">
+            <span><strong>${item.name}</strong> - ${item.due_description || 'No due date specified'}</span>
+            <span style="color: var(--color-primary); font-weight: 600;">${item.amount_type === 'percentage' ? item.amount_value + '%' : '$' + parseFloat(item.amount_value).toFixed(2)}</span>
+          </div>
+        `).join('');
+        
+        return `
+          <div class="list-item" style="margin-bottom: var(--space-md); padding: var(--space-md); background: var(--color-bg-soft); border-radius: var(--radius-lg);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+              <div>
+                <span style="font-weight: 600;">${template.name}</span>
+                ${template.is_default ? '<span class="badge badge-primary" style="margin-left: 8px;">Default</span>' : ''}
+                ${!template.is_active ? '<span class="badge badge-secondary" style="margin-left: 8px;">Inactive</span>' : ''}
+              </div>
+              <div style="display: flex; gap: 8px;">
+                ${!template.is_default ? `<button class="btn btn-ghost btn-sm" onclick="setDefaultTemplate('${template.id}')" title="Set as Default">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </button>` : ''}
+                <button class="btn btn-ghost btn-sm" onclick="editPaymentTemplate('${template.id}')" title="Edit">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="deletePaymentTemplate('${template.id}')" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+            ${template.description ? `<p style="color: var(--color-text-light); font-size: 0.875rem; margin-bottom: var(--space-sm);">${template.description}</p>` : ''}
+            <div style="margin-top: var(--space-sm);">
+              ${itemsHtml || '<p class="text-muted text-sm">No payment items defined</p>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function addPaymentTemplate() {
+      showPaymentTemplateModal();
+    }
+    
+    function editPaymentTemplate(id) {
+      const template = paymentTemplates.find(t => t.id === id);
+      if (template) {
+        showPaymentTemplateModal(template);
+      }
+    }
+    
+    function showPaymentTemplateModal(template = null) {
+      const isEdit = !!template;
+      const items = template?.payment_schedule_template_items || [];
+      items.sort((a, b) => a.sort_order - b.sort_order);
+      
+      // Initialize with at least one empty item if creating new
+      let paymentItems = isEdit ? items.map(i => ({
+        id: i.id,
+        name: i.name,
+        due_description: i.due_description || '',
+        amount_type: i.amount_type,
+        amount_value: i.amount_value
+      })) : [{ name: 'Deposit', due_description: 'Due upon acceptance', amount_type: 'percentage', amount_value: 50 }];
+      
+      function renderPaymentItems() {
+        return paymentItems.map((item, idx) => `
+          <div class="payment-item" data-idx="${idx}" style="display: grid; grid-template-columns: 1fr 1fr 120px 100px auto; gap: 8px; align-items: end; padding: 12px; background: var(--color-bg); border-radius: var(--radius-md); margin-bottom: 8px;">
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label text-xs">Payment Name</label>
+              <input type="text" class="form-input item-name" value="${item.name}" placeholder="e.g., Deposit">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label text-xs">Due When</label>
+              <input type="text" class="form-input item-due" value="${item.due_description}" placeholder="e.g., Upon acceptance">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label text-xs">Type</label>
+              <select class="form-input item-type">
+                <option value="percentage" ${item.amount_type === 'percentage' ? 'selected' : ''}>Percent %</option>
+                <option value="fixed" ${item.amount_type === 'fixed' ? 'selected' : ''}>Fixed $</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label class="form-label text-xs">Amount</label>
+              <input type="number" class="form-input item-amount" value="${item.amount_value}" min="0" step="0.01">
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm remove-item" style="margin-bottom: 2px;" ${paymentItems.length <= 1 ? 'disabled' : ''}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        `).join('');
+      }
+      
+      const content = document.createElement('div');
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">Template Name *</label>
+          <input type="text" id="template-name" class="form-input" value="${template?.name || ''}" placeholder="e.g., Standard 50/50">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description <span class="form-label-optional">(optional)</span></label>
+          <input type="text" id="template-description" class="form-input" value="${template?.description || ''}" placeholder="Brief description of this payment schedule">
+        </div>
+        <div class="form-group">
+          <label class="form-check">
+            <input type="checkbox" id="template-active" ${template?.is_active !== false ? 'checked' : ''}>
+            <span class="form-check-label">Active (available for use in quotes)</span>
+          </label>
+        </div>
+        <hr style="margin: var(--space-lg) 0; border: none; border-top: 1px solid var(--color-border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+          <label class="form-label" style="margin: 0;">Payment Items</label>
+          <button type="button" class="btn btn-secondary btn-sm" id="add-payment-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Payment
+          </button>
+        </div>
+        <div id="payment-items-container">
+          ${renderPaymentItems()}
+        </div>
+        <div id="total-warning" style="display: none; margin-top: var(--space-sm); padding: 8px 12px; background: #fef3cd; border-radius: var(--radius-sm); color: #856404; font-size: 0.875rem;">
+          ⚠️ Percentage payments should total 100%
+        </div>
+      `;
+      
+      function updateItemsContainer() {
+        content.querySelector('#payment-items-container').innerHTML = renderPaymentItems();
+        attachItemListeners();
+        checkTotals();
+      }
+      
+      function attachItemListeners() {
+        content.querySelectorAll('.payment-item').forEach((el, idx) => {
+          el.querySelector('.item-name').addEventListener('input', e => {
+            paymentItems[idx].name = e.target.value;
+          });
+          el.querySelector('.item-due').addEventListener('input', e => {
+            paymentItems[idx].due_description = e.target.value;
+          });
+          el.querySelector('.item-type').addEventListener('change', e => {
+            paymentItems[idx].amount_type = e.target.value;
+            checkTotals();
+          });
+          el.querySelector('.item-amount').addEventListener('input', e => {
+            paymentItems[idx].amount_value = parseFloat(e.target.value) || 0;
+            checkTotals();
+          });
+          el.querySelector('.remove-item').addEventListener('click', () => {
+            if (paymentItems.length > 1) {
+              paymentItems.splice(idx, 1);
+              updateItemsContainer();
+            }
+          });
+        });
+      }
+      
+      function checkTotals() {
+        const percentItems = paymentItems.filter(i => i.amount_type === 'percentage');
+        const total = percentItems.reduce((sum, i) => sum + (parseFloat(i.amount_value) || 0), 0);
+        const warning = content.querySelector('#total-warning');
+        if (percentItems.length > 0 && Math.abs(total - 100) > 0.01) {
+          warning.style.display = 'block';
+          warning.textContent = `⚠️ Percentage payments total ${total}% (should be 100%)`;
+        } else {
+          warning.style.display = 'none';
+        }
+      }
+      
+      content.querySelector('#add-payment-item').addEventListener('click', () => {
+        paymentItems.push({ name: '', due_description: '', amount_type: 'percentage', amount_value: 0 });
+        updateItemsContainer();
+      });
+      
+      attachItemListeners();
+      checkTotals();
+      
+      const footer = document.createElement('div');
+      footer.className = 'btn-group';
+      footer.innerHTML = `
+        <button type="button" class="btn btn-secondary" id="cancel-template">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-template">${isEdit ? 'Save Changes' : 'Create Template'}</button>
+      `;
+      
+      const modal = createModal({
+        title: isEdit ? 'Edit Payment Template' : 'New Payment Template',
+        content,
+        footer,
+        size: 'lg'
+      });
+      
+      footer.querySelector('#cancel-template').addEventListener('click', () => closeModal(modal));
+      footer.querySelector('#save-template').addEventListener('click', async () => {
+        const name = content.querySelector('#template-name').value.trim();
+        if (!name) {
+          showToast('Please enter a template name', 'error');
+          return;
+        }
+        
+        // Update paymentItems from current form values
+        content.querySelectorAll('.payment-item').forEach((el, idx) => {
+          paymentItems[idx].name = el.querySelector('.item-name').value.trim();
+          paymentItems[idx].due_description = el.querySelector('.item-due').value.trim();
+          paymentItems[idx].amount_type = el.querySelector('.item-type').value;
+          paymentItems[idx].amount_value = parseFloat(el.querySelector('.item-amount').value) || 0;
+        });
+        
+        // Validate items
+        const validItems = paymentItems.filter(i => i.name && i.amount_value > 0);
+        if (validItems.length === 0) {
+          showToast('Please add at least one payment item', 'error');
+          return;
+        }
+        
+        try {
+          const supabase = await app.waitForSupabase();
+          
+          if (isEdit) {
+            // Update template
+            const { error: updateError } = await supabase
+              .from('payment_schedule_templates')
+              .update({
+                name,
+                description: content.querySelector('#template-description').value.trim() || null,
+                is_active: content.querySelector('#template-active').checked,
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', template.id);
+            
+            if (updateError) throw updateError;
+            
+            // Delete existing items and insert new ones
+            await supabase.from('payment_schedule_template_items').delete().eq('template_id', template.id);
+            
+            const itemsToInsert = validItems.map((item, idx) => ({
+              template_id: template.id,
+              name: item.name,
+              due_description: item.due_description || null,
+              amount_type: item.amount_type,
+              amount_value: item.amount_value,
+              sort_order: idx
+            }));
+            
+            const { error: itemsError } = await supabase.from('payment_schedule_template_items').insert(itemsToInsert);
+            if (itemsError) throw itemsError;
+            
+          } else {
+            // Create new template
+            const { data: newTemplate, error: createError } = await supabase
+              .from('payment_schedule_templates')
+              .insert({
+                name,
+                description: content.querySelector('#template-description').value.trim() || null,
+                is_active: content.querySelector('#template-active').checked,
+                is_default: paymentTemplates.length === 0 // First template is default
+              })
+              .select()
+              .single();
+            
+            if (createError) throw createError;
+            
+            // Insert items
+            const itemsToInsert = validItems.map((item, idx) => ({
+              template_id: newTemplate.id,
+              name: item.name,
+              due_description: item.due_description || null,
+              amount_type: item.amount_type,
+              amount_value: item.amount_value,
+              sort_order: idx
+            }));
+            
+            const { error: itemsError } = await supabase.from('payment_schedule_template_items').insert(itemsToInsert);
+            if (itemsError) throw itemsError;
+          }
+          
+          closeModal(modal);
+          showToast(isEdit ? 'Template updated' : 'Template created', 'success');
+          loadPaymentTemplates();
+          
+        } catch (err) {
+          console.error('Save template error:', err);
+          showToast('Failed to save template', 'error');
+        }
+      });
+    }
+    
+    async function setDefaultTemplate(id) {
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        // Remove default from all
+        await supabase.from('payment_schedule_templates').update({ is_default: false }).neq('id', '00000000-0000-0000-0000-000000000000');
+        
+        // Set new default
+        const { error } = await supabase
+          .from('payment_schedule_templates')
+          .update({ is_default: true })
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        showToast('Default template updated', 'success');
+        loadPaymentTemplates();
+      } catch (err) {
+        console.error('Set default error:', err);
+        showToast('Failed to set default', 'error');
+      }
+    }
+    
+    async function deletePaymentTemplate(id) {
+      const template = paymentTemplates.find(t => t.id === id);
+      if (!confirm(`Delete "${template?.name}"? This cannot be undone.`)) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase
+          .from('payment_schedule_templates')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        showToast('Template deleted', 'success');
+        loadPaymentTemplates();
+      } catch (err) {
+        console.error('Delete template error:', err);
+        showToast('Failed to delete template', 'error');
+      }
+    }
+    
+    // Initialize - load all data in parallel
+    async function initSettings() {
+      // Handle callback params
+      handleQBCallback();
+      handleGCalCallback();
+      handleGPhotoCallback();
+
+      // Check integration statuses
+      // checkQBStatus(); — integrations are phase 2
+      // checkGCalStatus(); — integrations are phase 2
+      // checkGPhotoStatus(); — integrations are phase 2
+      
+      // Load payment templates
+      loadPaymentTemplates();
+      
+      const supabase = await app.waitForSupabase();
+      
+      // Load all data in parallel
+      const [settingsRes, leadSourcesRes, apptTypesRes, eventTypesRes, rolesRes, usersRes] = await Promise.all([
+        supabase.from('settings').select('*'),
+        supabase.from('lead_sources').select('*').order('sort_order'),
+        supabase.from('appointment_types').select('*').order('sort_order'),
+        supabase.from('job_event_types').select('*').order('sort_order'),
+        supabase.from('app_roles').select('*').order('sort_order'),
+        supabase.from('app_users').select('*, app_roles(name)').order('name')
+      ]);
+      
+      // Process settings
+      if (settingsRes.data) {
+        settingsRes.data.forEach(s => {
+          // Handle deal_item_types specially
+          if (s.key === 'deal_item_types') {
+            dealItemTypes = Array.isArray(s.value) ? s.value : [];
+            return;
+          }
+          // Handle finish_types specially
+          if (s.key === 'finish_types') {
+            finishTypes = Array.isArray(s.value) ? s.value : [];
+            return;
+          }
+          // Handle quote_footer specially
+          if (s.key === 'quote_footer' && s.value) {
+            const footer = s.value;
+            // Banner fields
+            $('#quote-footer-enabled').checked = footer.enabled === true;
+            $('#quote-footer-image').value = footer.image_url || '';
+            $('#quote-footer-link').value = footer.link_url || '';
+            $('#quote-footer-title').value = footer.title || '';
+            footerButtons = Array.isArray(footer.buttons) ? footer.buttons : [];
+            renderFooterButtons();
+            return;
+          }
+          // Handle terms_and_conditions specially
+          if (s.key === 'terms_and_conditions' && s.value) {
+            const terms = s.value;
+            if (terms.quote) $('#quote-terms').value = terms.quote;
+            if (terms.invoice) $('#invoice-terms').value = terms.invoice;
+            return;
+          }
+          // Handle company settings
+          if (s.key === 'company' && s.value) {
+            const company = s.value;
+            $('#company-name').value = company.name || '';
+            $('#company-email').value = company.email || '';
+            $('#company-from-email').value = company.from_email || '';
+            $('#company-notification-email').value = company.notification_email || '';
+            $('#company-phone').value = company.phone || '';
+            $('#company-website').value = company.website || '';
+            $('#company-address').value = company.address || '';
+            $('#company-city').value = company.city || '';
+            $('#company-state').value = company.state || '';
+            $('#company-zip').value = company.zip || '';
+            return;
+          }
+          // Handle branding settings
+          if (s.key === 'branding' && s.value) {
+            const branding = s.value;
+            $('#company-tagline').value = branding.tagline || '';
+            $('#brand-color').value = branding.color || '#3e855f';
+            $('#brand-color-hex').value = branding.color || '#3e855f';
+            if (branding.logo_url) {
+              $('#logo-url').value = branding.logo_url;
+              $('#logo-preview').src = branding.logo_url;
+            }
+            return;
+          }
+          // Handle notification settings
+          if (s.key === 'notifications' && s.value) {
+            const notifs = s.value;
+            $('#notify-new-appointment').checked = notifs.new_appointment !== false;
+            $('#notify-new-booking').checked = notifs.new_booking !== false;
+            $('#notify-quote-accepted').checked = notifs.quote_accepted !== false;
+            $('#notify-quote-declined').checked = notifs.quote_declined !== false;
+            $('#notify-quote-viewed').checked = notifs.quote_viewed !== false;
+            $('#notify-invoice-viewed').checked = notifs.invoice_viewed !== false;
+            $('#notify-payment-received').checked = notifs.payment_received !== false;
+            $('#notify-customer-upload').checked = notifs.customer_upload !== false;
+            $('#notify-job-stage-changed').checked = notifs.job_stage_changed === true;
+            if (notifs.reminder_hours != null) $('#reminder-hours').value = notifs.reminder_hours;
+            return;
+          }
+          // Handle invoice settings
+          if (s.key === 'invoices' && s.value) {
+            const invoices = s.value;
+            $('#default-payment-terms').value = invoices.default_payment_terms || 30;
+            $('#late-fee-percent').value = invoices.late_fee_percent || 0;
+            return;
+          }
+          // Handle quote settings
+          if (s.key === 'quotes' && s.value) {
+            const quotes = s.value;
+            $('#default-valid-days').value = quotes.default_valid_days ?? 30;
+            $('#default-tax-rate').value = quotes.default_tax_rate ?? 6.25;
+            $('#default-deposit').value = quotes.default_deposit ?? 50;
+            return;
+          }
+          // Handle dashboard settings
+          if (s.key === 'dashboard' && s.value) {
+            settings.dashboard = s.value;
+            return;
+          }
+          const input = document.getElementById(s.key);
+          if (input) {
+            if (input.type === 'checkbox') input.checked = s.value === 'true';
+            else input.value = s.value || '';
+          }
+        });
+      }
+      
+      // Render deal item types
+      renderDealItemTypes();
+      
+      // Render finish types
+      renderFinishTypes();
+      
+      // Process lead sources
+      leadSources = leadSourcesRes.data || [];
+      renderLeadSources();
+      
+      // Process appointment types
+      appointmentTypes = apptTypesRes.data || [];
+      renderAppointmentTypes();
+
+      // Load scheduling config (depends on appointmentTypes being set)
+      loadSchedulingConfig(settingsRes.data);
+      
+      // Process event types (scheduled date types)
+      eventTypes = eventTypesRes.data || [];
+      renderEventTypes();
+      
+      // Process roles
+      appRoles = rolesRes.data || [];
+      renderRoles();
+      
+      // Process users
+      appUsers = usersRes.data || [];
+      renderUsers();
+
+      // Load dashboard stage toggles
+      loadDashboardStages();
+    }
+
+    initSettings();
+  </script>
+  <script>
+    if (new URLSearchParams(location.search).get('welcome')) {
+      setTimeout(() => showToast('Welcome to YourCRM! Start with your company details below, then invite your team.', 'success', 8000), 600);
+      history.replaceState(null, '', location.pathname);
+    }
+  </script>
+  <script>
+    // ===== Online Payments (Stripe Connect) =====
+    async function stripeConnectCall(method, body) {
+      const res = await fetch('/api/stripe-connect', {
+        method, headers: { 'Content-Type': 'application/json' },
+        body: method === 'POST' ? JSON.stringify(body || {}) : undefined
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function renderStripeStatus(st) {
+      const el = document.getElementById('stripe-status');
+      if (!el) return;
+      if (!st.configured) {
+        el.innerHTML = '<p class="text-muted">Online payments aren\'t switched on for this YourCRM server yet.</p>';
+        return;
+      }
+      if (!st.connected) {
+        el.innerHTML = `
+          <button type="button" class="btn btn-primary" onclick="startStripeOnboarding(this)">Connect with Stripe</button>
+          <p class="form-help" style="margin-top: var(--space-sm);">You'll be taken to Stripe to create or confirm your business account and bank details. Takes about 5 minutes.</p>`;
+        return;
+      }
+      if (!st.charges_enabled) {
+        el.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--space-sm);">
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--color-warning);display:inline-block;"></span>
+            <strong>Stripe setup isn't finished</strong>
+          </div>
+          <p class="text-muted" style="margin-bottom: var(--space-md);">Stripe still needs a few details before you can take card payments.</p>
+          <button type="button" class="btn btn-primary" onclick="startStripeOnboarding(this)">Finish Stripe setup</button>
+          <button type="button" class="btn btn-ghost" onclick="disconnectStripe()">Disconnect</button>`;
+        return;
+      }
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--space-sm);">
+          <span style="width:10px;height:10px;border-radius:50%;background:var(--color-success);display:inline-block;"></span>
+          <strong style="color: var(--color-success);">Accepting card payments</strong>
+        </div>
+        <p class="text-muted text-sm" style="margin-bottom: var(--space-md);">Stripe account ${escapeHtml(st.account_id)}. Customers now see "Pay by Card" on quotes and "Pay Now" on invoices.</p>
+        <a class="btn btn-secondary" href="https://dashboard.stripe.com/" target="_blank" rel="noopener">Open Stripe Dashboard</a>
+        <button type="button" class="btn btn-ghost" onclick="disconnectStripe()">Disconnect</button>`;
+    }
+
+    async function loadStripeStatus() {
+      try { renderStripeStatus(await stripeConnectCall('GET')); }
+      catch (e) {
+        const el = document.getElementById('stripe-status');
+        if (el) el.innerHTML = `<p class="text-muted">${escapeHtml(e.message)}</p>`;
+      }
+    }
+
+    window.startStripeOnboarding = async (btn) => {
+      if (btn) { btn.disabled = true; btn.textContent = 'Opening Stripe…'; }
+      try {
+        const { url } = await stripeConnectCall('POST', { action: 'onboard' });
+        window.location.href = url;
+      } catch (e) {
+        showToast(e.message, 'error');
+        if (btn) { btn.disabled = false; btn.textContent = 'Connect with Stripe'; }
+      }
+    };
+
+    window.disconnectStripe = async () => {
+      if (!(await confirm('Stop taking card payments through YourCRM? Your Stripe account itself is not affected.', { danger: true, confirmText: 'Disconnect' }))) return;
+      try { renderStripeStatus(await stripeConnectCall('POST', { action: 'disconnect' })); showToast('Stripe disconnected', 'success'); }
+      catch (e) { showToast(e.message, 'error'); }
+    };
+
+    if (canAccessSettings()) {
+      const sp = new URLSearchParams(location.search).get('stripe');
+      if (sp === 'return') setTimeout(() => showToast('Back from Stripe — checking your account…', 'info'), 300);
+      if (sp === 'refresh') setTimeout(() => showToast('That Stripe link expired — click the button to continue.', 'info'), 300);
+      if (sp) history.replaceState(null, '', location.pathname + location.hash);
+      loadStripeStatus();
+    }
+  </script>
+  <script>
+    // ===== Google Calendar (per business) + booking link =====
+    async function gcalConnectCall(method, body) {
+      const res = await fetch('/api/gcal-connect', {
+        method, headers: { 'Content-Type': 'application/json' },
+        body: method === 'POST' ? JSON.stringify(body || {}) : undefined
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function bookingLinkHtml() {
+      const u = getCurrentUser();
+      if (!u?.org_slug) return '';
+      const link = `${location.origin}/schedule/${u.org_slug}`;
+      return `
+        <div style="margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--color-border);">
+          <div style="font-weight: 600; margin-bottom: 4px;">Your online booking page</div>
+          <div style="display:flex; gap: var(--space-sm); flex-wrap: wrap; align-items:center;">
+            <code style="background: var(--color-bg-soft); padding: 6px 10px; border-radius: 6px; word-break: break-all;">${escapeHtml(link)}</code>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('${link}').then(() => showToast('Link copied', 'success'))">Copy</button>
+            <a class="btn btn-ghost btn-sm" href="${link}" target="_blank" rel="noopener">Open</a>
+          </div>
+          <p class="form-help" style="margin-top: 6px;">Turn on which appointment types customers can book, and your hours, in the Scheduling settings. Booking-form submissions also land here automatically.</p>
+        </div>`;
+    }
+
+    function renderGcalStatus(st) {
+      const el = document.getElementById('gcal-status-ll');
+      if (!el) return;
+      let top;
+      if (!st.configured) {
+        top = '<p class="text-muted">Google Calendar isn\'t switched on for this YourCRM server yet. Online booking still works — appointments are saved in YourCRM.</p>';
+      } else if (st.connected) {
+        top = `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--space-sm);">
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--color-success);display:inline-block;"></span>
+            <strong style="color: var(--color-success);">Connected</strong>
+            <span class="text-muted text-sm">since ${formatDate(st.connectedAt)}</span>
+          </div>
+          <p class="text-muted text-sm" style="margin-bottom: var(--space-md);">New appointments are added to your primary Google Calendar; reschedules and cancellations update it too.</p>
+          <button type="button" class="btn btn-ghost" onclick="disconnectGcal()">Disconnect</button>`;
+      } else {
+        top = `
+          <button type="button" class="btn btn-primary" onclick="connectGcal(this)">Connect Google Calendar</button>
+          <p class="form-help" style="margin-top: var(--space-sm);">You'll sign in with Google and allow YourCRM to add and update events on your calendar.</p>`;
+      }
+      el.innerHTML = top + bookingLinkHtml();
+    }
+
+    async function loadGcalStatus() {
+      try { renderGcalStatus(await gcalConnectCall('GET')); }
+      catch (e) { const el = document.getElementById('gcal-status-ll'); if (el) el.innerHTML = `<p class="text-muted">${escapeHtml(e.message)}</p>` + bookingLinkHtml(); }
+    }
+
+    window.connectGcal = async (btn) => {
+      if (btn) { btn.disabled = true; btn.textContent = 'Opening Google…'; }
+      try { const { authUrl } = await gcalConnectCall('POST', { action: 'auth' }); window.location.href = authUrl; }
+      catch (e) { showToast(e.message, 'error'); if (btn) { btn.disabled = false; btn.textContent = 'Connect Google Calendar'; } }
+    };
+
+    window.disconnectGcal = async () => {
+      if (!(await confirm('Disconnect Google Calendar? Existing calendar events stay; new appointments won\'t sync.', { danger: true, confirmText: 'Disconnect' }))) return;
+      try { renderGcalStatus(await gcalConnectCall('POST', { action: 'disconnect' })); showToast('Google Calendar disconnected', 'success'); }
+      catch (e) { showToast(e.message, 'error'); }
+    };
+
+    if (canAccessSettings()) loadGcalStatus();
+  </script>
+</body>
+</html>

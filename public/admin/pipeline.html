@@ -1,0 +1,3006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Deals Pipeline | Admin | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=33">
+  <style>
+    .pipeline-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-md); width: 100%; }
+    .pipeline-header h2 { margin: 0; white-space: nowrap; }
+    .pipeline-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+    .pipeline-container { display: flex; gap: var(--space-md); overflow-x: auto; padding-bottom: var(--space-lg); min-height: calc(100vh - 200px); max-width: 100%; }
+    .pipeline-column { flex: 0 0 260px; background: var(--color-bg-soft); border-radius: var(--radius-lg); display: flex; flex-direction: column; max-height: calc(100vh - 200px); }
+    .column-header { padding: var(--space-md); border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: var(--space-sm); position: sticky; top: 0; background: var(--color-bg-soft); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+    .stage-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .column-title { font-weight: 600; font-size: 0.8rem; color: var(--color-text); flex: 1; }
+    .column-total { font-size: 0.75rem; font-weight: 600; color: var(--color-primary); white-space: nowrap; }
+    .column-count { background: var(--color-bg); color: var(--color-text-muted); font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+    .column-content { flex: 1; overflow-y: auto; padding: var(--space-sm); }
+    .deal-card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-sm); cursor: grab; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .deal-card:hover { border-color: var(--color-primary); box-shadow: 0 2px 8px rgba(62, 133, 95, 0.15); }
+    .deal-card.dragging { opacity: 0.5; cursor: grabbing; }
+    .deal-card-title { font-weight: 600; font-size: 0.875rem; color: var(--color-text); margin-bottom: 4px; }
+    .deal-card-customer { font-size: 0.8125rem; color: var(--color-text-muted); margin-bottom: var(--space-sm); }
+    .deal-card-dates { font-size: 0.75rem; color: var(--color-text-muted); }
+    .deal-card-date { margin-top: 4px; display: flex; flex-direction: column; }
+    .deal-card-date-label { font-weight: 600; color: var(--color-text); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.02em; }
+    .deal-card-auto-off { display: inline-block; margin-top: 6px; font-size: 0.7rem; font-weight: 600; color: #b45309; background: #fef3c7; border-radius: 10px; padding: 1px 8px; }
+    .deal-card-value { font-size: 0.8125rem; font-weight: 600; color: var(--color-primary); margin-top: var(--space-sm); }
+    .empty-column { text-align: center; padding: var(--space-xl); color: var(--color-text-muted); font-size: 0.8125rem; }
+    .drop-zone { min-height: 100px; border: 2px dashed transparent; border-radius: var(--radius-md); transition: all 0.2s; }
+    .drop-zone.drag-over { border-color: var(--color-primary); background: rgba(62, 133, 95, 0.05); }
+    .deal-card.dragging { opacity: 0.5; }
+    .touch-ghost { position: fixed; pointer-events: none; z-index: 9999; opacity: 0.9; transform: rotate(3deg); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    
+    /* Dropdown */
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-btn { display: flex; align-items: center; gap: var(--space-xs); }
+    .dropdown-btn svg.chevron { width: 14px; height: 14px; transition: transform 0.2s; }
+    .dropdown.open .dropdown-btn svg.chevron { transform: rotate(180deg); }
+    .dropdown-menu { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 200px; z-index: 9999; display: none; }
+    .dropdown.open .dropdown-menu { display: block; }
+    .dropdown.open .dropdown-menu { display: block; }
+    .dropdown-item { display: flex; align-items: center; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); cursor: pointer; font-size: 0.875rem; color: var(--color-text); transition: background 0.15s; }
+    .dropdown-item:hover { background: var(--color-bg-soft); }
+    .dropdown-item:first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .dropdown-item:last-child { border-radius: 0 0 var(--radius-md) var(--radius-md); }
+    .dropdown-icon { font-size: 1rem; }
+    
+    /* Calendar */
+    .calendar-container { background: white; border-radius: var(--radius-lg); border: 1px solid var(--color-border); overflow: hidden; }
+    .calendar-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-lg); background: var(--color-bg-soft); border-bottom: 1px solid var(--color-border); }
+    .calendar-nav { display: flex; align-items: center; gap: var(--space-md); }
+    .calendar-nav-btn { width: 36px; height: 36px; border: 1px solid var(--color-border); background: white; border-radius: var(--radius-md); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--color-text-muted); }
+    .calendar-nav-btn:hover { background: var(--color-bg-soft); color: var(--color-primary); }
+    .calendar-title { font-size: 1.25rem; font-weight: 600; color: var(--color-text); min-width: 200px; text-align: center; }
+    .calendar-today-btn { padding: var(--space-sm) var(--space-md); border: 1px solid var(--color-border); background: white; border-radius: var(--radius-md); cursor: pointer; font-size: 0.875rem; }
+    .calendar-today-btn:hover { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+    .calendar-legend { display: flex; gap: var(--space-lg); padding: var(--space-sm) var(--space-lg); background: var(--color-bg-soft); border-bottom: 1px solid var(--color-border); flex-wrap: wrap; }
+    .calendar-legend-item { display: flex; align-items: center; gap: var(--space-xs); font-size: 0.75rem; color: var(--color-text-muted); }
+    .calendar-legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .calendar-day-header { padding: var(--space-sm); text-align: center; font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; background: var(--color-bg-soft); border-bottom: 1px solid var(--color-border); }
+    .calendar-day { min-height: 100px; border-right: 1px solid var(--color-border); border-bottom: 1px solid var(--color-border); padding: var(--space-xs); background: white; }
+    .calendar-day:nth-child(7n) { border-right: none; }
+    .calendar-day.other-month { background: var(--color-bg-soft); }
+    .calendar-day.other-month .calendar-day-number { color: var(--color-text-muted); }
+    .calendar-day.today { background: rgba(62, 133, 95, 0.05); }
+    .calendar-day.today .calendar-day-number { background: var(--color-primary); color: white; }
+    .calendar-day-number { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 0.8rem; font-weight: 500; color: var(--color-text); margin-bottom: var(--space-xs); }
+    .calendar-events { display: flex; flex-direction: column; gap: 2px; }
+    .calendar-event { padding: 2px 5px; border-radius: 3px; font-size: 0.65rem; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .calendar-event:hover { transform: scale(1.02); }
+    .calendar-more { font-size: 0.65rem; color: var(--color-text-muted); padding: 2px 5px; cursor: pointer; }
+    
+    /* View toggle */
+    .view-toggle { display: flex; background: var(--color-bg-soft); border-radius: var(--radius-md); padding: 3px; }
+    .view-toggle button { padding: var(--space-xs) var(--space-sm); border: none; background: transparent; color: var(--color-text-muted); cursor: pointer; border-radius: var(--radius-sm); font-size: 0.75rem; }
+    .view-toggle button.active { background: white; color: var(--color-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    
+    /* Form sections */
+    .form-section { margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--color-border); }
+    .form-section-title { font-weight: 600; font-size: 0.9rem; color: var(--color-text); margin-bottom: var(--space-md); display: flex; align-items: center; justify-content: space-between; }
+    .event-row, .item-row { display: flex; gap: var(--space-sm); align-items: center; padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border-light); }
+    .event-row:last-child, .item-row:last-child { border-bottom: none; }
+    
+    /* Submission section */
+    .form-section.collapsed #submission-content { display: none; }
+    .form-section.collapsed .form-section-title svg { transform: rotate(-90deg); }
+    .submission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm) var(--space-lg); margin-bottom: var(--space-md); }
+    .submission-field label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-text-muted); font-weight: 600; }
+    .submission-field p { font-size: 0.875rem; color: var(--color-text); margin: 2px 0 0; }
+    .submission-field.full { grid-column: 1 / -1; }
+    .submission-photos { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-sm); }
+    .submission-photos a { display: block; width: 80px; height: 80px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--color-border); }
+    .submission-photos img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Searchable Select */
+    .search-select { position: relative; }
+    .search-select-input { width: 100%; cursor: text; }
+    .search-select-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-height: 250px; overflow-y: auto; z-index: 9999; display: none; }
+    .search-select.open .search-select-dropdown { display: block; }
+    .search-select-option { padding: var(--space-sm) var(--space-md); cursor: pointer; font-size: 0.875rem; }
+    .search-select-option:hover, .search-select-option.highlighted { background: var(--color-bg-soft); }
+    .search-select-option.selected { background: var(--color-primary); color: white; }
+    .search-select-empty { padding: var(--space-md); color: var(--color-text-muted); font-size: 0.875rem; text-align: center; }
+    .search-select-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--color-text-muted); padding: 4px; display: none; }
+    .search-select.has-value .search-select-clear { display: block; }
+    
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+      .pipeline-header { flex-direction: column; align-items: stretch; gap: var(--space-sm); }
+      .pipeline-actions { justify-content: flex-start; overflow-x: auto; padding-bottom: var(--space-xs); }
+      .pipeline-actions .btn { white-space: nowrap; }
+      .view-toggle { order: -1; width: 100%; }
+      .view-toggle button { flex: 1; }
+      .calendar-header { flex-direction: column; gap: var(--space-sm); padding: var(--space-md); }
+      .calendar-nav { width: 100%; justify-content: space-between; }
+      .calendar-title { min-width: auto; }
+      .calendar-legend { padding: var(--space-xs) var(--space-sm); gap: var(--space-sm); }
+      .calendar-legend-item { font-size: 0.65rem; }
+      .calendar-day { min-height: 55px; }
+      .calendar-event { font-size: 0.5rem; padding: 1px 2px; }
+      .list-view-table { font-size: 0.75rem; }
+      .list-view-table th, .list-view-table td { padding: var(--space-xs) var(--space-sm); }
+      .deal-card { padding: var(--space-sm); }
+      .deal-card-title { font-size: 0.8rem; }
+      .deal-card-customer { font-size: 0.75rem; }
+      .dropdown-menu { position: fixed !important; left: var(--space-sm) !important; right: var(--space-sm) !important; bottom: var(--space-sm) !important; top: auto !important; max-height: 50vh; overflow-y: auto; }
+    }
+    
+    @media (max-width: 480px) {
+      .calendar-day-header { font-size: 0.6rem; padding: var(--space-xs); }
+      .calendar-day { min-height: 45px; }
+      .calendar-day-number { width: 18px; height: 18px; font-size: 0.6rem; }
+      .pipeline-column { flex: 0 0 92vw; }
+      .form-section-title { flex-wrap: wrap; gap: var(--space-xs); }
+      .form-section-title > div { flex-wrap: wrap; }
+      .modal-footer { flex-wrap: wrap; gap: var(--space-xs); }
+      .modal-footer .btn-group { flex-wrap: wrap; }
+      .item-row, .event-row { flex-wrap: wrap; }
+    }
+
+    /* Deal View Modal */
+    .deal-view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm) var(--space-lg); margin-bottom: var(--space-lg); }
+    .deal-view-field label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-text-muted); font-weight: 600; display: block; }
+    .deal-view-field p { font-size: 0.875rem; color: var(--color-text); margin: 2px 0 0; }
+    .deal-view-section { margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--color-border); }
+    .deal-view-section-title { font-weight: 600; font-size: 0.9rem; color: var(--color-text); margin-bottom: var(--space-md); }
+
+    /* Website chat transcripts */
+    .chat-transcript { background: var(--color-bg-soft); border-radius: var(--radius-md); padding: var(--space-sm); max-height: 420px; overflow-y: auto; }
+    .chat-msg { border-left: 3px solid var(--color-border); padding: 2px 0 2px var(--space-sm); margin-bottom: var(--space-sm); }
+    .chat-msg.chat-visitor { border-left-color: var(--color-text-muted); }
+    .chat-msg.chat-lisa { border-left-color: var(--color-primary); }
+    .chat-who { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+    .chat-visitor .chat-who { color: var(--color-text-muted); }
+    .chat-lisa .chat-who { color: var(--color-primary); }
+    .chat-text { white-space: pre-wrap; font-size: 0.875rem; line-height: 1.45; color: var(--color-text); }
+    .chat-row { padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border); cursor: pointer; }
+    .chat-row:hover { background: var(--color-bg-soft); }
+  </style>
+</head>
+<body>
+  <script>
+    // Permission check before page loads
+    const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+    if (!user) {
+      window.location.href = '/admin/login.html';
+    } else if (!user.permissions?.can_view_pipeline) {
+      window.location.href = '/admin/index.html';
+    }
+  </script>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-logo">
+        <img data-brand-logo src="" alt="Company Logo" style="height: 40px; filter: brightness(0) invert(1); display: none;">
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item"><a href="/admin/today.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Today</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/index.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html" class="sidebar-nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals Pipeline</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html?view=calendar" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/customers.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/vendors.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Vendors</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/quotes.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Quotes</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/invoices.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Invoices</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/payments.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/punch-list.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Punch List</a></li>
+        </ul>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Bookkeeping</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/banking.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>Banking</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/reports.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Reports</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Lead Capture</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/booking-forms.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Booking Forms</a></li>
+            <li class="sidebar-nav-item"><a href="/schedule" target="_blank" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Online Scheduling</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/bulk-email.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="2" y1="20" x2="8" y2="14"/><line x1="22" y1="20" x2="16" y2="14"/></svg>Bulk Email</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/sequences.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><polyline points="16 17 18 19 22 15"/></svg>Email Sequences</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Catalog</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/catalog.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Custom Library</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/email-templates.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Templates</a></li>
+          </ul>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/settings.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    <main class="app-main">
+      <header class="app-header" style="flex-wrap: wrap;">
+        <div class="pipeline-header" style="flex: 1; min-width: 0;">
+          <div class="pipeline-actions">
+            <div class="view-toggle">
+              <button class="active" data-view="pipeline">Pipeline</button>
+              <button data-view="calendar">Calendar</button>
+              <button data-view="list">List</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openDealModal()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New Deal
+            </button>
+            
+            
+            <!-- New Appointment Dropdown -->
+            <div class="dropdown" id="appt-dropdown">
+              <button class="btn btn-secondary btn-sm dropdown-btn" onclick="toggleDropdown('appt-dropdown')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Appt
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="dropdown-menu" id="appt-type-menu"></div>
+            </div>
+            
+            <button class="btn btn-secondary btn-sm" onclick="openStageSettings()">Stages</button>
+            
+            <!-- Stage Filter Dropdown -->
+            <div class="dropdown" id="filter-dropdown">
+              <button class="btn btn-secondary btn-sm dropdown-btn" onclick="toggleDropdown('filter-dropdown')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                Filter
+                <span id="filter-count" class="badge badge-sm" style="display:none;margin-left:4px;"></span>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="dropdown-menu" style="min-width:200px;max-height:300px;overflow-y:auto;" id="filter-menu">
+                <div style="padding:var(--space-sm);border-bottom:1px solid var(--color-border);">
+                  <button class="btn btn-sm btn-ghost" onclick="selectAllStages()">Select All</button>
+                  <button class="btn btn-sm btn-ghost" onclick="clearAllStages()">Clear All</button>
+                </div>
+                <div id="filter-stages-list"></div>
+              </div>
+            </div>
+          </div>
+          <div style="min-width: 0; text-align: right;">
+            <h2 style="font-size: 1rem; margin: 0;">Deals Pipeline</h2>
+            <p class="text-muted" id="pipeline-summary" style="font-size: 0.75rem; margin: 0;">Loading...</p>
+          </div>
+        </div>
+      </header>
+      
+      <div class="app-content" style="padding: var(--space-md);">
+        <div id="pipeline-view" style="overflow-x: auto; max-width: 100%;"><div class="pipeline-container" id="pipeline-container"></div></div>
+        <div id="calendar-view" style="display:none;">
+          <div class="calendar-container">
+            <div class="calendar-header">
+              <div class="calendar-nav">
+                <button class="calendar-nav-btn" onclick="prevMonth()">←</button>
+                <span class="calendar-title" id="calendar-title">January 2025</span>
+                <button class="calendar-nav-btn" onclick="nextMonth()">→</button>
+              </div>
+              <button class="calendar-today-btn" onclick="goToToday()">Today</button>
+            </div>
+            <div class="calendar-legend" id="calendar-legend"></div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+          </div>
+        </div>
+        <div id="list-view" style="display:none;">
+          <div class="card"><div class="card-body">
+            <table class="data-table"><thead><tr><th>Deal</th><th>Customer</th><th>Stage</th><th>Next Date</th><th>Value</th><th>Actions</th></tr></thead><tbody id="deals-table-body"></tbody></table>
+          </div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Deal Modal -->
+  <div id="deal-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="deal-modal-title">New Deal</h3>
+        <button class="modal-close" onclick="closeDealModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <form id="deal-form">
+          <input type="hidden" id="deal-id">
+          <div class="grid grid-cols-2 gap-lg">
+            <div class="form-group" style="grid-column:1/-1;"><label class="form-label">Deal Name *</label><input type="text" id="deal-name" class="form-input" required placeholder="e.g., Smith Kitchen Reface"></div>
+            <div class="form-group">
+              <label class="form-label">Customer</label>
+              <div class="search-select" id="customer-search-select">
+                <input type="text" id="deal-customer-search" class="form-input search-select-input" placeholder="Type to search customers..." autocomplete="off">
+                <input type="hidden" id="deal-customer">
+                <button type="button" class="search-select-clear" onclick="clearCustomerSelect()">&times;</button>
+                <div class="search-select-dropdown" id="customer-dropdown"></div>
+              </div>
+            </div>
+            <div class="form-group"><label class="form-label">Stage</label><select id="deal-stage" class="form-input"></select></div>
+            <div class="form-group"><label class="form-label">Estimated Value</label><input type="number" id="deal-value" class="form-input" step="0.01" placeholder="0.00"></div>
+            <div class="form-group">
+              <label class="form-label">Link to Quote</label>
+              <div style="display: flex; gap: var(--space-sm);">
+                <select id="deal-quote" class="form-input" style="flex: 1;"><option value="">None</option></select>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="createQuoteForDeal()" title="Create new quote for this deal">+ New Quote</button>
+              </div>
+            </div>
+            <div id="deal-invoice-link" class="form-group" style="display:none;">
+              <label class="form-label">Linked Invoice</label>
+              <div id="deal-invoice-info"></div>
+            </div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title"><span>📅 Scheduled Dates</span><button type="button" class="btn btn-secondary btn-sm" onclick="addDealEvent()">+ Add Date</button></div>
+            <div id="deal-events-container"><p class="text-muted text-sm">No dates scheduled.</p></div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title"><span>🎨 Finishes</span><button type="button" class="btn btn-secondary btn-sm" onclick="addDealFinish()">+ Add Finish</button></div>
+            <div id="deal-finishes-container"><p class="text-muted text-sm">No finishes added.</p></div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title"><span>📦 Deal Items</span><button type="button" class="btn btn-secondary btn-sm" onclick="addDealItem()">+ Add Item</button></div>
+            <div id="deal-items-container"><p class="text-muted text-sm">No items added.</p></div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title"><span>✅ Punch List</span><button type="button" class="btn btn-secondary btn-sm" onclick="addPunchItem()">+ Add Item</button></div>
+            <div id="punch-items-container"><p class="text-muted text-sm">No punch list items.</p></div>
+          </div>
+          <div class="form-section">
+            <div class="form-section-title">
+              <span>📎 Files</span>
+              <div style="display:flex;gap:var(--space-sm);">
+                <button type="button" class="btn btn-secondary btn-sm" id="share-all-gphoto-btn" style="display:none;" onclick="shareAllToGooglePhotos()">Share All to Google Photos</button>
+                <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0;">
+                  + Upload Files
+                  <input type="file" id="deal-photo-input" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv" style="display:none;">
+                </label>
+              </div>
+            </div>
+            <div id="deal-photos-container" style="display:flex;flex-wrap:wrap;gap:var(--space-sm);"><p class="text-muted text-sm">No files yet.</p></div>
+          </div>
+          <div class="form-section"><div class="form-group"><label class="form-label">Notes</label><textarea id="deal-notes" class="form-input" rows="3"></textarea></div></div>
+          <div class="form-section" id="submission-section" style="display:none;">
+            <div class="form-section-title" style="cursor:pointer;" onclick="this.parentElement.classList.toggle('collapsed')">
+              <span>📋 Form Submission</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition:transform 0.2s;"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div id="submission-content"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <div style="display: flex; gap: var(--space-sm);">
+          <button type="button" class="btn btn-secondary" id="print-deal-btn" style="display:none;" onclick="printDeal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print
+          </button>
+          <button type="button" class="btn btn-secondary" id="email-deal-btn" style="display:none;" onclick="openDealEmailModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Send Email
+          </button>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="btn btn-secondary" onclick="closeDealModal()">Cancel</button>
+          <button type="button" class="btn btn-danger" id="delete-deal-btn" style="display:none;" onclick="deleteDeal()">Delete</button>
+          <button type="button" class="btn btn-primary" onclick="saveDeal()">Save Deal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Deal View Modal -->
+  <div id="deal-view-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="deal-view-title">Deal Details</h3>
+        <button class="modal-close" onclick="closeDealView()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="deal-view-grid" id="deal-view-info"></div>
+        <div id="deal-view-events" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Scheduled Dates</div>
+          <div id="deal-view-events-list"></div>
+        </div>
+        <div id="deal-view-finishes" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Finishes</div>
+          <div id="deal-view-finishes-list"></div>
+        </div>
+        <div id="deal-view-items" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Deal Items</div>
+          <div id="deal-view-items-list"></div>
+        </div>
+        <div id="deal-view-punch" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Punch List</div>
+          <div id="deal-view-punch-list"></div>
+        </div>
+        <div id="deal-view-photos" class="deal-view-section">
+          <div class="deal-view-section-title">Files</div>
+          <div id="deal-view-photos-list" style="display:flex;flex-wrap:wrap;gap:var(--space-sm);"></div>
+        </div>
+        <div id="deal-view-notes" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Notes</div>
+          <div id="deal-view-notes-content" style="white-space:pre-wrap;font-size:0.875rem;color:var(--color-text);"></div>
+        </div>
+        <div id="deal-view-chat" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Website chat</div>
+          <div id="deal-view-chat-content" class="chat-transcript"></div>
+        </div>
+        <div id="view-submission-section" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Form Submission</div>
+          <div id="view-submission-content"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <div style="display: flex; gap: var(--space-sm);">
+          <button type="button" class="btn btn-secondary" id="view-print-btn" onclick="printDeal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print
+          </button>
+          <button type="button" class="btn btn-secondary" id="view-email-btn" style="display:none;" onclick="openDealEmailModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Send Email
+          </button>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="editFromView()">Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Website Chats Modal (read-only) -->
+  <div id="chats-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Website Chats</h3>
+        <button class="modal-close" onclick="closeWebsiteChats()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div id="chats-list"></div>
+        <div id="chats-detail" style="display:none;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="showChatList()">← All chats</button>
+          <div id="chats-detail-meta" class="text-muted" style="margin:var(--space-sm) 0;font-size:0.8rem;"></div>
+          <div id="chats-detail-job"></div>
+          <div id="chats-detail-body" class="chat-transcript"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appointment Modal -->
+  <div id="appt-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="appt-modal-title">New Appointment</h3>
+        <button class="modal-close" onclick="closeApptModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div id="appt-edit-badges" style="padding: 0 var(--space-lg); display: none;"><div style="display: flex; gap: var(--space-xs);"></div></div>
+      <div class="modal-body">
+        <form id="appt-form">
+          <input type="hidden" id="appt-id">
+          <div class="form-group"><label class="form-label">Appointment Type</label><select id="appt-type" class="form-input"></select></div>
+          <div class="form-group"><label class="form-label">Title *</label><input type="text" id="appt-title" class="form-input" required placeholder="e.g., Measure for Smith Kitchen"></div>
+          <div class="grid grid-cols-2 gap-lg">
+            <div class="form-group"><label class="form-label">Date *</label><input type="date" id="appt-date" class="form-input" required></div>
+            <div class="form-group"><label class="form-label">Time</label><input type="time" id="appt-time" class="form-input"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Customer (optional)</label><select id="appt-customer" class="form-input"><option value="">No customer selected</option></select></div>
+          <div class="form-group"><label class="form-label">Link to Deal (optional)</label><select id="appt-deal" class="form-input"><option value="">No deal linked</option></select></div>
+          <div class="form-group"><label class="form-label">Location</label><input type="text" id="appt-location" class="form-input" placeholder="Address or location"></div>
+          <div class="form-group"><label class="form-label">Notes</label><textarea id="appt-notes" class="form-input" rows="2"></textarea></div>
+          <div id="appt-new-options" style="display:none; border-top: 1px solid var(--color-border); padding-top: var(--space-md); margin-top: var(--space-md);">
+            <label class="form-check" style="margin-bottom: var(--space-sm);"><input type="checkbox" id="appt-send-email" checked><span class="form-check-label">Send confirmation email to customer</span></label>
+            <label class="form-check"><input type="checkbox" id="appt-sync-gcal" checked><span class="form-check-label">Add to Google Calendar</span></label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between; flex-wrap: wrap;">
+        <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap; align-items: center;">
+          <button type="button" class="btn btn-secondary" id="email-appt-btn" style="display:none;" onclick="openApptEmailModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Send Reminder
+          </button>
+          <button type="button" class="btn btn-secondary" id="push-gcal-btn" style="display:none;" onclick="pushToGcal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Push to GCal
+          </button>
+          <button type="button" class="btn btn-secondary" id="reschedule-appt-btn" style="display:none;" onclick="rescheduleAppt()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Reschedule
+          </button>
+          <span id="cancel-appt-wrapper" style="display:none;">
+            <button type="button" class="btn btn-danger" id="cancel-appt-btn" onclick="cancelAppt()">Cancel Appointment</button>
+            <span id="cancel-appt-confirm" style="display:none; align-items: center; gap: var(--space-xs);">
+              <span style="font-size: 0.85em; font-weight: 500;">Are you sure?</span>
+              <button type="button" class="btn btn-danger btn-sm" onclick="confirmCancelAppt()">Yes, Cancel</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="abortCancelAppt()">No</button>
+            </span>
+          </span>
+        </div>
+        <div style="display: flex; gap: var(--space-sm);">
+          <button type="button" class="btn btn-secondary" onclick="closeApptModal()">Cancel</button>
+          <button type="button" class="btn btn-danger" id="delete-appt-btn" style="display:none;" onclick="deleteAppt()">Delete</button>
+          <button type="button" class="btn btn-primary" onclick="saveAppt()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Appointment View Modal -->
+  <div id="appt-view-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="appt-view-title">Appointment Details</h3>
+        <button class="modal-close" onclick="closeApptView()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="modal-body">
+        <div id="appt-view-badges" style="margin-bottom: var(--space-md); display: flex; gap: var(--space-xs);"></div>
+        <div class="deal-view-grid" id="appt-view-info"></div>
+        <div id="appt-view-notes" class="deal-view-section" style="display:none;">
+          <div class="deal-view-section-title">Notes</div>
+          <div id="appt-view-notes-content" style="white-space:pre-wrap;font-size:0.875rem;color:var(--color-text);"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:flex-end;">
+        <button type="button" class="btn btn-secondary" onclick="closeApptView()">Close</button>
+        <button type="button" class="btn btn-primary" id="appt-view-edit-btn" onclick="editFromApptView()">Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stage Settings Modal -->
+  <div id="stage-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header"><h3 class="modal-title">Pipeline Stages</h3><button class="modal-close" onclick="closeStageSettings()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="modal-body">
+        <p class="text-muted mb-lg">Customize your pipeline stages.</p>
+        <div id="stage-list"></div>
+        <div class="mt-lg" id="add-stage-form" style="display:none;">
+          <div class="flex gap-sm">
+            <input type="text" id="new-stage-label" class="form-input" placeholder="Stage name">
+            <input type="color" id="new-stage-color" value="#3e855f" style="width:50px;height:38px;">
+            <button class="btn btn-primary" onclick="saveNewStage()">Add</button>
+            <button class="btn btn-secondary" onclick="$('#add-stage-form').style.display='none'">Cancel</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="$('#add-stage-form').style.display='block'">+ Add Stage</button>
+        <button class="btn btn-primary" onclick="closeStageSettings()">Done</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script>
+    let deals = [], stages = [], customers = [], quotes = [], invoices = [], appointments = [], appointmentTypes = [], eventTypes = [], dealEvents = [], emailTemplates = [], dealItemTypes = [], finishTypes = [];
+    let currentDealEvents = [], currentDealItems = [], currentDealFinishes = [], currentPunchItems = [], draggedDeal = null;
+    let selectedStages = new Set(); // For stage filtering
+    let activeSequenceStages = new Set(); // stages with an active email sequence (sequences.html)
+    
+    async function init() { 
+      await loadData(); 
+      renderPipeline(); 
+      setupViewToggle(); 
+      setupDropdownClose();
+      
+      // Check for view parameter in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const viewParam = urlParams.get('view');
+      if (viewParam === 'calendar' || viewParam === 'list') {
+        const btn = document.querySelector(`.view-toggle button[data-view="${viewParam}"]`);
+        if (btn) btn.click();
+      }
+    }
+    
+    async function loadData() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const [stagesRes, dealsRes, customersRes, quotesRes, invoicesRes, apptTypesRes, apptsRes, eventTypesRes, dealEventsRes, templatesRes, settingsRes] = await Promise.all([
+          supabase.from('job_stages').select('*').order('sort_order'),
+          supabase.from('jobs').select('*, customers(name, email, phone, first_name, address, city, state, zip)').order('created_at', { ascending: false }),
+          supabase.from('customers').select('id, name, first_name, email').order('name'),
+          supabase.from('quotes').select('id, quote_number, title, customer_id, total').in('status', ['sent', 'viewed', 'draft']).order('created_at', { ascending: false }),
+          supabase.from('invoices').select('id, invoice_number, title, quote_id, total, status').order('created_at', { ascending: false }),
+          supabase.from('appointment_types').select('*').eq('is_active', true).order('sort_order'),
+          supabase.from('appointments').select('*, appointment_types(*), customers(name, email, phone, first_name, address, city, state, zip)').order('appointment_date'),
+          supabase.from('job_event_types').select('*').eq('is_active', true).order('sort_order'),
+          supabase.from('job_events').select('*, job_event_types(*)').order('event_date'),
+          supabase.from('email_templates').select('*').eq('is_active', true),
+          supabase.from('settings').select('*').in('key', ['deal_item_types', 'finish_types'])
+        ]);
+        stages = stagesRes.data || []; deals = dealsRes.data || []; customers = customersRes.data || []; quotes = quotesRes.data || []; invoices = invoicesRes.data || [];
+        appointmentTypes = apptTypesRes.data || []; appointments = apptsRes.data || []; dealEvents = dealEventsRes.data || [];
+        // Deduplicate event types by name (in case of duplicate entries)
+        const seenEventTypes = new Set();
+        eventTypes = (eventTypesRes.data || []).filter(t => {
+          if (seenEventTypes.has(t.name)) return false;
+          seenEventTypes.add(t.name);
+          return true;
+        });
+        emailTemplates = templatesRes.data || [];
+        try {
+          const { data: seqs } = await supabase.from('email_sequences').select('stage_id').eq('is_active', true);
+          activeSequenceStages = new Set((seqs || []).map(s => s.stage_id));
+        } catch (e) { activeSequenceStages = new Set(); }
+        
+        // Process settings
+        const settingsData = settingsRes.data || [];
+        const dealItemTypesSetting = settingsData.find(s => s.key === 'deal_item_types');
+        const finishTypesSetting = settingsData.find(s => s.key === 'finish_types');
+        dealItemTypes = (dealItemTypesSetting?.value && Array.isArray(dealItemTypesSetting.value)) ? dealItemTypesSetting.value : [];
+        finishTypes = (finishTypesSetting?.value && Array.isArray(finishTypesSetting.value)) ? finishTypesSetting.value : [];
+        
+        // Initialize selected stages to all stages if empty
+        if (selectedStages.size === 0) {
+          stages.forEach(s => selectedStages.add(s.stage_id));
+        }
+        
+        updatePipelineSummary();
+        populateDropdowns(); renderApptTypeMenu(); renderCalendarLegend(); renderStageFilter();
+      } catch (err) { console.error('Error loading data:', err); showToast('Failed to load data', 'error'); }
+    }
+    
+    function updatePipelineSummary() {
+      const filteredDeals = getFilteredDeals().filter(d => !['completed', 'job-lost'].includes(d.stage));
+      const totalDeals = filteredDeals.length;
+      const totalValue = filteredDeals.reduce((s, d) => s + (parseFloat(d.estimated_value) || 0), 0);
+      const filterActive = selectedStages.size < stages.length;
+      $('#pipeline-summary').textContent = `${totalDeals} deals • ${formatCurrency(totalValue)} total value${filterActive ? ' (filtered)' : ''}`;
+    }
+    
+    function getFilteredDeals() {
+      return deals.filter(d => selectedStages.has(d.stage));
+    }
+    
+    function renderStageFilter() {
+      const container = $('#filter-stages-list');
+      container.innerHTML = stages.map(s => `
+        <label class="dropdown-item" style="display:flex;align-items:center;gap:var(--space-sm);cursor:pointer;padding:var(--space-sm) var(--space-md);">
+          <input type="checkbox" ${selectedStages.has(s.stage_id) ? 'checked' : ''} onchange="toggleStageFilter('${s.stage_id}')">
+          <span class="stage-dot" style="background:${s.color}"></span>
+          <span style="flex:1">${s.label}</span>
+          <span class="text-muted text-sm">${deals.filter(d => d.stage === s.stage_id).length}</span>
+        </label>
+      `).join('');
+      
+      // Update filter count badge
+      const filterCount = stages.length - selectedStages.size;
+      const badge = $('#filter-count');
+      if (filterCount > 0) {
+        badge.textContent = filterCount;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+    
+    function toggleStageFilter(stageId) {
+      if (selectedStages.has(stageId)) {
+        selectedStages.delete(stageId);
+      } else {
+        selectedStages.add(stageId);
+      }
+      renderStageFilter();
+      updatePipelineSummary();
+      renderCurrentView();
+    }
+    
+    function selectAllStages() {
+      stages.forEach(s => selectedStages.add(s.stage_id));
+      renderStageFilter();
+      updatePipelineSummary();
+      renderCurrentView();
+    }
+    
+    function clearAllStages() {
+      selectedStages.clear();
+      renderStageFilter();
+      updatePipelineSummary();
+      renderCurrentView();
+    }
+    
+    function renderCurrentView() {
+      const activeBtn = document.querySelector('.view-toggle button.active');
+      const view = activeBtn?.dataset.view || 'pipeline';
+      if (view === 'pipeline') renderPipeline();
+      else if (view === 'calendar') renderCalendar();
+      else if (view === 'list') renderListView();
+    }
+    
+    function populateDropdowns() {
+      // Customer search is handled separately
+      $('#appt-customer').innerHTML = '<option value="">No customer selected</option>' + customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      $('#deal-stage').innerHTML = stages.map(s => `<option value="${s.stage_id}">${s.label}</option>`).join('');
+      $('#deal-quote').innerHTML = '<option value="">None</option>' + quotes.map(q => `<option value="${q.id}">${q.quote_number} - ${q.title}</option>`).join('');
+      $('#appt-type').innerHTML = appointmentTypes.map(t => `<option value="${t.id}">${t.icon} ${t.name}</option>`).join('');
+      $('#appt-deal').innerHTML = '<option value="">No deal linked</option>' + deals.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+      setupCustomerSearch();
+    }
+    
+    function setupCustomerSearch() {
+      const container = $('#customer-search-select');
+      const input = $('#deal-customer-search');
+      const dropdown = $('#customer-dropdown');
+      const hiddenInput = $('#deal-customer');
+      let highlightedIndex = -1;
+      
+      function renderOptions(filter = '') {
+        const filterLower = filter.toLowerCase();
+        const filtered = filter ? customers.filter(c => 
+          c.name.toLowerCase().includes(filterLower) || 
+          (c.email && c.email.toLowerCase().includes(filterLower))
+        ) : customers;
+        
+        if (filtered.length === 0) {
+          dropdown.innerHTML = '<div class="search-select-empty">No customers found</div>';
+        } else {
+          dropdown.innerHTML = filtered.slice(0, 50).map((c, idx) => 
+            `<div class="search-select-option" data-id="${c.id}" data-name="${c.name}" data-index="${idx}">${c.name}${c.email ? ` <span style="color:var(--color-text-muted);font-size:0.75rem;">(${c.email})</span>` : ''}</div>`
+          ).join('');
+        }
+        highlightedIndex = -1;
+      }
+      
+      function selectCustomer(id, name) {
+        hiddenInput.value = id;
+        input.value = name;
+        container.classList.add('has-value');
+        container.classList.remove('open');
+      }
+      
+      function updateHighlight() {
+        const options = dropdown.querySelectorAll('.search-select-option');
+        options.forEach((opt, idx) => {
+          opt.classList.toggle('highlighted', idx === highlightedIndex);
+        });
+        if (highlightedIndex >= 0 && options[highlightedIndex]) {
+          options[highlightedIndex].scrollIntoView({ block: 'nearest' });
+        }
+      }
+      
+      input.addEventListener('focus', () => {
+        renderOptions(input.value);
+        container.classList.add('open');
+      });
+      
+      input.addEventListener('input', () => {
+        renderOptions(input.value);
+        container.classList.add('open');
+        // Clear selection if user types something different
+        if (hiddenInput.value) {
+          const selected = customers.find(c => c.id === hiddenInput.value);
+          if (selected && input.value !== selected.name) {
+            hiddenInput.value = '';
+            container.classList.remove('has-value');
+          }
+        }
+      });
+      
+      input.addEventListener('keydown', (e) => {
+        const options = dropdown.querySelectorAll('.search-select-option');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          highlightedIndex = Math.min(highlightedIndex + 1, options.length - 1);
+          updateHighlight();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          highlightedIndex = Math.max(highlightedIndex - 1, 0);
+          updateHighlight();
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (highlightedIndex >= 0 && options[highlightedIndex]) {
+            const opt = options[highlightedIndex];
+            selectCustomer(opt.dataset.id, opt.dataset.name);
+          }
+        } else if (e.key === 'Escape') {
+          container.classList.remove('open');
+        }
+      });
+      
+      dropdown.addEventListener('click', (e) => {
+        const option = e.target.closest('.search-select-option');
+        if (option) {
+          selectCustomer(option.dataset.id, option.dataset.name);
+        }
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+          container.classList.remove('open');
+        }
+      });
+    }
+    
+    function clearCustomerSelect() {
+      $('#deal-customer').value = '';
+      $('#deal-customer-search').value = '';
+      $('#customer-search-select').classList.remove('has-value');
+      $('#deal-customer-search').focus();
+    }
+    
+    function renderApptTypeMenu() {
+      $('#appt-type-menu').innerHTML = appointmentTypes.map(t => `<div class="dropdown-item" onclick="openApptModal('${t.id}')"><span class="dropdown-icon">${t.icon}</span><span>${t.name}</span></div>`).join('');
+    }
+    
+    function renderCalendarLegend() {
+      const items = [...appointmentTypes.map(t => ({ color: t.color, label: `${t.icon} ${t.name}` })), ...eventTypes.map(t => ({ color: t.color, label: `${t.icon} ${t.name} (Deal)` }))];
+      $('#calendar-legend').innerHTML = items.map(i => `<div class="calendar-legend-item"><span class="calendar-legend-dot" style="background:${i.color};"></span><span>${i.label}</span></div>`).join('');
+    }
+    
+    function toggleDropdown(id) { 
+      const dropdown = $('#' + id);
+      const isOpening = !dropdown.classList.contains('open');
+      dropdown.classList.toggle('open'); 
+      
+      if (isOpening) {
+        const btn = dropdown.querySelector('.dropdown-btn');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        const rect = btn.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = (rect.bottom + 4) + 'px';
+        menu.style.left = rect.left + 'px';
+        menu.style.right = 'auto';
+      }
+    }
+    function setupDropdownClose() { document.addEventListener('click', e => { if (!e.target.closest('.dropdown')) $$('.dropdown.open').forEach(d => d.classList.remove('open')); }); }
+    
+    function renderPipeline() {
+      const container = $('#pipeline-container'); container.innerHTML = '';
+      const filteredStages = stages.filter(s => selectedStages.has(s.stage_id));
+      filteredStages.forEach(stage => {
+        const stageDeals = deals.filter(d => d.stage === stage.stage_id);
+        const column = createElement('div', { className: 'pipeline-column', dataset: { stage: stage.stage_id } });
+        const stageTotal = stageDeals.reduce((sum, d) => sum + (parseFloat(d.estimated_value) || 0), 0);
+        column.innerHTML = `<div class="column-header"><span class="stage-dot" style="background-color:${stage.color}"></span><span class="column-title">${stage.label}</span>${stageTotal > 0 ? `<span class="column-total" title="Total estimated value">${formatCurrency(stageTotal)}</span>` : ''}<span class="column-count">${stageDeals.length}</span></div>`;
+        const content = createElement('div', { className: 'column-content drop-zone' });
+        if (stageDeals.length === 0) content.innerHTML = '<div class="empty-column">No deals</div>';
+        else stageDeals.forEach(deal => content.appendChild(createDealCard(deal)));
+        content.addEventListener('dragover', e => { e.preventDefault(); content.classList.add('drag-over'); });
+        content.addEventListener('dragleave', () => content.classList.remove('drag-over'));
+        content.addEventListener('drop', async e => { e.preventDefault(); content.classList.remove('drag-over'); if (draggedDeal && draggedDeal.stage !== stage.stage_id) await updateDealStage(draggedDeal.id, stage.stage_id); });
+        column.appendChild(content); container.appendChild(column);
+      });
+    }
+    
+    function createDealCard(deal) {
+      const card = createElement('div', { className: 'deal-card', draggable: true, dataset: { id: deal.id } });
+      const customer = deal.customers, thisEvents = dealEvents.filter(e => e.job_id === deal.id);
+      let html = `<div class="deal-card-title">${deal.name || 'Untitled'}</div>`;
+      if (customer) html += `<div class="deal-card-customer">${customer.name}</div>`;
+      if (thisEvents.length > 0) { 
+        html += '<div class="deal-card-dates">'; 
+        thisEvents.forEach(e => { 
+          const et = e.job_event_types || eventTypes.find(t => t.id === e.event_type_id); 
+          if (et) {
+            const eventColor = e.event_color || et.color || '#3e855f';
+            const eventLabel = e.event_name || et.name;
+            const dateDisplay = e.event_end_date && e.event_end_date !== e.event_date 
+              ? `${formatDate(e.event_date)} - ${formatDate(e.event_end_date)}`
+              : formatDate(e.event_date);
+            html += `<div class="deal-card-date" style="border-left: 3px solid ${eventColor}; padding-left: 6px;"><span class="deal-card-date-label" style="color: ${eventColor};">${et.icon} ${eventLabel}</span>${dateDisplay}</div>`; 
+          }
+        }); 
+        html += '</div>'; 
+      }
+      if (deal.estimated_value) html += `<div class="deal-card-value">${formatCurrency(deal.estimated_value)}</div>`;
+      if (deal.automations_off) html += '<div class="deal-card-auto-off" title="Automated emails are off for this deal">⏸ Auto emails off</div>';
+      card.innerHTML = html;
+      
+      // Desktop drag events
+      card.addEventListener('dragstart', () => { draggedDeal = deal; card.classList.add('dragging'); });
+      card.addEventListener('dragend', () => { draggedDeal = null; card.classList.remove('dragging'); });
+      
+      // Touch events for iPad/mobile
+      let touchStartX, touchStartY, touchGhost = null, longPressTimer = null, isDragging = false;
+      
+      card.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        
+        // Long press to start drag (300ms)
+        longPressTimer = setTimeout(() => {
+          isDragging = true;
+          draggedDeal = deal;
+          card.classList.add('dragging');
+          
+          // Create ghost element
+          touchGhost = card.cloneNode(true);
+          touchGhost.classList.add('touch-ghost');
+          touchGhost.style.width = card.offsetWidth + 'px';
+          touchGhost.style.left = (touchStartX - card.offsetWidth / 2) + 'px';
+          touchGhost.style.top = (touchStartY - 20) + 'px';
+          document.body.appendChild(touchGhost);
+          
+          // Vibrate if supported
+          if (navigator.vibrate) navigator.vibrate(50);
+        }, 300);
+      }, { passive: true });
+      
+      card.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        const moveX = Math.abs(touch.clientX - touchStartX);
+        const moveY = Math.abs(touch.clientY - touchStartY);
+        
+        // Cancel long press if moved too much before it triggered
+        if (!isDragging && (moveX > 10 || moveY > 10)) {
+          clearTimeout(longPressTimer);
+        }
+        
+        if (isDragging && touchGhost) {
+          e.preventDefault();
+          touchGhost.style.left = (touch.clientX - touchGhost.offsetWidth / 2) + 'px';
+          touchGhost.style.top = (touch.clientY - 20) + 'px';
+          
+          // Highlight drop zone under finger
+          const dropZones = document.querySelectorAll('.drop-zone');
+          dropZones.forEach(zone => zone.classList.remove('drag-over'));
+          
+          const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+          const dropZone = elemBelow?.closest('.drop-zone');
+          if (dropZone) dropZone.classList.add('drag-over');
+        }
+      }, { passive: false });
+      
+      card.addEventListener('touchend', async (e) => {
+        clearTimeout(longPressTimer);
+        
+        if (isDragging) {
+          const touch = e.changedTouches[0];
+          const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+          const dropZone = elemBelow?.closest('.drop-zone');
+          const column = dropZone?.closest('.pipeline-column');
+          
+          if (column && draggedDeal) {
+            const newStage = column.dataset.stage;
+            if (newStage && newStage !== draggedDeal.stage) {
+              await updateDealStage(draggedDeal.id, newStage);
+            }
+          }
+          
+          // Cleanup
+          document.querySelectorAll('.drop-zone').forEach(zone => zone.classList.remove('drag-over'));
+          if (touchGhost) {
+            touchGhost.remove();
+            touchGhost = null;
+          }
+          card.classList.remove('dragging');
+          draggedDeal = null;
+          isDragging = false;
+        } else {
+          // It was a tap, not a drag - open the view modal
+          openDealView(deal);
+        }
+      });
+      
+      card.addEventListener('touchcancel', () => {
+        clearTimeout(longPressTimer);
+        if (touchGhost) {
+          touchGhost.remove();
+          touchGhost = null;
+        }
+        card.classList.remove('dragging');
+        draggedDeal = null;
+        isDragging = false;
+        document.querySelectorAll('.drop-zone').forEach(zone => zone.classList.remove('drag-over'));
+      });
+      
+      // Desktop click (only if not using touch)
+      card.addEventListener('click', (e) => {
+        // Only handle click if it wasn't a touch event
+        if (e.pointerType !== 'touch') {
+          openDealView(deal);
+        }
+      });
+      
+      return card;
+    }
+    
+    // When a deal moves into a stage that has automated emails, ask whether this deal should get them.
+    // Resolves to {} (send emails), { automations_off: true } (move quietly), or null (cancel the move).
+    function askAutomations(deal, newStage) {
+      if (!deal || deal.automations_off || !activeSequenceStages.has(newStage)) return Promise.resolve({});
+      const stageName = (stages.find(s => s.stage_id === newStage) || {}).label || newStage;
+      return new Promise(resolve => {
+        let done = false;
+        const finish = (val, modal) => { if (done) return; done = true; resolve(val); if (modal) closeModal(modal); };
+        const cancelBtn = createElement('button', { className: 'btn btn-ghost', textContent: 'Cancel' });
+        const quietBtn = createElement('button', { className: 'btn btn-secondary', textContent: 'Move, no emails' });
+        const sendBtn = createElement('button', { className: 'btn btn-primary', textContent: 'Move & send emails' });
+        const content = createElement('div');
+        content.innerHTML = `<p style="margin:0 0 10px;"><strong>${escapeHtml(stageName)}</strong> has automated emails. Should <strong>${escapeHtml(deal.name || 'this deal')}</strong> get them?</p>
+          <p class="text-sm text-muted" style="margin:0;">“Move, no emails” turns automations off for this deal. It won't get any automated emails or automatic stage moves until you turn them back on from the deal.</p>`;
+        const modal = createModal({ title: 'Automated emails', content, footer: createElement('div', { className: 'btn-group' }, [cancelBtn, quietBtn, sendBtn]), onClose: () => finish(null) });
+        cancelBtn.addEventListener('click', () => finish(null, modal));
+        quietBtn.addEventListener('click', () => finish({ automations_off: true }, modal));
+        sendBtn.addEventListener('click', () => finish({}, modal));
+      });
+    }
+    async function updateDealStage(dealId, newStage) {
+      const deal = deals.find(d => d.id === dealId);
+      const choice = await askAutomations(deal, newStage);
+      if (!choice) { renderPipeline(); return false; }
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('jobs').update({ stage: newStage, ...choice, updated_at: new Date().toISOString() }).eq('id', dealId);
+        if (error) throw error;
+        if (deal) Object.assign(deal, { stage: newStage }, choice);
+        renderPipeline();
+        showToast(choice.automations_off ? 'Deal moved, automated emails off' : 'Deal moved', 'success');
+        return true;
+      }
+      catch (err) { console.error(err); showToast('Failed to move deal', 'error'); return false; }
+    }
+    async function changeViewStage(dealId, newStage) {
+      await updateDealStage(dealId, newStage);
+      const deal = deals.find(d => d.id === dealId);
+      if (deal && currentDeal && currentDeal.id === dealId) { currentDeal = deal; openDealView(deal); }
+    }
+    // Turn automated emails on/off for one deal (jobs.automations_off)
+    async function setDealAutomations(dealId, off) {
+      const deal = deals.find(d => d.id === dealId);
+      if (!deal) return;
+      if (off && !await confirm('Turn off automated emails for this deal? Anything scheduled for it will be cancelled, and it won\'t get emails or automatic stage moves until you turn them back on.', { title: 'Turn off automations', confirmText: 'Turn off', danger: true })) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('jobs').update({ automations_off: off, updated_at: new Date().toISOString() }).eq('id', dealId);
+        if (error) throw error;
+        deal.automations_off = off;
+        if (!off && activeSequenceStages.has(deal.stage)) {
+          const stageName = (stages.find(s => s.stage_id === deal.stage) || {}).label || deal.stage;
+          if (await confirm(`Start the “${stageName}” emails for this deal now? Timing counts from today.`, { title: 'Automations on', confirmText: 'Start emails', cancelText: 'Not now' })) {
+            const { error: rpcErr } = await supabase.rpc('enroll_deal_in_sequence', { p_deal_id: dealId });
+            if (rpcErr) throw rpcErr;
+          }
+        }
+        showToast(off ? 'Automated emails off for this deal' : 'Automated emails on for this deal', 'success');
+        renderPipeline();
+        if (currentDeal && currentDeal.id === dealId) openDealView(deal);
+      } catch (err) { console.error(err); showToast('Failed to update automations: ' + err.message, 'error'); }
+    }
+    
+    let currentDeal = null; // Track the current deal for email
+    
+    async function openDealModal(deal = null) {
+      currentDealEvents = []; currentDealItems = []; currentDealFinishes = []; currentPunchItems = []; currentDeal = deal;
+      // Hide submission section by default
+      $('#submission-section').style.display = 'none';
+      $('#submission-content').innerHTML = '';
+      if (deal) {
+        $('#deal-modal-title').textContent = 'Edit Deal'; $('#delete-deal-btn').style.display = 'block'; $('#deal-id').value = deal.id;
+        $('#deal-name').value = deal.name || '';
+        // Set customer search field
+        $('#deal-customer').value = deal.customer_id || '';
+        const customer = customers.find(c => c.id === deal.customer_id);
+        $('#deal-customer-search').value = customer?.name || '';
+        if (customer) {
+          $('#customer-search-select').classList.add('has-value');
+        } else {
+          $('#customer-search-select').classList.remove('has-value');
+        }
+        $('#deal-stage').value = deal.stage || stages[0]?.stage_id;
+        $('#deal-value').value = deal.estimated_value || ''; $('#deal-quote').value = deal.quote_id || ''; $('#deal-notes').value = deal.notes || '';
+        // Show linked invoice if exists
+        const linkedInv = deal.quote_id ? invoices.find(inv => inv.quote_id === deal.quote_id) : null;
+        if (linkedInv) {
+          const statusColor = linkedInv.status === 'paid' ? 'var(--color-success)' : linkedInv.status === 'partial' ? '#f59e0b' : '#6b7280';
+          $('#deal-invoice-info').innerHTML = `<a href="/admin/invoices.html" style="color:var(--color-primary);text-decoration:none;font-weight:500;">${linkedInv.invoice_number} - ${linkedInv.title}</a> <span class="badge" style="background:${statusColor};color:white;font-size:0.65rem;">${linkedInv.status || 'draft'}</span> <span class="text-muted text-sm">${formatCurrency(linkedInv.total)}</span>`;
+          $('#deal-invoice-link').style.display = '';
+        } else {
+          $('#deal-invoice-link').style.display = 'none';
+        }
+        currentDealItems = deal.job_items || [];
+        currentDealFinishes = deal.job_finishes || [];
+        currentDealEvents = dealEvents.filter(e => e.job_id === deal.id).map(e => ({ id: e.id, event_type_id: e.event_type_id, event_date: e.event_date, event_end_date: e.event_end_date || '', event_name: e.event_name || '', event_color: e.event_color || '', notes: e.notes || '', isExisting: true }));
+        // Show email button if deal has customer with email, always show print for existing deals
+        const hasEmail = deal.customers?.email;
+        $('#email-deal-btn').style.display = hasEmail ? 'block' : 'none';
+        $('#print-deal-btn').style.display = 'block';
+        // Load form submission data
+        loadSubmissionData(deal.id);
+        // Load punch list items
+        loadPunchItems(deal.id);
+        // Load deal photos
+        loadDealPhotos(deal.id);
+      } else {
+        $('#deal-modal-title').textContent = 'New Deal'; $('#delete-deal-btn').style.display = 'none'; $('#deal-form').reset(); $('#deal-id').value = ''; $('#deal-stage').value = stages[0]?.stage_id || '';
+        // Clear customer search
+        $('#deal-customer').value = '';
+        $('#deal-customer-search').value = '';
+        $('#customer-search-select').classList.remove('has-value');
+        $('#email-deal-btn').style.display = 'none';
+        $('#print-deal-btn').style.display = 'none';
+        currentDealPhotos = [];
+        renderDealPhotos();
+      }
+      renderDealEvents(); renderDealItems(); renderDealFinishes(); renderPunchItems(); $('#deal-modal').classList.add('active');
+    }
+    
+    function closeDealModal() { $('#deal-modal').classList.remove('active'); }
+
+    function fmtDateTime(value) {
+      if (!value) return '—';
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function openDealView(deal) {
+      currentDeal = deal;
+
+      // Populate arrays for print/email
+      currentDealEvents = dealEvents.filter(e => e.job_id === deal.id).map(e => ({
+        id: e.id, event_type_id: e.event_type_id, event_date: e.event_date,
+        event_end_date: e.event_end_date || '', event_name: e.event_name || '',
+        event_color: e.event_color || '', notes: e.notes || '', isExisting: true
+      }));
+      currentDealItems = deal.job_items || [];
+      currentDealFinishes = deal.job_finishes || [];
+
+      const customer = deal.customers;
+      const stage = stages.find(s => s.stage_id === deal.stage);
+      const quote = quotes.find(q => q.id === deal.quote_id);
+
+      // Title
+      $('#deal-view-title').textContent = deal.name || 'Untitled Deal';
+
+      // Info grid
+      let infoHtml = '';
+      if (deal.job_number) {
+        infoHtml += `<div class="deal-view-field"><label>Job Number</label><p>${deal.job_number}</p></div>`;
+      }
+      infoHtml += `<div class="deal-view-field" id="deal-view-submitted"><label>Created</label><p>${deal.created_at ? fmtDateTime(deal.created_at) : '<span class="text-muted">—</span>'}</p></div>`;
+      infoHtml += `<div class="deal-view-field"><label>Customer</label><p>${customer ? `<a href="javascript:void(0)" onclick="viewCustomerDetail('${deal.customer_id}')" style="color:var(--color-primary);text-decoration:none;font-weight:500;">${customer.name}</a>` : '<span class="text-muted">—</span>'}</p></div>`;
+      if (customer?.phone) {
+        infoHtml += `<div class="deal-view-field"><label>Phone</label><p>${phoneLink(customer.phone)}</p></div>`;
+      }
+      if (customer?.address || customer?.city) {
+        const addrParts = [customer.address, customer.city ? `${customer.city}, ${customer.state || ''}` : '', customer.zip].filter(Boolean).join(' ');
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addrParts)}`;
+        infoHtml += `<div class="deal-view-field"><label>Address</label><p><a href="${mapsUrl}" target="_blank" style="color:var(--color-primary);text-decoration:none;">${addrParts}</a></p></div>`;
+      }
+      infoHtml += `<div class="deal-view-field"><label>Stage</label><p><select onchange="changeViewStage('${deal.id}', this.value)" style="padding:4px 8px;border-radius:var(--radius-md);border:1px solid var(--color-border);font-size:0.8rem;font-weight:600;color:white;background:${stage?.color || '#666'};cursor:pointer;">${stages.map(s => `<option value="${s.stage_id}" ${s.stage_id === deal.stage ? 'selected' : ''} style="background:${s.color || '#666'};color:white;">${s.label}</option>`).join('')}</select></p></div>`;
+      infoHtml += `<div class="deal-view-field"><label>Automated Emails</label><p>${deal.automations_off
+        ? `<span style="color:#b45309;font-weight:600;">Off</span> · <a href="javascript:void(0)" onclick="setDealAutomations('${deal.id}', false)" style="color:var(--color-primary);">Turn on</a>`
+        : `<span style="color:var(--color-primary);font-weight:600;">On</span> · <a href="javascript:void(0)" onclick="setDealAutomations('${deal.id}', true)" style="color:var(--color-text-muted);">Turn off</a>`}</p></div>`;
+      if (deal.estimated_value) {
+        infoHtml += `<div class="deal-view-field"><label>Estimated Value</label><p style="font-weight:600;color:var(--color-primary);">${formatCurrency(deal.estimated_value)}</p></div>`;
+      }
+      if (quote) {
+        infoHtml += `<div class="deal-view-field"><label>Linked Quote</label><p><a href="/admin/quote-builder.html?id=${quote.id}" style="color:var(--color-primary);text-decoration:none;">${quote.quote_number} - ${quote.title}</a></p></div>`;
+      }
+      const linkedInvoice = deal.quote_id ? invoices.find(inv => inv.quote_id === deal.quote_id) : null;
+      if (linkedInvoice) {
+        const invStatus = linkedInvoice.status ? `<span class="badge" style="background:${linkedInvoice.status === 'paid' ? 'var(--color-success)' : linkedInvoice.status === 'partial' ? '#f59e0b' : '#6b7280'};color:white;font-size:0.65rem;margin-left:6px;">${linkedInvoice.status}</span>` : '';
+        infoHtml += `<div class="deal-view-field"><label>Linked Invoice</label><p><a href="/admin/invoices.html" style="color:var(--color-primary);text-decoration:none;">${linkedInvoice.invoice_number} - ${linkedInvoice.title}</a>${invStatus}</p></div>`;
+      }
+      $('#deal-view-info').innerHTML = infoHtml;
+
+      // Events
+      if (currentDealEvents.length > 0) {
+        $('#deal-view-events').style.display = '';
+        $('#deal-view-events-list').innerHTML = currentDealEvents.map(e => {
+          const et = eventTypes.find(t => t.id === e.event_type_id);
+          const eventColor = e.event_color || et?.color || '#3e855f';
+          const eventLabel = e.event_name || et?.name || 'Event';
+          const dateDisplay = e.event_end_date && e.event_end_date !== e.event_date
+            ? `${formatDate(e.event_date)} - ${formatDate(e.event_end_date)}`
+            : formatDate(e.event_date);
+          return `<div style="border-left: 3px solid ${eventColor}; padding: var(--space-xs) var(--space-sm); margin-bottom: var(--space-xs);">
+            <span style="font-weight:600;color:${eventColor};">${et?.icon || '📅'} ${eventLabel}</span>
+            <span class="text-muted" style="margin-left:var(--space-sm);">${dateDisplay}</span>
+          </div>`;
+        }).join('');
+      } else {
+        $('#deal-view-events').style.display = 'none';
+      }
+
+      // Finishes
+      if (currentDealFinishes.length > 0) {
+        $('#deal-view-finishes').style.display = '';
+        $('#deal-view-finishes-list').innerHTML = currentDealFinishes.map(f => {
+          const details = [f.color, f.sheen, f.vendor].filter(Boolean).join(' / ');
+          return `<div style="background:var(--color-bg-soft);border-radius:var(--radius-md);padding:var(--space-sm);margin-bottom:var(--space-xs);">
+            <span style="font-weight:600;">${f.name || 'Unnamed'}</span>
+            ${details ? `<span class="text-muted" style="margin-left:var(--space-sm);">${details}</span>` : ''}
+          </div>`;
+        }).join('');
+      } else {
+        $('#deal-view-finishes').style.display = 'none';
+      }
+
+      // Items
+      if (currentDealItems.length > 0) {
+        $('#deal-view-items').style.display = '';
+        $('#deal-view-items-list').innerHTML = currentDealItems.map(i => {
+          return `<div style="display:flex;justify-content:space-between;padding:var(--space-xs) 0;border-bottom:1px solid var(--color-border-light);">
+            <span>${i.name || 'Unnamed'}</span>
+            ${i.quantity ? `<span class="text-muted">Qty: ${i.quantity}</span>` : ''}
+          </div>`;
+        }).join('');
+      } else {
+        $('#deal-view-items').style.display = 'none';
+      }
+
+      // Punch List (load from DB)
+      $('#deal-view-punch').style.display = 'none';
+      loadPunchItemsForView(deal.id);
+
+      // Files
+      $('#deal-view-photos-list').innerHTML = '';
+      loadDealPhotosForView(deal.id);
+
+      // Notes
+      if (deal.notes) {
+        $('#deal-view-notes').style.display = '';
+        $('#deal-view-notes-content').textContent = deal.notes;
+      } else {
+        $('#deal-view-notes').style.display = 'none';
+      }
+
+      // Website chat (full transcript from internal_notes; hidden when empty)
+      renderWebsiteChatSection(deal);
+
+      // Email button
+      $('#view-email-btn').style.display = customer?.email ? 'block' : 'none';
+
+      // Submission data
+      $('#view-submission-section').style.display = 'none';
+      $('#view-submission-content').innerHTML = '';
+      loadSubmissionData(deal.id, '#view-submission-content', '#view-submission-section');
+
+      // Open modal
+      $('#deal-view-modal').classList.add('active');
+    }
+
+    // ---- Website chat (read-only) ----
+    let chatRows = [];
+
+    // Splits a transcript ("Visitor: ..." / "Lisa: ..." lines) into {who, text} items.
+    // Lines without a speaker label continue the previous message; the header line is ignored.
+    function parseChatTranscript(text) {
+      const items = [];
+      String(text || '').split(/\r?\n/).forEach(raw => {
+        const m = raw.match(/^(Visitor|Lisa):\s?(.*)$/);
+        if (m) items.push({ who: m[1], text: m[2] });
+        else if (items.length && raw.trim()) items[items.length - 1].text += '\n' + raw;
+      });
+      return items;
+    }
+
+    // Renders chat bubbles with textContent only, so chat text is never parsed as HTML.
+    function renderChatItems(container, items) {
+      container.innerHTML = '';
+      items.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'chat-msg ' + (item.who === 'Visitor' ? 'chat-visitor' : 'chat-lisa');
+        const who = document.createElement('div');
+        who.className = 'chat-who';
+        who.textContent = item.who;
+        const body = document.createElement('div');
+        body.className = 'chat-text';
+        body.textContent = item.text;
+        row.append(who, body);
+        container.appendChild(row);
+      });
+    }
+
+    function renderWebsiteChatSection(deal) {
+      const section = $('#deal-view-chat');
+      const container = $('#deal-view-chat-content');
+      const raw = (deal.internal_notes || '').trim();
+      if (!raw) {
+        section.style.display = 'none';
+        container.innerHTML = '';
+        return;
+      }
+      section.style.display = '';
+      const items = parseChatTranscript(raw);
+      if (items.length) {
+        renderChatItems(container, items);
+      } else {
+        // Text with no Visitor/Lisa labels: show it as-is rather than hiding it
+        container.innerHTML = '';
+        const p = document.createElement('div');
+        p.className = 'chat-text';
+        p.textContent = raw;
+        container.appendChild(p);
+      }
+    }
+
+    async function openWebsiteChats() {
+      $('#chats-modal').classList.add('active');
+      showChatList();
+      $('#chats-list').innerHTML = '<p class="text-muted">Loading…</p>';
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data, error } = await supabase.from('lisa_chats')
+          .select('id, created_at, page_url, messages, lead_job_id, lead_saved_at')
+          .order('created_at', { ascending: false })
+          .limit(100);
+        if (error) throw error;
+        chatRows = data || [];
+        renderChatList();
+      } catch (err) {
+        console.error('Website chats failed to load:', err);
+        $('#chats-list').innerHTML = '<p class="text-muted">Could not load website chats.</p>';
+      }
+    }
+
+    function closeWebsiteChats() { $('#chats-modal').classList.remove('active'); }
+
+    function showChatList() {
+      $('#chats-detail').style.display = 'none';
+      $('#chats-list').style.display = '';
+    }
+
+    function pagePath(url) {
+      if (!url) return '—';
+      try { const u = new URL(url); return u.pathname + u.search; } catch (e) { return url; }
+    }
+
+    function renderChatList() {
+      const el = $('#chats-list');
+      if (!chatRows.length) {
+        el.innerHTML = '<p class="text-muted">No website chats yet.</p>';
+        return;
+      }
+      el.innerHTML = chatRows.map((c, i) => {
+        const job = c.lead_job_id ? deals.find(d => d.id === c.lead_job_id) : null;
+        const lead = c.lead_job_id
+          ? '<span class="badge" style="background:var(--color-success);color:white;font-size:0.65rem;">Lead</span>'
+          : '<span class="text-muted" style="font-size:0.8rem;">Not a lead</span>';
+        let jobLine = '';
+        if (c.lead_job_id) {
+          jobLine = job
+            ? `<div style="font-size:0.85rem;margin-top:4px;"><a href="javascript:void(0)" onclick="event.stopPropagation();openJobFromChat('${job.id}')" style="color:var(--color-primary);text-decoration:none;font-weight:500;">${escapeHtml(job.name || 'Open job')}</a></div>`
+            : '<div class="text-muted" style="font-size:0.8rem;margin-top:4px;">Linked job not in this list</div>';
+        }
+        return `<div class="chat-row" onclick="showChat(${i})">
+          <div style="display:flex;justify-content:space-between;gap:var(--space-sm);flex-wrap:wrap;">
+            <strong style="font-size:0.875rem;">${escapeHtml(formatDateTime(c.created_at))}</strong>
+            ${lead}
+          </div>
+          <div class="text-muted" style="font-size:0.8rem;margin-top:2px;">${escapeHtml(pagePath(c.page_url))}</div>
+          ${jobLine}
+        </div>`;
+      }).join('');
+    }
+
+    function showChat(i) {
+      const c = chatRows[i];
+      if (!c) return;
+      const job = c.lead_job_id ? deals.find(d => d.id === c.lead_job_id) : null;
+      $('#chats-list').style.display = 'none';
+      $('#chats-detail').style.display = '';
+      $('#chats-detail-meta').textContent = [formatDateTime(c.created_at), c.page_url].filter(Boolean).join(' · ');
+      $('#chats-detail-job').innerHTML = job
+        ? `<div style="margin-bottom:var(--space-sm);"><a href="javascript:void(0)" onclick="openJobFromChat('${job.id}')" style="color:var(--color-primary);text-decoration:none;font-weight:500;">Open job: ${escapeHtml(job.name || '')}</a></div>`
+        : '';
+      const items = (Array.isArray(c.messages) ? c.messages : [])
+        .filter(m => m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'assistant'))
+        .map(m => ({ who: m.role === 'user' ? 'Visitor' : 'Lisa', text: m.content }));
+      renderChatItems($('#chats-detail-body'), items);
+    }
+
+    function openJobFromChat(jobId) {
+      const deal = deals.find(d => d.id === jobId);
+      if (!deal) return;
+      closeWebsiteChats();
+      openDealView(deal);
+    }
+
+    function closeDealView() { $('#deal-view-modal').classList.remove('active'); }
+
+    function editFromView() {
+      closeDealView();
+      openDealModal(currentDeal);
+    }
+
+    async function loadSubmissionData(dealId, contentSel, sectionSel) {
+      if (!contentSel) contentSel = '#submission-content';
+      if (!sectionSel) sectionSel = '#submission-section';
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: submission } = await supabase
+          .from('booking_submissions')
+          .select('*, form:booking_forms(name)')
+          .eq('deal_id', dealId)
+          .single();
+        if (!submission) return;
+
+        // Load question prompts for custom answers
+        let questionMap = {};
+        if (submission.custom_answers && submission.form_id) {
+          const { data: questions } = await supabase
+            .from('booking_form_questions')
+            .select('id, prompt')
+            .eq('form_id', submission.form_id);
+          (questions || []).forEach(q => { questionMap[q.id] = q.prompt; });
+        }
+
+        let html = '<div class="submission-grid">';
+        if (submission.form?.name) {
+          html += `<div class="submission-field"><label>Form</label><p>${submission.form.name}</p></div>`;
+        }
+        if (submission.created_at) {
+          html += `<div class="submission-field"><label>Submitted</label><p>${fmtDateTime(submission.created_at)}</p></div>`;
+        }
+        if (submission.how_heard) {
+          html += `<div class="submission-field"><label>Lead Source</label><p>${submission.how_heard}</p></div>`;
+        }
+        if (submission.preferred_date) {
+          let dateStr = formatDate(submission.preferred_date);
+          if (submission.preferred_time) dateStr += ' at ' + submission.preferred_time;
+          html += `<div class="submission-field"><label>Preferred Date/Time</label><p>${dateStr}</p></div>`;
+        }
+        if (submission.sms_consent) {
+          html += `<div class="submission-field"><label>SMS Consent</label><p>Yes</p></div>`;
+        }
+        if (submission.address) {
+          const addr = [submission.address, submission.city, submission.state, submission.zip].filter(Boolean).join(', ');
+          html += `<div class="submission-field"><label>Address</label><p>${addr}</p></div>`;
+        }
+        if (submission.service_details) {
+          html += `<div class="submission-field full"><label>Service Details</label><p>${submission.service_details.replace(/\n/g, '<br>')}</p></div>`;
+        }
+        // Custom answers
+        if (submission.custom_answers && typeof submission.custom_answers === 'object') {
+          for (const [qId, answer] of Object.entries(submission.custom_answers)) {
+            if (!answer) continue;
+            const label = questionMap[qId] || 'Custom Question';
+            const displayVal = Array.isArray(answer) ? answer.join(', ') : String(answer);
+            html += `<div class="submission-field full"><label>${label}</label><p>${displayVal}</p></div>`;
+          }
+        }
+        html += '</div>';
+        // Photos
+        const attachments = submission.attachments;
+        if (Array.isArray(attachments) && attachments.length > 0) {
+          html += '<div style="margin-top:var(--space-sm);"><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.03em;color:var(--color-text-muted);font-weight:600;">Attached Photos</label><div class="submission-photos">';
+          attachments.forEach(url => {
+            html += `<a href="${url}" target="_blank"><img src="${url}" alt="Attachment"></a>`;
+          });
+          html += '</div></div>';
+        }
+
+        $(contentSel).innerHTML = html;
+        $(sectionSel).style.display = '';
+        if (contentSel === '#view-submission-content' && submission.created_at) {
+          const topField = $('#deal-view-submitted');
+          if (topField) topField.innerHTML = `<label>Submitted</label><p>${fmtDateTime(submission.created_at)}</p>`;
+        }
+      } catch (err) {
+        // No submission for this deal — that's fine, keep section hidden
+      }
+    }
+
+    window.viewCustomerDetail = async (customerId) => {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: customer, error } = await supabase
+          .from('customers')
+          .select('*')
+          .eq('id', customerId)
+          .single();
+        if (error || !customer) { showToast('Customer not found', 'error'); return; }
+
+        const fieldStyle = 'font-size:0.7rem;text-transform:uppercase;letter-spacing:0.03em;color:var(--color-text-muted);font-weight:600;';
+        const addr = [customer.address, customer.city, customer.state, customer.zip].filter(Boolean);
+        const addrDisplay = addr.length ? addr.join(', ') : '—';
+        const mapsUrl = addr.length ? `https://maps.google.com/?q=${encodeURIComponent(addr.join(', '))}` : null;
+
+        const content = createElement('div');
+        content.innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md) var(--space-xl);">
+            <div>
+              <div style="${fieldStyle}">Email</div>
+              <div style="margin-top:2px;">${customer.email ? `<a href="mailto:${customer.email}">${customer.email}</a>` : '—'}</div>
+            </div>
+            <div>
+              <div style="${fieldStyle}">Phone</div>
+              <div style="margin-top:2px;">${customer.phone ? phoneLink(customer.phone) : '—'}</div>
+            </div>
+            <div style="grid-column:1/-1;">
+              <div style="${fieldStyle}">Address</div>
+              <div style="margin-top:2px;">${mapsUrl ? `<a href="${mapsUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;">${addrDisplay}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></a>` : addrDisplay}</div>
+            </div>
+            ${customer.company ? `<div><div style="${fieldStyle}">Company</div><div style="margin-top:2px;">${customer.company}</div></div>` : ''}
+            ${customer.lead_source ? `<div><div style="${fieldStyle}">Lead Source</div><div style="margin-top:2px;"><span class="badge badge-info">${customer.lead_source}</span></div></div>` : ''}
+            ${customer.notes ? `<div style="grid-column:1/-1;"><div style="${fieldStyle}">Notes</div><div style="margin-top:2px;white-space:pre-wrap;">${customer.notes}</div></div>` : ''}
+          </div>
+        `;
+
+        const footer = createElement('div', { className: 'btn-group' });
+        const closeBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Close' });
+        const fullBtn = createElement('button', { type: 'button', className: 'btn btn-primary', textContent: 'Open in Customers' });
+        footer.appendChild(closeBtn);
+        footer.appendChild(fullBtn);
+
+        const modal = createModal({ title: customer.name, content, footer, size: 'lg' });
+        closeBtn.addEventListener('click', () => closeModal(modal));
+        fullBtn.addEventListener('click', () => { window.location.href = '/admin/customers.html'; });
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to load customer', 'error');
+      }
+    };
+
+    function printDeal() {
+      if (!currentDeal) return;
+
+      const deal = currentDeal;
+      const customer = customers.find(c => c.id === deal.customer_id);
+      const stage = stages.find(s => s.stage_id === deal.stage);
+      const dealEventsForPrint = currentDealEvents.map(e => {
+        const et = eventTypes.find(t => t.id === e.event_type_id);
+        return { ...e, eventType: et };
+      });
+      
+      // Build print HTML
+      let html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Deal: ${deal.name}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 30px; max-width: 800px; margin: 0 auto; color: #333; line-height: 1.4; }
+    .header { border-bottom: 2px solid #333; padding-bottom: 12px; margin-bottom: 20px; }
+    .header h1 { font-size: 22px; margin-bottom: 3px; }
+    .header .subtitle { color: #666; font-size: 13px; }
+    .section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #666; border-bottom: 1px solid #ddd; padding-bottom: 6px; margin-bottom: 10px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .info-item { }
+    .info-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
+    .info-value { font-size: 14px; font-weight: 500; }
+    .event-item { padding: 5px 0; border-bottom: 1px solid #eee; }
+    .event-item:last-child { border-bottom: none; }
+    .event-type { font-weight: 600; font-size: 13px; }
+    .event-date { color: #666; font-size: 13px; }
+    .finish-card { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 10px; page-break-inside: avoid; }
+    .finish-name { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+    .finish-details { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .finish-detail-label { font-size: 10px; color: #666; text-transform: uppercase; }
+    .finish-detail-value { font-size: 13px; }
+    .item-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+    .item-row:last-child { border-bottom: none; }
+    .notes-box { background: #f8f9fa; border-radius: 8px; padding: 12px; white-space: pre-wrap; }
+    .footer { margin-top: 15px; padding-top: 10px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center; page-break-before: avoid; }
+    .section { margin-bottom: 20px; page-break-inside: avoid; }
+    @media print {
+      body { padding: 15px; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>${deal.name}</h1>
+    <div class="subtitle">${customer?.name || 'No customer assigned'}</div>
+  </div>
+  
+  <div class="section">
+    <div class="section-title">Deal Information</div>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-label">Customer</div>
+        <div class="info-value">${customer?.name || '—'}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Stage</div>
+        <div class="info-value">${stage?.label || deal.stage}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Estimated Value</div>
+        <div class="info-value">${deal.estimated_value ? formatCurrency(deal.estimated_value) : '—'}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Job Number</div>
+        <div class="info-value">${deal.job_number || '—'}</div>
+      </div>
+    </div>
+  </div>`;
+      
+      // Scheduled Dates
+      if (dealEventsForPrint.length > 0) {
+        html += `
+  <div class="section">
+    <div class="section-title">Scheduled Dates</div>`;
+        dealEventsForPrint.forEach(e => {
+          const dateStr = e.event_end_date && e.event_end_date !== e.event_date 
+            ? `${formatDate(e.event_date)} - ${formatDate(e.event_end_date)}`
+            : formatDate(e.event_date);
+          const eventColor = e.event_color || e.eventType?.color || '#3e855f';
+          const eventLabel = e.event_name ? `<span style="color:#666;font-weight:normal;"> (${e.event_name})</span>` : '';
+          html += `
+    <div class="event-item" style="border-left: 3px solid ${eventColor}; padding-left: 8px;">
+      <span class="event-type">${e.eventType?.icon || '📅'} ${e.eventType?.name || 'Event'}${eventLabel}</span>
+      <span class="event-date"> — ${dateStr}</span>
+    </div>`;
+        });
+        html += `
+  </div>`;
+      }
+      
+      // Finishes
+      if (currentDealFinishes.length > 0) {
+        html += `
+  <div class="section">
+    <div class="section-title">Finishes</div>`;
+        currentDealFinishes.forEach(f => {
+          html += `
+    <div class="finish-card">
+      <div class="finish-name">${f.name || 'Unnamed Finish'}</div>
+      <div class="finish-details">
+        <div>
+          <div class="finish-detail-label">Color</div>
+          <div class="finish-detail-value">${f.color || '—'}</div>
+        </div>
+        <div>
+          <div class="finish-detail-label">Sheen</div>
+          <div class="finish-detail-value">${f.sheen || '—'}</div>
+        </div>
+        <div>
+          <div class="finish-detail-label">Vendor</div>
+          <div class="finish-detail-value">${f.vendor || '—'}</div>
+        </div>
+      </div>
+    </div>`;
+        });
+        html += `
+  </div>`;
+      }
+      
+      // Deal Items
+      if (currentDealItems.length > 0) {
+        html += `
+  <div class="section">
+    <div class="section-title">Deal Items</div>`;
+        currentDealItems.forEach(i => {
+          html += `
+    <div class="item-row">
+      <span>${i.name || 'Unnamed Item'}</span>
+      <span>${i.quantity ? 'Qty: ' + i.quantity : ''}</span>
+    </div>`;
+        });
+        html += `
+  </div>`;
+      }
+      
+      // Punch List
+      if (currentPunchItems.length > 0) {
+        html += `
+  <div class="section">
+    <div class="section-title">Punch List</div>`;
+        currentPunchItems.forEach(p => {
+          html += `
+    <div class="item-row">
+      <span>${p.is_completed ? '☑' : '☐'}</span>
+      <span style="${p.is_completed ? 'text-decoration:line-through;' : ''}">${p.description || 'Unnamed'}</span>
+    </div>`;
+        });
+        html += `
+  </div>`;
+      }
+
+      // Photos
+      if (currentDealPhotos.length > 0) {
+        html += `
+  <div class="section">
+    <div class="section-title">Photos</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">`;
+        currentDealPhotos.forEach(p => {
+          html += `<img src="${p.file_url}" style="width:120px;height:120px;object-fit:cover;border-radius:6px;border:1px solid #ddd;">`;
+        });
+        html += `
+    </div>
+  </div>`;
+      }
+
+      // Notes
+      if (deal.notes) {
+        html += `
+  <div class="section">
+    <div class="section-title">Notes</div>
+    <div class="notes-box">${deal.notes}</div>
+  </div>`;
+      }
+
+      // Footer
+      html += `
+  <div class="footer">
+    Printed on ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+  </div>
+</body>
+</html>`;
+      
+      // Open print window
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+    
+    async function createQuoteForDeal() {
+      const dealName = $('#deal-name').value;
+      const customerId = $('#deal-customer').value;
+      
+      if (!dealName) {
+        showToast('Please enter a deal name first', 'error');
+        return;
+      }
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const id = $('#deal-id').value;
+        let dealId = id;
+        
+        // Save the deal first
+        const data = { 
+          name: dealName, 
+          customer_id: customerId || null, 
+          stage: $('#deal-stage').value, 
+          estimated_value: parseFloat($('#deal-value').value) || null, 
+          quote_id: $('#deal-quote').value || null, 
+          notes: $('#deal-notes').value, 
+          job_items: currentDealItems, 
+          job_finishes: currentDealFinishes, 
+          updated_at: new Date().toISOString() 
+        };
+        
+        if (id) {
+          await supabase.from('jobs').update(data).eq('id', id);
+        } else {
+          const { data: numData } = await supabase.rpc('generate_job_number');
+          data.job_number = numData;
+          const { data: newDeal } = await supabase.from('jobs').insert([data]).select().single();
+          dealId = newDeal.id;
+        }
+        
+        await saveDealEvents(supabase, dealId);
+        await savePunchItems(supabase, dealId);
+
+        // Redirect to quote builder with deal info
+        const params = new URLSearchParams();
+        params.set('deal_id', dealId);
+        params.set('deal_name', dealName);
+        if (customerId) params.set('customer_id', customerId);
+        
+        window.location.href = `/admin/quote-builder.html?${params.toString()}`;
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to create quote', 'error');
+      }
+    }
+    
+    async function saveDeal() {
+      const id = $('#deal-id').value;
+      const data = { name: $('#deal-name').value, customer_id: $('#deal-customer').value || null, stage: $('#deal-stage').value, estimated_value: parseFloat($('#deal-value').value) || null, quote_id: $('#deal-quote').value || null, notes: $('#deal-notes').value, job_items: currentDealItems, job_finishes: currentDealFinishes, updated_at: new Date().toISOString() };
+      if (!data.name) { showToast('Deal name is required', 'error'); return; }
+      const prevDeal = id ? deals.find(d => d.id === id) : null;
+      if (prevDeal && prevDeal.stage !== data.stage) {
+        const choice = await askAutomations(prevDeal, data.stage);
+        if (!choice) return;
+        Object.assign(data, choice);
+      }
+      try {
+        const supabase = await app.waitForSupabase(); let dealId = id;
+        if (id) await supabase.from('jobs').update(data).eq('id', id);
+        else { const { data: numData } = await supabase.rpc('generate_job_number'); data.job_number = numData; const { data: newDeal } = await supabase.from('jobs').insert([data]).select().single(); dealId = newDeal.id; }
+        await saveDealEvents(supabase, dealId); await savePunchItems(supabase, dealId); closeDealModal(); await loadData(); renderPipeline(); showToast(id ? 'Deal updated' : 'Deal created', 'success');
+      } catch (err) { console.error(err); showToast('Failed to save deal', 'error'); }
+    }
+    
+    async function saveDealEvents(supabase, dealId) {
+      const existingIds = currentDealEvents.filter(e => e.isExisting).map(e => e.id);
+      const { data: dbEvents } = await supabase.from('job_events').select('id').eq('job_id', dealId);
+      const toDelete = (dbEvents || []).map(e => e.id).filter(id => !existingIds.includes(id));
+      if (toDelete.length) await supabase.from('job_events').delete().in('id', toDelete);
+      for (const event of currentDealEvents) {
+        if (!event.event_type_id || !event.event_date) continue;
+        const eventData = { job_id: dealId, event_type_id: event.event_type_id, event_date: event.event_date, event_end_date: event.event_end_date || null, event_name: event.event_name || null, event_color: event.event_color || null, notes: event.notes || null };
+        if (event.isExisting) await supabase.from('job_events').update(eventData).eq('id', event.id);
+        else await supabase.from('job_events').insert([eventData]);
+      }
+    }
+    
+    async function deleteDeal() {
+      const id = $('#deal-id').value; if (!id || !confirm('Delete this deal?')) return;
+      try { const supabase = await app.waitForSupabase(); await supabase.from('jobs').delete().eq('id', id); closeDealModal(); await loadData(); renderPipeline(); showToast('Deal deleted', 'success'); }
+      catch (err) { showToast('Failed to delete', 'error'); }
+    }
+    
+    function addDealEvent() { 
+      const defaultType = eventTypes[0];
+      currentDealEvents.push({ 
+        id: crypto.randomUUID(), 
+        event_type_id: defaultType?.id || '', 
+        event_date: '', 
+        event_end_date: '', 
+        event_name: '',
+        event_color: defaultType?.color || '#3e855f',
+        notes: '', 
+        isExisting: false 
+      }); 
+      renderDealEvents(); 
+    }
+    function removeDealEvent(id) { currentDealEvents = currentDealEvents.filter(e => e.id !== id); renderDealEvents(); }
+    function renderDealEvents() {
+      const container = $('#deal-events-container');
+      if (currentDealEvents.length === 0) { container.innerHTML = '<p class="text-muted text-sm">No dates scheduled.</p>'; return; }
+      
+      const defaultColors = ['#3e855f', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+      
+      container.innerHTML = currentDealEvents.map(e => {
+        const selectedType = eventTypes.find(t => t.id === e.event_type_id);
+        const currentColor = e.event_color || selectedType?.color || '#3e855f';
+        
+        return `
+        <div class="event-card" style="background: var(--color-bg-soft); border-radius: var(--radius-md); padding: var(--space-sm); margin-bottom: var(--space-sm); border-left: 4px solid ${currentColor};">
+          <div class="event-row" style="flex-wrap:wrap; border-bottom: none; padding: 0;">
+            <select class="form-select" style="flex:1;min-width:120px;" onchange="updateDealEventType('${e.id}',this.value)">
+              ${eventTypes.map(t => `<option value="${t.id}" ${t.id === e.event_type_id ? 'selected' : ''}>${t.icon} ${t.name}</option>`).join('')}
+            </select>
+            <div style="display:flex;align-items:center;gap:var(--space-xs);">
+              <input type="date" class="form-input" style="width:125px;" value="${e.event_date || ''}" onchange="updateDealEvent('${e.id}','event_date',this.value)" title="Start date">
+              <span class="text-muted">to</span>
+              <input type="date" class="form-input" style="width:125px;" value="${e.event_end_date || ''}" onchange="updateDealEvent('${e.id}','event_end_date',this.value)" title="End date (optional)">
+            </div>
+            <button type="button" class="btn btn-sm" style="color:var(--color-danger);" onclick="removeDealEvent('${e.id}')">×</button>
+          </div>
+          <div style="display:flex;gap:var(--space-sm);margin-top:var(--space-xs);align-items:center;">
+            <input type="text" class="form-input" style="flex:1;font-size:0.85rem;" placeholder="Event label (optional)" value="${e.event_name || ''}" onchange="updateDealEvent('${e.id}','event_name',this.value)">
+            <div style="display:flex;gap:2px;align-items:center;">
+              ${defaultColors.map(c => `
+                <button type="button" onclick="updateDealEventColor('${e.id}','${c}')" 
+                  style="width:20px;height:20px;border-radius:50%;border:2px solid ${c === currentColor ? '#333' : 'transparent'};background:${c};cursor:pointer;padding:0;"
+                  title="Select color"></button>
+              `).join('')}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+    function updateDealEvent(id, field, value) { const e = currentDealEvents.find(x => x.id === id); if (e) e[field] = value; }
+    function updateDealEventType(id, typeId) {
+      const e = currentDealEvents.find(x => x.id === id);
+      if (e) {
+        e.event_type_id = typeId;
+        const type = eventTypes.find(t => t.id === typeId);
+        if (type && !e.event_color) e.event_color = type.color;
+      }
+    }
+    function updateDealEventColor(id, color) {
+      const e = currentDealEvents.find(x => x.id === id);
+      if (e) { e.event_color = color; renderDealEvents(); }
+    }
+    
+    function addDealItem() { currentDealItems.push({ id: crypto.randomUUID(), name: '', quantity: '' }); renderDealItems(); }
+    function removeDealItem(id) { currentDealItems = currentDealItems.filter(i => i.id !== id); renderDealItems(); }
+    function renderDealItems() {
+      const container = $('#deal-items-container');
+      if (currentDealItems.length === 0) { container.innerHTML = '<p class="text-muted text-sm">No items added.</p>'; return; }
+      
+      const options = dealItemTypes.length > 0 
+        ? '<option value="">Select item...</option>' + dealItemTypes.map(t => `<option value="${t}">${t}</option>`).join('')
+        : '<option value="">No item types - add in Settings</option>';
+      
+      container.innerHTML = currentDealItems.map(i => {
+        const selectedOptions = options.replace(`value="${i.name}"`, `value="${i.name}" selected`);
+        return `<div class="item-row">
+          <select class="form-select" style="flex:2;" onchange="updateDealItem('${i.id}','name',this.value)">${selectedOptions}</select>
+          <input type="number" class="form-input" style="width:80px;" placeholder="Qty" value="${i.quantity || ''}" onchange="updateDealItem('${i.id}','quantity',this.value)">
+          <button type="button" class="btn btn-sm" style="color:var(--color-danger);" onclick="removeDealItem('${i.id}')">×</button>
+        </div>`;
+      }).join('');
+    }
+    function updateDealItem(id, field, value) { const i = currentDealItems.find(x => x.id === id); if (i) i[field] = value; }
+    
+    // Deal Finishes
+    function addDealFinish() { currentDealFinishes.push({ id: crypto.randomUUID(), name: '', color: '', sheen: '', vendor: '' }); renderDealFinishes(); }
+    function removeDealFinish(id) { currentDealFinishes = currentDealFinishes.filter(f => f.id !== id); renderDealFinishes(); }
+    function renderDealFinishes() {
+      const container = $('#deal-finishes-container');
+      if (currentDealFinishes.length === 0) { container.innerHTML = '<p class="text-muted text-sm">No finishes added.</p>'; return; }
+      
+      const options = finishTypes.length > 0 
+        ? '<option value="">Select finish...</option>' + finishTypes.map(t => `<option value="${t}">${t}</option>`).join('')
+        : '<option value="">No finish types - add in Settings</option>';
+      
+      container.innerHTML = currentDealFinishes.map(f => {
+        const selectedOptions = options.replace(`value="${f.name}"`, `value="${f.name}" selected`);
+        return `<div class="finish-card" style="background: var(--color-bg-soft); border-radius: var(--radius-md); padding: var(--space-sm); margin-bottom: var(--space-sm);">
+          <div class="item-row" style="margin-bottom: var(--space-sm);">
+            <select class="form-select" style="flex:1;" onchange="updateDealFinish('${f.id}','name',this.value)">${selectedOptions}</select>
+            <button type="button" class="btn btn-sm" style="color:var(--color-danger);" onclick="removeDealFinish('${f.id}')">×</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-xs);">
+            <input type="text" class="form-input" placeholder="Color name" value="${f.color || ''}" onchange="updateDealFinish('${f.id}','color',this.value)" style="font-size: 0.8rem;">
+            <input type="text" class="form-input" placeholder="Sheen" value="${f.sheen || ''}" onchange="updateDealFinish('${f.id}','sheen',this.value)" style="font-size: 0.8rem;">
+            <input type="text" class="form-input" placeholder="Vendor" value="${f.vendor || ''}" onchange="updateDealFinish('${f.id}','vendor',this.value)" style="font-size: 0.8rem;">
+          </div>
+        </div>`;
+      }).join('');
+    }
+    function updateDealFinish(id, field, value) { const f = currentDealFinishes.find(x => x.id === id); if (f) f[field] = value; }
+
+    // Punch List
+    async function loadPunchItems(jobId) {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data } = await supabase.from('punch_list_items').select('*').eq('job_id', jobId).order('sort_order').order('created_at');
+        currentPunchItems = (data || []).map(p => ({ ...p, isExisting: true }));
+        renderPunchItems();
+      } catch (err) { console.error('Failed to load punch items:', err); }
+    }
+    async function loadPunchItemsForView(jobId) {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data } = await supabase.from('punch_list_items').select('*').eq('job_id', jobId).order('sort_order').order('created_at');
+        if (data && data.length > 0) {
+          currentPunchItems = data.map(p => ({ ...p, isExisting: true }));
+          $('#deal-view-punch').style.display = '';
+          $('#deal-view-punch-list').innerHTML = data.map(p => `<div style="display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-xs) 0;border-bottom:1px solid var(--color-border-light);">
+            <span style="font-size:1rem;">${p.is_completed ? '☑' : '☐'}</span>
+            <span style="${p.is_completed ? 'text-decoration:line-through;color:var(--color-text-muted);' : ''}">${p.description}</span>
+          </div>`).join('');
+        } else {
+          currentPunchItems = [];
+          $('#deal-view-punch').style.display = 'none';
+        }
+      } catch (err) { console.error('Failed to load punch items for view:', err); }
+    }
+    function addPunchItem() { currentPunchItems.push({ id: crypto.randomUUID(), description: '', is_completed: false, isExisting: false }); renderPunchItems(); }
+    function removePunchItem(id) { currentPunchItems = currentPunchItems.filter(p => p.id !== id); renderPunchItems(); }
+    function renderPunchItems() {
+      const container = $('#punch-items-container');
+      if (currentPunchItems.length === 0) { container.innerHTML = '<p class="text-muted text-sm">No punch list items.</p>'; return; }
+      container.innerHTML = currentPunchItems.map(p => `<div class="item-row" style="gap:var(--space-sm);">
+        <input type="checkbox" ${p.is_completed ? 'checked' : ''} onchange="togglePunchComplete('${p.id}', this.checked)" style="width:18px;height:18px;cursor:pointer;">
+        <input type="text" class="form-input" style="flex:1;${p.is_completed ? 'text-decoration:line-through;color:var(--color-text-muted);' : ''}" placeholder="Punch list item..." value="${(p.description || '').replace(/"/g, '&quot;')}" onchange="updatePunchItem('${p.id}','description',this.value)">
+        <button type="button" class="btn btn-sm" style="color:var(--color-danger);" onclick="removePunchItem('${p.id}')">×</button>
+      </div>`).join('');
+    }
+    function updatePunchItem(id, field, value) { const p = currentPunchItems.find(x => x.id === id); if (p) p[field] = value; }
+    function togglePunchComplete(id, checked) {
+      const p = currentPunchItems.find(x => x.id === id);
+      if (p) { p.is_completed = checked; p.completed_at = checked ? new Date().toISOString() : null; }
+      renderPunchItems();
+    }
+    async function savePunchItems(supabase, dealId) {
+      const currentIds = currentPunchItems.filter(p => p.isExisting).map(p => p.id);
+      const { data: dbItems } = await supabase.from('punch_list_items').select('id').eq('job_id', dealId);
+      const toDelete = (dbItems || []).map(p => p.id).filter(id => !currentIds.includes(id));
+      if (toDelete.length) await supabase.from('punch_list_items').delete().in('id', toDelete);
+      for (const item of currentPunchItems) {
+        if (!item.description) continue;
+        const itemData = { job_id: dealId, description: item.description, is_completed: item.is_completed || false, completed_at: item.completed_at || null, sort_order: currentPunchItems.indexOf(item) };
+        if (item.isExisting) await supabase.from('punch_list_items').update(itemData).eq('id', item.id);
+        else await supabase.from('punch_list_items').insert([itemData]);
+      }
+    }
+
+    // ==========================================
+    // DEAL PHOTOS
+    // ==========================================
+    let currentDealPhotos = [];
+    let gphotoConnected = false;
+
+    // Check Google Photos connection on load
+    (async () => {
+      try {
+        const res = await fetch('/.netlify/functions/gphoto-status');
+        const data = await res.json();
+        gphotoConnected = data.connected === true;
+      } catch (e) { /* ignore */ }
+    })();
+
+    async function loadDealPhotos(jobId) {
+      const container = $('#deal-photos-container');
+      if (!container) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: photos } = await supabase
+          .from('customer_uploads')
+          .select('*')
+          .eq('job_id', jobId)
+          .order('uploaded_at', { ascending: false });
+
+        currentDealPhotos = photos || [];
+        renderDealPhotos();
+      } catch (err) {
+        console.error('Failed to load deal photos:', err);
+        container.innerHTML = '<p class="text-muted text-sm">Failed to load photos.</p>';
+      }
+    }
+
+    function renderDealPhotos() {
+      const container = $('#deal-photos-container');
+      if (!container) return;
+
+      // Show/hide the "Share All" button
+      const shareAllBtn = $('#share-all-gphoto-btn');
+      if (shareAllBtn) {
+        shareAllBtn.style.display = (gphotoConnected && currentDealPhotos.length > 0) ? '' : 'none';
+      }
+
+      if (currentDealPhotos.length === 0) {
+        container.innerHTML = '<p class="text-muted text-sm">No files yet.</p>';
+        return;
+      }
+
+      const imageFiles = currentDealPhotos.filter(p => p.file_type && p.file_type.startsWith('image/'));
+      container.innerHTML = currentDealPhotos.map(p => {
+        const isImage = p.file_type && p.file_type.startsWith('image/');
+        const fileName = p.file_name || 'File';
+        const ext = fileName.split('.').pop().toUpperCase();
+        const imgIdx = isImage ? imageFiles.indexOf(p) : -1;
+        return `
+        <div style="position:relative;width:100px;height:100px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--color-border);">
+          ${isImage
+            ? `<a href="javascript:void(0)" onclick="openLightbox(window._editImages,${imgIdx})" style="display:flex;width:100%;height:100%;text-decoration:none;">
+                <img src="${p.file_url}" style="width:100%;height:100%;object-fit:cover;" alt="${fileName}">
+              </a>`
+            : `<a href="${p.file_url}" target="_blank" style="display:flex;width:100%;height:100%;text-decoration:none;">
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:var(--color-bg-secondary);padding:4px;text-align:center;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span style="font-size:10px;font-weight:600;color:var(--color-text-secondary);margin-top:2px;">${ext}</span>
+                  <span style="font-size:9px;color:var(--color-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90px;">${fileName}</span>
+                </div>
+              </a>`
+          }
+          <div style="position:absolute;top:2px;right:2px;display:flex;gap:2px;">
+            ${gphotoConnected && isImage ? `<button onclick="shareToGooglePhotos('${p.file_url}','${(p.file_name || 'photo').replace(/'/g, "\\'")}')" class="btn btn-sm" style="background:rgba(255,255,255,0.9);padding:2px 4px;min-width:0;line-height:1;" title="Share to Google Photos">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>` : ''}
+            <button onclick="deleteDealPhoto('${p.id}','${p.job_id}')" class="btn btn-sm" style="background:rgba(255,255,255,0.9);color:var(--color-danger);padding:2px 4px;min-width:0;line-height:1;" title="Delete file">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+      window._editImages = imageFiles.map(p => ({ url: p.file_url, name: p.file_name || 'Photo' }));
+    }
+
+    // Photo upload handler
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('deal-photo-input');
+      if (input) {
+        input.addEventListener('change', async (e) => {
+          const files = Array.from(e.target.files);
+          if (!files.length) return;
+          const jobId = $('#deal-id').value;
+          if (!jobId) { showToast('Save the deal first before uploading photos', 'error'); e.target.value = ''; return; }
+          const customerId = $('#deal-customer').value || null;
+          const supabase = await app.waitForSupabase();
+          let uploaded = 0;
+          for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) { showToast(`${file.name} exceeds 10MB limit`, 'error'); continue; }
+            try {
+              const ext = file.name.split('.').pop();
+              const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+              const filePath = orgStoragePath(`deal-files/${jobId}/${uniqueName}`);
+              const { error: uploadError } = await supabase.storage.from('Uploads').upload(filePath, file, { contentType: file.type, upsert: false });
+              if (uploadError) throw uploadError;
+              const { data: urlData } = supabase.storage.from('Uploads').getPublicUrl(filePath);
+              const { error: insertError } = await supabase.from('customer_uploads').insert({
+                customer_id: customerId,
+                job_id: jobId,
+                file_url: urlData.publicUrl,
+                file_name: file.name,
+                file_type: file.type,
+                file_size: file.size
+              });
+              if (insertError) throw insertError;
+              uploaded++;
+            } catch (err) { console.error('Upload error:', err); showToast(`Failed to upload ${file.name}`, 'error'); }
+          }
+          if (uploaded > 0) { showToast(`${uploaded} file(s) uploaded`, 'success'); loadDealPhotos(jobId); }
+          e.target.value = '';
+        });
+      }
+    });
+
+    window.deleteDealPhoto = async (fileId, jobId) => {
+      if (!confirm('Delete this file?')) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: file } = await supabase.from('customer_uploads').select('file_url').eq('id', fileId).single();
+        if (file?.file_url) {
+          const urlParts = file.file_url.split('/storage/v1/object/public/Uploads/');
+          if (urlParts[1]) {
+            await supabase.storage.from('Uploads').remove([decodeURIComponent(urlParts[1])]);
+          }
+        }
+        await supabase.from('customer_uploads').delete().eq('id', fileId);
+        showToast('File deleted', 'success');
+        loadDealPhotos(jobId);
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to delete photo', 'error');
+      }
+    };
+
+    window.shareToGooglePhotos = async (fileUrl, fileName) => {
+      try {
+        const dealName = currentDeal?.name || $('#deal-name').value || 'Deal Photos';
+        showToast('Sharing to Google Photos...', 'info');
+        const res = await fetch('/.netlify/functions/gphoto-upload-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_url: fileUrl, file_name: fileName, album_name: dealName })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        showToast('Photo shared to Google Photos!', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to share to Google Photos: ' + err.message, 'error');
+      }
+    };
+
+    window.shareAllToGooglePhotos = async () => {
+      if (!currentDealPhotos.length) return;
+      if (!confirm(`Share ${currentDealPhotos.length} photo(s) to Google Photos?`)) return;
+      const dealName = currentDeal?.name || $('#deal-name').value || 'Deal Photos';
+      let shared = 0;
+      for (const p of currentDealPhotos) {
+        try {
+          const res = await fetch('/.netlify/functions/gphoto-upload-photo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file_url: p.file_url, file_name: p.file_name, album_name: dealName })
+          });
+          if (res.ok) shared++;
+        } catch (err) { console.error(err); }
+      }
+      showToast(`${shared} of ${currentDealPhotos.length} photo(s) shared to Google Photos`, shared > 0 ? 'success' : 'error');
+    };
+
+    async function loadDealPhotosForView(jobId) {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: photos, error } = await supabase
+          .from('customer_uploads')
+          .select('*')
+          .eq('job_id', jobId)
+          .order('uploaded_at', { ascending: false });
+
+        if (error) { console.error('Failed to load files for view:', error); }
+        currentDealPhotos = photos || [];
+        $('#deal-view-photos').style.display = '';
+        if (currentDealPhotos.length > 0) {
+          const viewImageFiles = currentDealPhotos.filter(p => p.file_type && p.file_type.startsWith('image/'));
+          window._viewImages = viewImageFiles.map(p => ({ url: p.file_url, name: p.file_name || 'Photo' }));
+          $('#deal-view-photos-list').innerHTML = currentDealPhotos.map(p => {
+            const isImage = p.file_type && p.file_type.startsWith('image/');
+            const fileName = p.file_name || 'File';
+            const ext = fileName.split('.').pop().toUpperCase();
+            const imgIdx = isImage ? viewImageFiles.indexOf(p) : -1;
+            return isImage
+              ? `<a href="javascript:void(0)" onclick="openLightbox(window._viewImages,${imgIdx})" style="display:block;width:80px;height:80px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--color-border);cursor:pointer;">
+                  <img src="${p.file_url}" style="width:100%;height:100%;object-fit:cover;" alt="${fileName}">
+                </a>`
+              : `<a href="${p.file_url}" target="_blank" style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:80px;height:80px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--color-border);background:var(--color-bg-secondary);text-decoration:none;padding:4px;text-align:center;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-secondary)" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <span style="font-size:9px;font-weight:600;color:var(--color-text-secondary);margin-top:2px;">${ext}</span>
+                  <span style="font-size:8px;color:var(--color-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:72px;">${fileName}</span>
+                </a>`;
+          }).join('');
+        } else {
+          $('#deal-view-photos-list').innerHTML = '<p class="text-muted text-sm">No files yet.</p>';
+        }
+      } catch (err) {
+        console.error('Failed to load files for view:', err);
+        currentDealPhotos = [];
+        $('#deal-view-photos').style.display = '';
+      }
+    }
+
+    function openApptModal(typeId = null, appt = null) {
+      $$('.dropdown.open').forEach(d => d.classList.remove('open'));
+      currentAppt = appt;
+      if (appt) {
+        $('#appt-modal-title').textContent = 'Edit Appointment';
+        $('#delete-appt-btn').style.display = 'block';
+        $('#appt-id').value = appt.id;
+        $('#appt-type').value = appt.appointment_type_id || '';
+        $('#appt-title').value = appt.title || '';
+        $('#appt-date').value = appt.appointment_date || '';
+        $('#appt-time').value = appt.appointment_time || '';
+        $('#appt-customer').value = appt.customer_id || '';
+        $('#appt-deal').value = appt.deal_id || '';
+        $('#appt-location').value = appt.location || '';
+        $('#appt-notes').value = appt.notes || '';
+        // Show email button if appointment has customer with email
+        const hasEmail = appt.customers?.email;
+        $('#email-appt-btn').style.display = hasEmail ? 'block' : 'none';
+        // Show push-to-GCal button if not already synced
+        $('#push-gcal-btn').style.display = appt.gcal_event_id ? 'none' : 'block';
+        // Show Cancel Appointment & Reschedule only for non-cancelled appointments
+        const isCancelled = appt.status === 'cancelled';
+        $('#cancel-appt-wrapper').style.display = isCancelled ? 'none' : 'inline';
+        $('#cancel-appt-btn').style.display = isCancelled ? 'none' : '';
+        $('#cancel-appt-confirm').style.display = 'none';
+        $('#reschedule-appt-btn').style.display = isCancelled ? 'none' : 'block';
+        $('#appt-new-options').style.display = 'none';
+        // Status badges
+        const emailBc = appt.confirmation_email_sent_at ? 'badge-accepted' : 'badge-draft';
+        const emailBt = appt.confirmation_email_sent_at ? 'Email Sent' : 'Email Not Sent';
+        const gcalBc = appt.gcal_event_id ? 'badge-accepted' : 'badge-draft';
+        const gcalBt = appt.gcal_event_id ? 'GCal Synced' : 'GCal Not Synced';
+        $('#appt-edit-badges').style.display = '';
+        const cancelledBadge = isCancelled ? '<span class="badge" style="background:#fee2e2;color:#b91c1c;">Cancelled</span> ' : '';
+        $('#appt-edit-badges > div').innerHTML = `${cancelledBadge}<span class="badge ${emailBc}">${emailBt}</span> <span class="badge ${gcalBc}">${gcalBt}</span>`;
+      }
+      else {
+        $('#appt-modal-title').textContent = 'New Appointment';
+        $('#delete-appt-btn').style.display = 'none';
+        $('#email-appt-btn').style.display = 'none';
+        $('#push-gcal-btn').style.display = 'none';
+        $('#cancel-appt-wrapper').style.display = 'none';
+        $('#reschedule-appt-btn').style.display = 'none';
+        $('#appt-edit-badges').style.display = 'none';
+        $('#appt-form').reset();
+        $('#appt-id').value = '';
+        if (typeId) $('#appt-type').value = typeId;
+        $('#appt-date').value = new Date().toISOString().split('T')[0];
+        $('#appt-send-email').checked = true;
+        $('#appt-sync-gcal').checked = true;
+        $('#appt-new-options').style.display = '';
+      }
+      $('#appt-modal').classList.add('active');
+    }
+    
+    function closeApptModal() { $('#appt-modal').classList.remove('active'); }
+
+    function openApptView(appt) {
+      if (!appt) return;
+      currentAppt = appt;
+      const type = appointmentTypes.find(t => t.id === appt.appointment_type_id);
+      const customer = appt.customers;
+      const deal = deals.find(d => d.id === appt.deal_id);
+
+      $('#appt-view-title').textContent = appt.title || type?.name || 'Appointment';
+
+      // Status badges
+      const emailBadgeClass = appt.confirmation_email_sent_at ? 'badge-accepted' : 'badge-draft';
+      const emailBadgeText = appt.confirmation_email_sent_at ? 'Email Sent' : 'Email Not Sent';
+      const gcalBadgeClass = appt.gcal_event_id ? 'badge-accepted' : 'badge-draft';
+      const gcalBadgeText = appt.gcal_event_id ? 'GCal Synced' : 'GCal Not Synced';
+      $('#appt-view-badges').innerHTML = `<span class="badge ${emailBadgeClass}">${emailBadgeText}</span> <span class="badge ${gcalBadgeClass}">${gcalBadgeText}</span>`;
+
+      let infoHtml = '';
+      if (type) {
+        infoHtml += `<div class="deal-view-field"><label>Type</label><p>${type.icon || ''} ${type.name}</p></div>`;
+      }
+      infoHtml += `<div class="deal-view-field"><label>Date</label><p>${appt.appointment_date ? formatDate(appt.appointment_date) : '—'}</p></div>`;
+      if (appt.appointment_time) {
+        const [h, m] = appt.appointment_time.split(':');
+        const hr = parseInt(h), ampm = hr >= 12 ? 'PM' : 'AM', hr12 = hr % 12 || 12;
+        infoHtml += `<div class="deal-view-field"><label>Time</label><p>${hr12}:${m} ${ampm}</p></div>`;
+      }
+      if (customer) {
+        infoHtml += `<div class="deal-view-field"><label>Customer</label><p style="font-weight:500;">${customer.name}</p></div>`;
+      }
+      if (customer?.phone) {
+        infoHtml += `<div class="deal-view-field"><label>Phone</label><p>${phoneLink(customer.phone)}</p></div>`;
+      }
+      if (customer?.email) {
+        infoHtml += `<div class="deal-view-field"><label>Email</label><p><a href="mailto:${customer.email}" style="color:var(--color-primary);text-decoration:none;">${customer.email}</a></p></div>`;
+      }
+      if (customer?.address || customer?.city) {
+        const addrParts = [customer.address, customer.city ? `${customer.city}, ${customer.state || ''}` : '', customer.zip].filter(Boolean).join(' ');
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addrParts)}`;
+        infoHtml += `<div class="deal-view-field"><label>Address</label><p><a href="${mapsUrl}" target="_blank" style="color:var(--color-primary);text-decoration:none;">${addrParts}</a></p></div>`;
+      }
+      if (appt.location) {
+        infoHtml += `<div class="deal-view-field"><label>Location</label><p>${appt.location}</p></div>`;
+      }
+      if (deal) {
+        infoHtml += `<div class="deal-view-field"><label>Deal</label><p><a href="javascript:void(0)" onclick="closeApptView();openDealView(deals.find(d=>d.id==='${deal.id}'))" style="color:var(--color-primary);text-decoration:none;">${deal.name}</a></p></div>`;
+      }
+      $('#appt-view-info').innerHTML = infoHtml;
+
+      if (appt.notes) {
+        $('#appt-view-notes').style.display = '';
+        $('#appt-view-notes-content').textContent = appt.notes;
+      } else {
+        $('#appt-view-notes').style.display = 'none';
+      }
+
+      $('#appt-view-modal').classList.add('active');
+    }
+
+    function closeApptView() { $('#appt-view-modal').classList.remove('active'); }
+
+    function editFromApptView() {
+      closeApptView();
+      openApptModal(null, currentAppt);
+    }
+
+    async function saveAppt() {
+      const id = $('#appt-id').value;
+      const data = { appointment_type_id: $('#appt-type').value || null, title: $('#appt-title').value, appointment_date: $('#appt-date').value, appointment_time: $('#appt-time').value || null, customer_id: $('#appt-customer').value || null, deal_id: $('#appt-deal').value || null, location: $('#appt-location').value, notes: $('#appt-notes').value, updated_at: new Date().toISOString() };
+      if (!data.title || !data.appointment_date) { showToast('Title and date are required', 'error'); return; }
+      try {
+        const supabase = await app.waitForSupabase();
+        if (id) {
+          // Check if this appointment has a GCal event to update
+          const { data: existing } = await supabase.from('appointments').select('gcal_event_id').eq('id', id).single();
+          await supabase.from('appointments').update(data).eq('id', id);
+          if (existing && existing.gcal_event_id && data.appointment_date && data.appointment_time) {
+            try { await fetch(`/.netlify/functions/gcal-update-event?event_id=${encodeURIComponent(existing.gcal_event_id)}&date=${data.appointment_date}&time=${data.appointment_time}&title=${encodeURIComponent(data.title || '')}`, { method: 'POST' }); } catch (e) { console.error('GCal update failed:', e); }
+          }
+        } else {
+          const { data: newAppt } = await supabase.from('appointments').insert([data]).select().single();
+          // Send confirmation email + GCal sync for new appointments
+          if (newAppt) {
+            const sendEmail = $('#appt-send-email').checked && data.customer_id;
+            const syncGcal = $('#appt-sync-gcal').checked;
+            let gcalFailed = false;
+            let emailFailed = false;
+            if (sendEmail || syncGcal) {
+              try {
+                const confirmRes = await fetch('/.netlify/functions/send-appointment-confirmation', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ appointment_id: newAppt.id, send_email: sendEmail, sync_gcal: syncGcal })
+                });
+                const confirmResult = await confirmRes.json();
+                if (syncGcal && !confirmResult.gcal_synced) gcalFailed = confirmResult.gcal_error || true;
+                if (sendEmail && !confirmResult.email_sent) emailFailed = true;
+              } catch (e) { console.error('Confirmation/GCal failed:', e); if (syncGcal) gcalFailed = true; if (sendEmail) emailFailed = true; }
+            }
+            closeApptModal(); await loadData(); renderCalendar();
+            if (gcalFailed && emailFailed) {
+              showToast('Appointment saved but email and GCal sync failed', 'warning');
+            } else if (gcalFailed) {
+              showToast(typeof gcalFailed === 'string' ? 'Appointment saved but GCal sync failed: ' + gcalFailed : 'Appointment saved but Google Calendar sync failed', 'warning');
+            } else if (emailFailed) {
+              showToast('Appointment saved but confirmation email failed to send', 'warning');
+            } else {
+              showToast(syncGcal ? 'Appointment created and added to Google Calendar' : 'Appointment created', 'success');
+            }
+            return;
+          }
+        }
+        closeApptModal(); await loadData(); renderCalendar(); showToast(id ? 'Appointment updated' : 'Appointment created', 'success');
+      }
+      catch (err) { console.error(err); showToast('Failed to save appointment', 'error'); }
+    }
+    
+    async function deleteAppt() {
+      const id = $('#appt-id').value; if (!id || !confirm('Delete this appointment?')) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        // Fetch gcal_event_id before deleting
+        const { data: appt } = await supabase.from('appointments').select('gcal_event_id').eq('id', id).single();
+        if (appt && appt.gcal_event_id) {
+          try { await fetch(`/.netlify/functions/gcal-delete-event?event_id=${encodeURIComponent(appt.gcal_event_id)}`, { method: 'POST' }); } catch (e) { console.error('GCal delete failed:', e); }
+        }
+        await supabase.from('appointments').delete().eq('id', id);
+        closeApptModal(); await loadData(); renderCalendar(); showToast('Appointment deleted', 'success');
+      }
+      catch (err) { showToast('Failed to delete', 'error'); }
+    }
+
+    function cancelAppt() {
+      $('#cancel-appt-btn').style.display = 'none';
+      $('#cancel-appt-confirm').style.display = 'inline-flex';
+    }
+
+    function abortCancelAppt() {
+      $('#cancel-appt-confirm').style.display = 'none';
+      $('#cancel-appt-btn').style.display = '';
+    }
+
+    async function confirmCancelAppt() {
+      const id = $('#appt-id').value;
+      if (!id) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        // Fetch appointment details for GCal cleanup and optional email
+        const { data: appt } = await supabase.from('appointments')
+          .select('gcal_event_id, customer_id, customers(name, email, first_name), title, appointment_date, appointment_time, location, appointment_type_id')
+          .eq('id', id).single();
+
+        // Remove from Google Calendar if synced
+        if (appt?.gcal_event_id) {
+          try { await fetch(`/.netlify/functions/gcal-delete-event?event_id=${encodeURIComponent(appt.gcal_event_id)}`, { method: 'POST' }); } catch (e) { console.error('GCal delete failed:', e); }
+        }
+
+        // Update status to cancelled
+        await supabase.from('appointments').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', id);
+
+        // Send cancellation email if customer has email on file
+        const customer = appt?.customers;
+        if (customer?.email) {
+          const cancellationTemplate = emailTemplates.find(t => t.template_type === 'cancellation');
+          if (cancellationTemplate) {
+            const apptType = appointmentTypes.find(t => t.id === appt.appointment_type_id);
+            const data = {
+              firstName: customer.first_name || customer.name?.split(' ')[0] || '',
+              customerName: customer.name,
+              customerEmail: customer.email,
+              appointmentType: apptType ? `${apptType.icon} ${apptType.name}` : 'Appointment',
+              appointmentDate: appt.appointment_date,
+              appointmentTime: appt.appointment_time,
+              appointmentLocation: appt.location || ''
+            };
+            const subject = replaceEmailVariables(cancellationTemplate.subject, data);
+            const body = replaceEmailVariables(cancellationTemplate.body, data);
+            try {
+              await fetch('/.netlify/functions/send-template-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ to_email: customer.email, subject, body, template_id: cancellationTemplate.id, customer_id: appt.customer_id, appointment_id: id })
+              });
+            } catch (e) { console.error('Cancellation email failed:', e); }
+          }
+        }
+
+        closeApptModal(); await loadData(); renderCalendar();
+        showToast('Appointment cancelled', 'success');
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to cancel appointment', 'error');
+      }
+    }
+
+    function rescheduleAppt() {
+      $('#appt-date').value = '';
+      $('#appt-time').value = '';
+      $('#appt-date').focus();
+      showToast('Pick a new date and time, then Save', 'info');
+    }
+
+    async function pushToGcal() {
+      const id = $('#appt-id').value;
+      if (!id) return;
+      const btn = $('#push-gcal-btn');
+      btn.disabled = true;
+      btn.textContent = 'Syncing...';
+      try {
+        const res = await fetch('/.netlify/functions/send-appointment-confirmation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointment_id: id, send_email: false, sync_gcal: true })
+        });
+        const result = await res.json();
+        if (result.gcal_synced) {
+          showToast('Added to Google Calendar', 'success');
+          btn.style.display = 'none';
+          if (currentAppt) currentAppt.gcal_event_id = 'synced';
+          await loadData(); renderCalendar();
+        } else {
+          showToast(result.gcal_error ? 'GCal sync failed: ' + result.gcal_error : 'Google Calendar sync failed', 'error');
+        }
+      } catch (err) {
+        showToast('Failed to sync with Google Calendar', 'error');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Push to Google Calendar';
+    }
+
+    function openStageSettings() { renderStageList(); $('#stage-modal').classList.add('active'); }
+    function closeStageSettings() { $('#stage-modal').classList.remove('active'); $('#add-stage-form').style.display = 'none'; }
+    
+    let draggedStageId = null;
+    
+    function renderStageList() {
+      const container = $('#stage-list');
+      container.innerHTML = stages.map((s, i) => `
+        <div class="stage-item" draggable="true" data-id="${s.id}" data-index="${i}"
+             ondragstart="handleStageDragStart(event)" ondragover="handleStageDragOver(event)" 
+             ondrop="handleStageDrop(event)" ondragend="handleStageDragEnd(event)"
+             style="display:flex;align-items:center;gap:var(--space-md);padding:var(--space-sm) var(--space-md);background:var(--color-bg-soft);border-radius:var(--radius-md);margin-bottom:var(--space-sm);cursor:grab;">
+          <span class="drag-handle" style="color:var(--color-text-muted);cursor:grab;">⋮⋮</span>
+          <input type="color" value="${s.color}" onchange="updateStageColor('${s.id}', this.value)" 
+                 style="width:28px;height:28px;border:none;border-radius:var(--radius-sm);cursor:pointer;padding:0;">
+          <input type="text" class="form-input" value="${s.label}" 
+                 onchange="updateStageName('${s.id}', this.value)" 
+                 style="flex:1;font-weight:500;background:transparent;border:1px solid transparent;"
+                 onfocus="this.style.borderColor='var(--color-primary)';this.style.background='white'"
+                 onblur="this.style.borderColor='transparent';this.style.background='transparent'">
+          <button class="btn btn-ghost btn-sm" style="color:var(--color-danger);" onclick="deleteStage('${s.id}')" title="Delete stage">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+          </button>
+        </div>
+      `).join('');
+    }
+    
+    function handleStageDragStart(e) {
+      draggedStageId = e.target.closest('.stage-item').dataset.id;
+      e.target.closest('.stage-item').style.opacity = '0.5';
+      e.dataTransfer.effectAllowed = 'move';
+    }
+    
+    function handleStageDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const item = e.target.closest('.stage-item');
+      if (item) {
+        item.style.borderTop = '2px solid var(--color-primary)';
+      }
+    }
+    
+    function handleStageDragEnd(e) {
+      e.target.closest('.stage-item')?.style && (e.target.closest('.stage-item').style.opacity = '1');
+      $$('.stage-item').forEach(el => el.style.borderTop = '');
+      draggedStageId = null;
+    }
+    
+    async function handleStageDrop(e) {
+      e.preventDefault();
+      const targetItem = e.target.closest('.stage-item');
+      if (!targetItem || !draggedStageId) return;
+      
+      const targetId = targetItem.dataset.id;
+      if (targetId === draggedStageId) return;
+      
+      const draggedIdx = stages.findIndex(s => s.id === draggedStageId);
+      const targetIdx = stages.findIndex(s => s.id === targetId);
+      
+      if (draggedIdx === -1 || targetIdx === -1) return;
+      
+      // Reorder stages array
+      const [draggedStage] = stages.splice(draggedIdx, 1);
+      stages.splice(targetIdx, 0, draggedStage);
+      
+      // Update sort_order for all stages
+      try {
+        const supabase = await app.waitForSupabase();
+        const updates = stages.map((s, i) => 
+          supabase.from('job_stages').update({ sort_order: i }).eq('id', s.id)
+        );
+        await Promise.all(updates);
+        await loadData();
+        renderStageList();
+        renderPipeline();
+      } catch (err) {
+        console.error('Reorder failed:', err);
+        showToast('Failed to reorder stages', 'error');
+        await loadData();
+        renderStageList();
+      }
+    }
+    
+    async function updateStageName(id, newName) {
+      if (!newName.trim()) {
+        showToast('Stage name cannot be empty', 'error');
+        renderStageList();
+        return;
+      }
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('job_stages').update({ label: newName.trim() }).eq('id', id);
+        await loadData();
+        renderPipeline();
+        showToast('Stage renamed', 'success');
+      } catch (err) {
+        showToast('Failed to rename: ' + err.message, 'error');
+      }
+    }
+    
+    async function updateStageColor(id, newColor) {
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('job_stages').update({ color: newColor }).eq('id', id);
+        await loadData();
+        renderPipeline();
+      } catch (err) {
+        showToast('Failed to update color', 'error');
+      }
+    }
+    
+    async function saveNewStage() {
+      const label = $('#new-stage-label').value.trim(), color = $('#new-stage-color').value; if (!label) return;
+      try { const supabase = await app.waitForSupabase(); await supabase.from('job_stages').insert([{ stage_id: label.toLowerCase().replace(/\s+/g, '-'), label, color, sort_order: Math.max(...stages.map(s => s.sort_order), -1) + 1 }]); await loadData(); renderStageList(); renderPipeline(); $('#add-stage-form').style.display = 'none'; $('#new-stage-label').value = ''; showToast('Stage added', 'success'); }
+      catch (err) { showToast('Failed to add stage', 'error'); }
+    }
+    async function deleteStage(id) { 
+      const stage = stages.find(s => s.id === id);
+      const dealsInStage = deals.filter(d => d.stage_id === stage?.stage_id).length;
+      if (dealsInStage > 0) {
+        if (!confirm(`This stage has ${dealsInStage} deal(s). Delete anyway? The deals will need to be moved to another stage.`)) return;
+      } else {
+        if (!confirm('Delete this stage?')) return;
+      }
+      try { const supabase = await app.waitForSupabase(); await supabase.from('job_stages').delete().eq('id', id); await loadData(); renderStageList(); renderPipeline(); showToast('Stage deleted', 'success'); } catch (err) { showToast('Failed to delete', 'error'); } 
+    }
+    
+    function setupViewToggle() {
+      $$('.view-toggle button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          $$('.view-toggle button').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+          const view = btn.dataset.view;
+          $('#pipeline-view').style.display = view === 'pipeline' ? 'block' : 'none';
+          $('#calendar-view').style.display = view === 'calendar' ? 'block' : 'none';
+          $('#list-view').style.display = view === 'list' ? 'block' : 'none';
+          if (view === 'calendar') renderCalendar(); if (view === 'list') renderListView();
+        });
+      });
+    }
+    
+    let currentCalendarDate = new Date();
+    function prevMonth() { currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1, 1); renderCalendar(); }
+    function nextMonth() { currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 1); renderCalendar(); }
+    function goToToday() { currentCalendarDate = new Date(); renderCalendar(); }
+    
+    function renderCalendar() {
+      const year = currentCalendarDate.getFullYear(), month = currentCalendarDate.getMonth();
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      $('#calendar-title').textContent = `${monthNames[month]} ${year}`;
+      const firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
+      const startDayOfWeek = firstDay.getDay(), daysInMonth = lastDay.getDate(), prevMonthLastDay = new Date(year, month, 0).getDate();
+      const events = buildEventsLookup(), today = new Date(), isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+      let html = dayNames.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+      const totalCells = Math.ceil((startDayOfWeek + daysInMonth) / 7) * 7; let dayCount = 1, nextMonthDay = 1;
+      for (let i = 0; i < totalCells; i++) {
+        let dayNum, isOtherMonth = false, dateStr;
+        if (i < startDayOfWeek) { dayNum = prevMonthLastDay - startDayOfWeek + i + 1; isOtherMonth = true; const pm = month === 0 ? 11 : month - 1, py = month === 0 ? year - 1 : year; dateStr = `${py}-${String(pm + 1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`; }
+        else if (dayCount > daysInMonth) { dayNum = nextMonthDay++; isOtherMonth = true; const nm = month === 11 ? 0 : month + 1, ny = month === 11 ? year + 1 : year; dateStr = `${ny}-${String(nm + 1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`; }
+        else { dayNum = dayCount++; dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`; }
+        const isToday = isCurrentMonth && !isOtherMonth && dayNum === today.getDate(), dayEvents = events[dateStr] || [];
+        html += `<div class="calendar-day ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}"><span class="calendar-day-number">${dayNum}</span><div class="calendar-events">${renderDayEvents(dayEvents)}</div></div>`;
+      }
+      $('#calendar-grid').innerHTML = html;
+    }
+    
+    function buildEventsLookup() {
+      const events = {};
+      appointments.forEach(appt => { const dateStr = appt.appointment_date, type = appt.appointment_types || appointmentTypes.find(t => t.id === appt.appointment_type_id); if (!events[dateStr]) events[dateStr] = []; const isCancelled = appt.status === 'cancelled'; events[dateStr].push({ type: 'appointment', data: appt, color: isCancelled ? '#999' : (type?.color || '#3e855f'), icon: type?.icon || '📅', label: appt.title, cancelled: isCancelled }); });
+      
+      // Deal events - support date ranges and show customer last name + event type
+      // Filter by selected stages
+      const filteredDeals = getFilteredDeals();
+      const filteredDealIds = new Set(filteredDeals.map(d => d.id));
+      
+      dealEvents.forEach(event => { 
+        const deal = deals.find(d => d.id === event.job_id);
+        const type = event.job_event_types || eventTypes.find(t => t.id === event.event_type_id); 
+        if (!deal || !type) return;
+        
+        // Skip if deal is filtered out
+        if (!filteredDealIds.has(deal.id)) return;
+        
+        // Get customer last name and event type name - use custom event_name if set
+        const customerName = deal.customers?.name || '';
+        const lastName = customerName.split(' ').pop() || customerName;
+        const label = event.event_name || `${lastName} - ${type.name}`;
+        
+        // Use custom event_color if set, otherwise use type color
+        const eventColor = event.event_color || type?.color || '#3e855f';
+        
+        // Get start and end dates
+        const startDate = event.event_date;
+        const endDate = event.event_end_date || startDate;
+        
+        // Add event to each day in the range
+        let currentDate = new Date(startDate);
+        const lastDate = new Date(endDate);
+        
+        while (currentDate <= lastDate) {
+          const dateStr = currentDate.toISOString().split('T')[0];
+          if (!events[dateStr]) events[dateStr] = [];
+          events[dateStr].push({ 
+            type: 'deal_event', 
+            data: { event, deal }, 
+            color: eventColor, 
+            icon: type?.icon || '📅', 
+            label: label,
+            isRange: startDate !== endDate,
+            isStart: dateStr === startDate,
+            isEnd: dateStr === endDate
+          });
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      });
+      return events;
+    }
+    
+    function renderDayEvents(dayEvents) {
+      if (!dayEvents.length) return '';
+      const maxVisible = 3;
+      let html = dayEvents.slice(0, maxVisible).map(e => {
+        const bgColor = hexToRgba(e.color, 0.2);
+        const onclick = e.type === 'appointment' ? `openApptView(appointments.find(a => a.id === '${e.data.id}'))` : `openDealView(deals.find(d => d.id === '${e.data.deal.id}'))`;
+        // For range events, show icon on start, just label on middle/end
+        const showIcon = !e.isRange || e.isStart;
+        const displayLabel = showIcon ? `${e.icon} ${e.label}` : e.label;
+        const cancelledStyle = e.cancelled ? 'text-decoration:line-through;opacity:0.6;' : '';
+        return `<div class="calendar-event" style="background:${bgColor};color:${e.color};border-left:3px solid ${e.color};${cancelledStyle}" onclick="${onclick}">${displayLabel}</div>`;
+      }).join('');
+      if (dayEvents.length > maxVisible) html += `<div class="calendar-more">+${dayEvents.length - maxVisible} more</div>`;
+      return html;
+    }
+    
+    function hexToRgba(hex, alpha) { const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16); return `rgba(${r},${g},${b},${alpha})`; }
+    
+    function renderListView() {
+      const filteredDeals = getFilteredDeals();
+      $('#deals-table-body').innerHTML = filteredDeals.map(d => {
+        const stage = stages.find(s => s.stage_id === d.stage), thisEvents = dealEvents.filter(e => e.job_id === d.id);
+        const nextEvent = thisEvents.sort((a,b) => new Date(a.event_date) - new Date(b.event_date))[0];
+        return `<tr><td><strong>${d.name}</strong>${d.job_number ? `<br><span class="text-muted text-sm">${d.job_number}</span>` : ''}</td><td>${d.customers?.name || '—'}</td><td><span class="badge" style="background:${stage?.color || '#666'};color:white;">${stage?.label || d.stage}</span></td><td>${nextEvent ? formatDate(nextEvent.event_date) : '—'}</td><td>${d.estimated_value ? formatCurrency(d.estimated_value) : '—'}</td><td><button class="btn btn-sm btn-secondary" onclick="openDealView(deals.find(x => x.id === '${d.id}'))">View</button></td></tr>`;
+      }).join('');
+    }
+    
+    // ==========================================
+    // EMAIL FUNCTIONALITY
+    // ==========================================
+    
+    function formatApptDate(dateStr) {
+      if (!dateStr) return '';
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    function formatApptTime(timeStr) {
+      if (!timeStr) return '';
+      const [h, m] = timeStr.split(':').map(Number);
+      return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+    }
+
+    function replaceEmailVariables(text, data) {
+      return text
+        .replace(/\{\{first_name\}\}/g, data.firstName || data.customerName?.split(' ')[0] || 'there')
+        .replace(/\{\{customer_name\}\}/g, data.customerName || '')
+        .replace(/\{\{customer_email\}\}/g, data.customerEmail || '')
+        .replace(/\{\{deal_name\}\}/g, data.dealName || '')
+        .replace(/\{\{company_name\}\}/g, ((typeof getCurrentUser === 'function' && getCurrentUser()?.org_name) || ''))
+        .replace(/\{\{appointment_type\}\}/g, data.appointmentType || '')
+        .replace(/\{\{appointment_date\}\}/g, formatApptDate(data.appointmentDate))
+        .replace(/\{\{appointment_time\}\}/g, formatApptTime(data.appointmentTime))
+        .replace(/\{\{appointment_location\}\}/g, data.appointmentLocation || '')
+        .replace(/\{\{location\}\}/g, data.appointmentLocation || '')
+        .replace(/\{\{reschedule_link\}\}/g, data.rescheduleLink || '')
+        .replace(/\{\{installation_date\}\}/g, data.installationDate ? formatDate(data.installationDate) : '')
+        .replace(/\{\{shop_date\}\}/g, data.shopDate ? formatDate(data.shopDate) : '')
+        .replace(/\{\{#if [^}]+\}\}[\s\S]*?\{\{\/if\}\}/g, (match) => {
+          // Simple conditional handling - check if variable has value
+          const varMatch = match.match(/\{\{#if ([^}]+)\}\}/);
+          if (varMatch) {
+            const varName = varMatch[1].trim();
+            const value = data[varName] || data[varName.replace(/_([a-z])/g, (g) => g[1].toUpperCase())];
+            if (value) {
+              return match.replace(/\{\{#if [^}]+\}\}/g, '').replace(/\{\{\/if\}\}/g, '');
+            }
+          }
+          return '';
+        });
+    }
+    
+    function openDealEmailModal() {
+      if (!currentDeal) return;
+      
+      const stage = $('#deal-modal').classList.contains('active') ? $('#deal-stage').value : currentDeal.stage;
+      const template = emailTemplates.find(t => t.template_type === 'deal_stage' && t.stage_id === stage);
+      
+      if (!template) {
+        showToast('No email template found for this stage. Create one in Email Templates settings.', 'error');
+        return;
+      }
+      
+      const customer = currentDeal.customers;
+      if (!customer?.email) {
+        showToast('Customer does not have an email address', 'error');
+        return;
+      }
+      
+      // Get deal events for dates
+      const events = dealEvents.filter(e => e.job_id === currentDeal.id);
+      const installEvent = events.find(e => {
+        const eventType = eventTypes.find(t => t.id === e.event_type_id);
+        return eventType?.name?.toLowerCase().includes('install');
+      });
+      const shopEvent = events.find(e => {
+        const eventType = eventTypes.find(t => t.id === e.event_type_id);
+        return eventType?.name?.toLowerCase().includes('shop');
+      });
+      
+      const data = {
+        firstName: customer.first_name || customer.name?.split(' ')[0] || '',
+        customerName: customer.name,
+        customerEmail: customer.email,
+        dealName: currentDeal.name,
+        installationDate: installEvent?.event_date,
+        shopDate: shopEvent?.event_date
+      };
+      
+      const subject = replaceEmailVariables(template.subject, data);
+      const body = replaceEmailVariables(template.body, data);
+      
+      showEmailPreviewModal({
+        to: customer.email,
+        subject,
+        body,
+        templateId: template.id,
+        customerId: currentDeal.customer_id,
+        dealId: currentDeal.id
+      });
+    }
+    
+    let currentAppt = null;
+    
+    function openApptEmailModal() {
+      if (!currentAppt) return;
+      
+      const template = emailTemplates.find(t => t.template_type === 'appointment');
+      
+      if (!template) {
+        showToast('No appointment email template found. Create one in Email Templates settings.', 'error');
+        return;
+      }
+      
+      const customer = currentAppt.customers;
+      if (!customer?.email) {
+        showToast('No customer email for this appointment', 'error');
+        return;
+      }
+      
+      const apptType = appointmentTypes.find(t => t.id === currentAppt.appointment_type_id);
+      
+      const data = {
+        firstName: customer.first_name || customer.name?.split(' ')[0] || '',
+        customerName: customer.name,
+        customerEmail: customer.email,
+        appointmentType: apptType ? `${apptType.icon} ${apptType.name}` : 'Appointment',
+        appointmentDate: currentAppt.appointment_date,
+        appointmentTime: currentAppt.appointment_time,
+        appointmentLocation: currentAppt.location || '',
+        rescheduleLink: `${window.location.origin}/schedule-manage.html?id=${currentAppt.id}`
+      };
+
+      const subject = replaceEmailVariables(template.subject, data);
+      const body = replaceEmailVariables(template.body, data);
+      
+      showEmailPreviewModal({
+        to: customer.email,
+        subject,
+        body,
+        templateId: template.id,
+        customerId: currentAppt.customer_id,
+        appointmentId: currentAppt.id
+      });
+    }
+    
+    function showEmailPreviewModal(emailData) {
+      const content = createElement('form', { id: 'email-preview-form' });
+      content.innerHTML = `
+        <div class="form-group">
+          <label class="form-label">To</label>
+          <input type="email" id="email-to" class="form-input" value="${emailData.to}" readonly style="background: var(--color-bg-soft);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <input type="text" id="email-subject" class="form-input" value="${emailData.subject.replace(/"/g, '&quot;')}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message</label>
+          <textarea id="email-body" class="form-textarea" rows="15" required>${emailData.body}</textarea>
+          <p class="form-help">Edit the message as needed before sending.</p>
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'btn-group' });
+      const cancelBtn = createElement('button', { type: 'button', className: 'btn btn-secondary', textContent: 'Cancel' });
+      const sendBtn = createElement('button', { type: 'button', className: 'btn btn-primary', innerHTML: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Email' });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(sendBtn);
+      
+      const modal = createModal({
+        title: '📧 Send Email',
+        content,
+        footer,
+        size: 'lg'
+      });
+      
+      cancelBtn.onclick = () => closeModal(modal);
+      sendBtn.onclick = async () => {
+        const to = $('#email-to').value;
+        const subject = $('#email-subject').value;
+        const body = $('#email-body').value;
+        
+        if (!subject || !body) {
+          showToast('Subject and message are required', 'error');
+          return;
+        }
+        
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="loading-spinner" style="width:16px;height:16px;margin-right:6px;"></span> Sending...';
+        
+        try {
+          const response = await fetch('/.netlify/functions/send-template-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to_email: to,
+              subject,
+              body,
+              template_id: emailData.templateId,
+              customer_id: emailData.customerId,
+              deal_id: emailData.dealId,
+              appointment_id: emailData.appointmentId
+            })
+          });
+          
+          const result = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(result.error || 'Failed to send email');
+          }
+          
+          closeModal(modal);
+          // Show toast after modal close animation so it's clearly visible
+          setTimeout(() => showToast('Email sent successfully!', 'success'), 300);
+        } catch (err) {
+          console.error('Email error:', err);
+          alert('Failed to send email: ' + err.message);
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Email';
+        }
+      };
+    }
+    
+    init();
+  </script>
+
+  <!-- Image Lightbox -->
+  <div id="lightbox-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;" onclick="if(event.target===this)closeLightbox()">
+    <button onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:#fff;font-size:32px;cursor:pointer;z-index:2;line-height:1;padding:8px;" title="Close">&times;</button>
+    <button id="lightbox-prev" onclick="lightboxNav(-1)" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:28px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;">&#8249;</button>
+    <button id="lightbox-next" onclick="lightboxNav(1)" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:28px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;">&#8250;</button>
+    <img id="lightbox-img" style="max-width:90vw;max-height:85vh;object-fit:contain;border-radius:4px;" alt="">
+    <div id="lightbox-caption" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;text-align:center;background:rgba(0,0,0,0.5);padding:4px 16px;border-radius:4px;"></div>
+  </div>
+  <script>
+    let lightboxImages = [];
+    let lightboxIndex = 0;
+
+    window.openLightbox = function(images, index) {
+      lightboxImages = images;
+      lightboxIndex = index;
+      showLightboxImage();
+      document.getElementById('lightbox-overlay').style.display = 'flex';
+      document.addEventListener('keydown', lightboxKeyHandler);
+    };
+
+    function showLightboxImage() {
+      const img = lightboxImages[lightboxIndex];
+      document.getElementById('lightbox-img').src = img.url;
+      document.getElementById('lightbox-caption').textContent = img.name + (lightboxImages.length > 1 ? ` (${lightboxIndex + 1}/${lightboxImages.length})` : '');
+      document.getElementById('lightbox-prev').style.visibility = lightboxIndex > 0 ? 'visible' : 'hidden';
+      document.getElementById('lightbox-next').style.visibility = lightboxIndex < lightboxImages.length - 1 ? 'visible' : 'hidden';
+    }
+
+    window.lightboxNav = function(dir) {
+      lightboxIndex = Math.max(0, Math.min(lightboxImages.length - 1, lightboxIndex + dir));
+      showLightboxImage();
+    };
+
+    window.closeLightbox = function() {
+      document.getElementById('lightbox-overlay').style.display = 'none';
+      document.removeEventListener('keydown', lightboxKeyHandler);
+    };
+
+    function lightboxKeyHandler(e) {
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') lightboxNav(-1);
+      else if (e.key === 'ArrowRight') lightboxNav(1);
+    }
+  </script>
+</body>
+</html>

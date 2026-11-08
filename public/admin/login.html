@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Sign in | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=40">
+  <link rel="stylesheet" href="/css/auth.css?v=1">
+</head>
+<body class="auth-page">
+  <div class="auth-wrap">
+    <div class="auth-brand"><span class="auth-brand-mark">Y</span> YourCRM</div>
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="auth-sub">Sign in to your business account</p>
+
+      <div id="notice" class="auth-ok" style="display:none; margin: 0 0 var(--space-md);"></div>
+
+      <form id="login-form" novalidate>
+        <div class="auth-field">
+          <label for="email">Email</label>
+          <input type="email" id="email" class="form-input" autocomplete="username" required>
+        </div>
+        <div class="auth-field">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-input" autocomplete="current-password" required>
+        </div>
+        <div class="auth-row">
+          <span></span>
+          <a href="/admin/forgot-password.html">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary auth-btn" id="submit-btn">Sign in</button>
+        <div class="auth-error" id="error"></div>
+      </form>
+
+      <div class="auth-links" id="setup-link" style="display:none">First time here? <a href="/admin/signup.html">Set up your business</a></div>
+    </div>
+  </div>
+
+  <script src="/js/utils.js?v=40"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const next = params.get('next');
+    // Show the one-time setup link only until the business exists.
+    fetch('/api/setup-status').then(r => r.json()).then(s => {
+      if (s && !s.configured) document.getElementById('setup-link').style.display = '';
+      else if (params.get('setup') === 'done') document.getElementById('error').textContent = 'This app is already set up — sign in below.';
+    }).catch(() => {});
+    const notice = document.getElementById('notice');
+    if (params.get('no_business')) {
+      notice.style.display = 'block';
+      notice.style.color = 'var(--color-danger)';
+      notice.textContent = 'Your login isn\'t linked to a business yet. Ask your admin to send you an invitation.';
+    } else if (params.get('reset')) {
+      notice.style.display = 'block';
+      notice.textContent = 'Password updated — sign in with your new password.';
+    }
+
+    function safeNext() {
+      return next && next.startsWith('/admin/') && !next.startsWith('/admin/login') ? next : '/admin/index.html';
+    }
+
+    // Already signed in? Go straight in.
+    (async () => {
+      if (params.get('no_business')) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const user = await app.loadUserContext();
+          if (user) location.href = safeNext();
+        }
+      } catch (e) { /* stay on login */ }
+    })();
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl = document.getElementById('error');
+      const btn = document.getElementById('submit-btn');
+      errEl.textContent = '';
+      if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+
+      btn.disabled = true; btn.textContent = 'Signing in…';
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) { errEl.textContent = 'Incorrect email or password.'; return; }
+        const user = await app.loadUserContext();
+        if (!user) {
+          errEl.textContent = 'This login isn\'t linked to a business yet. Ask your admin to send you an invitation.';
+          await supabase.auth.signOut();
+          return;
+        }
+        location.href = safeNext();
+      } catch (err) {
+        console.error(err);
+        errEl.textContent = 'Sign-in failed. Please try again.';
+      } finally {
+        btn.disabled = false; btn.textContent = 'Sign in';
+      }
+    });
+  </script>
+</body>
+</html>

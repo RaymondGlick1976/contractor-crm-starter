@@ -1,0 +1,2264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="YourCRM">
+  <title>Quote Details | Admin | YourCRM</title>
+  <link rel="stylesheet" href="/css/styles.css?v=35">
+  <style>
+    .quote-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: var(--space-md); }
+    .quote-title { font-size: 1.5rem; font-weight: 600; }
+    .quote-meta { color: var(--color-text-muted); font-size: 0.875rem; margin-top: var(--space-xs); }
+    .quote-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+    
+    .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .status-draft { background: #e5e7eb; color: #374151; }
+    .status-sent { background: #dbeafe; color: #1d4ed8; }
+    .status-viewed { background: #fef3c7; color: #d97706; }
+    .status-accepted { background: #d1fae5; color: #047857; }
+    .status-declined { background: #fee2e2; color: #dc2626; }
+    .status-converted { background: #ddd6fe; color: #7c3aed; }
+    
+    .section-card { background: white; border: 1px solid var(--color-border); border-radius: var(--radius-lg); margin-bottom: var(--space-lg); overflow: hidden; }
+    .section-header { padding: var(--space-md) var(--space-lg); background: var(--color-bg-soft); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+    .section-title { font-weight: 600; font-size: 1rem; display: flex; align-items: center; gap: var(--space-sm); }
+    .section-body { padding: var(--space-lg); }
+    
+    .items-table { width: 100%; border-collapse: collapse; }
+    .items-table th { text-align: left; padding: var(--space-sm); font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted); text-transform: uppercase; border-bottom: 1px solid var(--color-border); }
+    .items-table td { padding: var(--space-sm); border-bottom: 1px solid var(--color-border-light); vertical-align: top; }
+    .items-table tr:last-child td { border-bottom: none; }
+    .items-table .item-name { font-weight: 500; color: var(--color-primary); }
+    .items-table .item-name a { color: inherit; text-decoration: none; }
+    .items-table .text-right { text-align: right; }
+    
+    .total-row { background: var(--color-bg-soft); }
+    .total-row td { font-weight: 600; padding: var(--space-md) var(--space-sm); }
+    .grand-total { background: var(--color-primary); color: white; }
+    .grand-total td { padding: var(--space-md); }
+    
+    .declined-section { border-left: 4px solid #f59e0b; }
+    .declined-section .section-header { background: #fffbeb; }
+    
+    .change-order-section { border-left: 4px solid var(--color-primary); }
+    .change-order-badge { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; margin-left: var(--space-sm); }
+    .change-order-badge.accepted { background: #d1fae5; color: #047857; }
+    .change-order-badge.sent { background: #dbeafe; color: #1d4ed8; }
+    .change-order-badge.draft { background: #e5e7eb; color: #374151; }
+    .change-order-badge.declined { background: #fee2e2; color: #dc2626; }
+    
+    .customer-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-lg); }
+    .info-label { font-size: 0.75rem; color: var(--color-text-muted); text-transform: uppercase; margin-bottom: 4px; }
+    .info-value { font-weight: 500; }
+    
+    .totals-section { max-width: 400px; margin-left: auto; }
+    .totals-row { display: flex; justify-content: space-between; padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border-light); }
+    .totals-row:last-child { border-bottom: none; }
+    .totals-row.grand { background: var(--color-primary); color: white; padding: var(--space-md); margin: var(--space-md) calc(-1 * var(--space-lg)); margin-bottom: calc(-1 * var(--space-lg)); border-radius: 0 0 var(--radius-lg) var(--radius-lg); }
+    
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-border); margin-bottom: var(--space-lg); }
+    .tab { padding: var(--space-sm) var(--space-lg); cursor: pointer; border-bottom: 2px solid transparent; color: var(--color-text-muted); font-size: 0.875rem; margin-bottom: -1px; }
+    .tab:hover { color: var(--color-text); }
+    .tab.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    
+    .dropdown { position: relative; }
+    .dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 4px; background: white; border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 180px; z-index: 1000; display: none; }
+    .dropdown.open .dropdown-menu { display: block; }
+    .dropdown-item { display: block; padding: var(--space-sm) var(--space-md); font-size: 0.875rem; color: var(--color-text); cursor: pointer; text-decoration: none; }
+    .dropdown-item:hover { background: var(--color-bg-soft); }
+  </style>
+</head>
+<body>
+  <script>
+    // Permission check before page loads
+    const user = JSON.parse(localStorage.getItem('app_user') || 'null');
+    if (!user) {
+      window.location.href = '/admin/login.html';
+    } else if (!user.permissions?.can_view_quotes) {
+      window.location.href = user.permissions?.can_view_pipeline ? '/admin/pipeline.html' : '/admin/index.html';
+    }
+  </script>
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="sidebar-logo">
+        <img data-brand-logo src="" alt="Company Logo" style="height: 40px; filter: brightness(0) invert(1); display: none;">
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item"><a href="/admin/today.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Today</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/index.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals Pipeline</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/pipeline.html?view=calendar" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/customers.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Customers</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/vendors.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Vendors</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/quotes.html" class="sidebar-nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Quotes</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/invoices.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>Invoices</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/payments.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Payments</a></li>
+          <li class="sidebar-nav-item"><a href="/admin/punch-list.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Punch List</a></li>
+        </ul>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Bookkeeping</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/banking.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>Banking</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/reports.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Reports</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Lead Capture</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/booking-forms.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>Booking Forms</a></li>
+            <li class="sidebar-nav-item"><a href="/schedule" target="_blank" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Online Scheduling</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/bulk-email.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><line x1="2" y1="20" x2="8" y2="14"/><line x1="22" y1="20" x2="16" y2="14"/></svg>Bulk Email</a></li>
+            <li class="sidebar-nav-item"><a href="/admin/sequences.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/><polyline points="16 17 18 19 22 15"/></svg>Email Sequences</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Catalog</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/catalog.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Custom Library</a></li>
+          </ul>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Settings</div>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/email-templates.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Templates</a></li>
+          </ul>
+          <ul class="sidebar-nav">
+            <li class="sidebar-nav-item"><a href="/admin/settings.html" class="sidebar-nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+    
+    <main class="app-main">
+      <header class="app-header" style="position: relative; z-index: 100; overflow: visible;">
+        <div class="quote-header">
+          <div>
+            <a href="/admin/quotes.html" class="text-muted text-sm">← Back to Quotes</a>
+            <h2 class="quote-title" id="quote-title">Loading...</h2>
+            <p class="quote-meta" id="quote-meta"></p>
+          </div>
+          <div class="quote-actions" style="position: relative; z-index: 1000;">
+            <a href="#" id="view-deal-btn" class="btn btn-secondary" style="display:none;">View Deal</a>
+            <a href="#" id="edit-quote-btn" class="btn btn-secondary">Edit Quote</a>
+            <button id="unlock-quote-btn" class="btn btn-secondary" style="display:none;" onclick="unlockQuote()">🔓 Unlock to Edit</button>
+            <button id="send-quote-btn" class="btn btn-secondary" onclick="showSendEmailModal()">📧 Send</button>
+            <button id="text-link-btn" class="btn btn-secondary" onclick="textQuoteLink()" title="Text or copy the customer link">💬 Text Link</button>
+            <button id="convert-invoice-btn" class="btn btn-secondary" style="display:none;" data-permission="can_convert_quotes" onclick="convertToInvoice()">→ Invoice</button>
+            <a href="#" id="view-invoice-btn" class="btn btn-secondary" style="display:none;">View Invoice</a>
+            <button id="qb-estimate-btn" class="btn btn-secondary" style="display:none;" onclick="syncEstimateToQB()">📤 QB Estimate</button>
+            <button id="qb-invoice-btn" class="btn btn-secondary" style="display:none;" onclick="syncInvoiceToQB()">📤 QB Invoice</button>
+            <div class="dropdown" id="change-order-dropdown">
+              <button class="btn btn-secondary" onclick="toggleDropdown('change-order-dropdown')">
+                New Change Order ▾
+              </button>
+              <div class="dropdown-menu">
+                <a href="#" class="dropdown-item" onclick="createChangeOrder()">Create Change Order</a>
+              </div>
+            </div>
+            <a href="#" id="print-estimate-btn" class="btn btn-secondary" target="_blank">🖨️ Print</a>
+            <a href="#" id="customer-view-newtab" class="btn btn-primary" target="_blank">👁️ Customer View</a>
+            <div class="dropdown" id="more-actions-dropdown">
+              <button class="btn btn-ghost" onclick="toggleDropdown('more-actions-dropdown')">
+                ⋯
+              </button>
+              <div class="dropdown-menu" style="right: 0; left: auto;">
+                <a href="#" class="dropdown-item" onclick="event.preventDefault(); duplicateQuote()">📋 Duplicate Quote</a>
+                <a href="#" class="dropdown-item" id="archive-btn" onclick="event.preventDefault(); archiveQuote()">📥 Archive Quote</a>
+                <a href="#" class="dropdown-item" id="unconvert-btn" style="display:none; color: var(--color-danger);" data-permission="can_convert_quotes" onclick="event.preventDefault(); unconvertQuote()">↩️ Unconvert to Quote</a>
+                <div style="border-top: 1px solid var(--color-border-light); margin: 4px 0;"></div>
+                <a href="#" class="dropdown-item" id="delete-quote-btn" style="color: var(--color-danger);" data-permission="can_delete" onclick="event.preventDefault(); deleteQuote()">🗑️ Delete Quote</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Device Preview Modal -->
+      <div id="preview-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal" style="width: 95vw; max-width: none; height: 90vh; display: flex; flex-direction: column;">
+          <div class="modal-header" style="flex-shrink: 0;">
+            <h3 class="modal-title">Customer Preview</h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <div class="btn-group" id="preview-device-btns">
+                <button class="btn btn-sm" onclick="setPreviewDevice('mobile')" data-device="mobile">📱 Mobile</button>
+                <button class="btn btn-sm" onclick="setPreviewDevice('tablet')" data-device="tablet">📱 Tablet</button>
+                <button class="btn btn-sm btn-primary" onclick="setPreviewDevice('desktop')" data-device="desktop">🖥️ Desktop</button>
+              </div>
+              <button class="btn btn-sm btn-secondary" onclick="closePreviewModal()">✕ Close</button>
+            </div>
+          </div>
+          <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; background: #e5e7eb; padding: 20px; position: relative;">
+            <div id="preview-loading" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 10;">
+              <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px;"></div>
+              <div style="color: #6b7280; font-size: 14px;">Loading preview...</div>
+            </div>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+            <div id="preview-frame-container" style="background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border-radius: 8px; overflow: hidden; transition: width 0.3s ease, height 0.3s ease; opacity: 0;">
+              <iframe id="preview-iframe" style="width: 100%; height: 100%; border: none;" onload="onPreviewLoaded()"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="app-content">
+        <!-- Customer Info -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Customer Information</div>
+            <span class="status-badge" id="quote-status">Draft</span>
+          </div>
+          <div class="section-body">
+            <div class="customer-info" id="customer-info">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Bundles Section -->
+        <div class="section-card" id="bundles-section" style="display: none;">
+          <div class="section-header">
+            <div class="section-title">📦 Bundles</div>
+            <span class="text-muted text-sm" id="selected-bundle-badge"></span>
+          </div>
+          <div class="section-body" id="bundles-container">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+        
+        <!-- Line Items -->
+        <div class="section-card" id="line-items-section">
+          <div class="section-header">
+            <div class="section-title">Line Items</div>
+          </div>
+          <div class="section-body" style="padding: 0;">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Product / Service</th>
+                  <th class="text-right">Quantity</th>
+                  <th class="text-right">Price</th>
+                  <th class="text-right">Subtotal</th>
+                  <th class="text-right">Tax</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody id="line-items-body"></tbody>
+              <tfoot id="line-items-footer"></tfoot>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Declined Options -->
+        <div class="section-card declined-section" id="declined-section" style="display: none;">
+          <div class="section-header">
+            <div class="section-title">⚠️ Declined Options</div>
+          </div>
+          <div class="section-body" style="padding: 0;">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Product / Service</th>
+                  <th class="text-right">Quantity</th>
+                  <th class="text-right">Price</th>
+                  <th class="text-right">Subtotal</th>
+                  <th class="text-right">Tax</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody id="declined-items-body"></tbody>
+              <tfoot>
+                <tr class="total-row">
+                  <td colspan="3"><strong>Total</strong></td>
+                  <td class="text-right" id="declined-subtotal">$0.00</td>
+                  <td class="text-right" id="declined-tax">$0.00</td>
+                  <td class="text-right" id="declined-total">$0.00</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Change Orders -->
+        <div id="change-orders-container"></div>
+        
+        <!-- Grand Totals -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Totals</div>
+          </div>
+          <div class="section-body">
+            <div class="totals-section">
+              <div class="totals-row">
+                <span>Subtotal</span>
+                <span id="grand-subtotal">$0.00</span>
+              </div>
+              <div class="totals-row" id="grand-discount-row" style="display: none;">
+                <span>Discount<span id="grand-discount-label"></span></span>
+                <span id="grand-discount" style="color: var(--color-success, #16a34a);">-$0.00</span>
+              </div>
+              <div class="totals-row">
+                <span>Tax</span>
+                <span id="grand-tax">$0.00</span>
+              </div>
+              <div class="totals-row grand">
+                <span><strong>Total</strong></span>
+                <span id="grand-total"><strong>$0.00</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Tabs for Notes, etc -->
+        <div class="section-card">
+          <div class="tabs">
+            <div class="tab active" data-tab="notes">Notes</div>
+            <div class="tab" data-tab="attachments">Attachments</div>
+            <div class="tab" data-tab="activity">Activity Log</div>
+          </div>
+          <div class="section-body">
+            <div id="tab-notes" class="tab-content active">
+              <div id="quote-notes" class="text-muted">No notes</div>
+            </div>
+            <div id="tab-attachments" class="tab-content" style="display:none;">
+              <div id="quote-attachments" class="text-muted">No attachments</div>
+            </div>
+            <div id="tab-activity" class="tab-content" style="display:none;">
+              <div id="quote-activity" class="text-muted">No activity</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Change Order Modal -->
+  <div id="change-order-modal" class="modal-overlay">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">New Change Order</h3>
+        <button class="modal-close" onclick="closeChangeOrderModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="co-id">
+        <div class="form-group">
+          <label class="form-label">Title (optional)</label>
+          <input type="text" id="co-title" class="form-input" placeholder="e.g., Additional bathroom cabinets">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Line Items</label>
+          <div id="co-items-list"></div>
+          <button type="button" class="btn btn-secondary btn-sm mt-sm" onclick="addChangeOrderItem()">+ Add Item</button>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea id="co-notes" class="form-input" rows="3"></textarea>
+        </div>
+        
+        <div class="flex justify-between items-center mt-lg p-md" style="background: var(--color-bg-soft); border-radius: var(--radius-md);">
+          <span>Total:</span>
+          <span id="co-total" style="font-size: 1.25rem; font-weight: 600;">$0.00</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeChangeOrderModal()">Cancel</button>
+        <button class="btn btn-secondary" onclick="saveChangeOrder('draft')">Save as Draft</button>
+        <button class="btn btn-primary" onclick="saveChangeOrder('sent')">Send to Customer</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script src="/js/share-link.js"></script>
+  <script>
+    let quote = null;
+    let customer = null;
+    let lineItems = [];
+    let packages = [];
+    let changeOrders = [];
+    let quoteViews = [];
+    let attachments = [];
+    let coItems = [];
+    const TAX_RATE = 0.0625;
+    
+    async function init() {
+      const params = new URLSearchParams(window.location.search);
+      const quoteId = params.get('id');
+      
+      if (!quoteId) {
+        window.location.href = '/admin/quotes.html';
+        return;
+      }
+      
+      await loadQuote(quoteId);
+      setupTabs();
+      setupDropdowns();
+
+      // Show lock toast if redirected from quote-builder
+      if (params.get('locked') === '1') {
+        showToast('This quote is locked. Use change orders to make modifications.', 'info');
+      }
+    }
+    
+    async function loadQuote(quoteId) {
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        // Load quote with customer
+        const { data: q, error } = await supabase
+          .from('quotes')
+          .select('*, customers(*)')
+          .eq('id', quoteId)
+          .single();
+        
+        if (error) throw error;
+        quote = q;
+        customer = q.customers;
+        
+        // Load line items
+        const { data: items } = await supabase
+          .from('quote_line_items')
+          .select('*')
+          .eq('quote_id', quoteId)
+          .order('sort_order');
+        lineItems = items || [];
+        
+        // Load change orders
+        const { data: cos } = await supabase
+          .from('change_orders')
+          .select('*, change_order_items(*)')
+          .eq('quote_id', quoteId)
+          .order('created_at');
+        changeOrders = cos || [];
+        
+        // Load quote views (with error handling for new table)
+        try {
+          const { data: views } = await supabase
+            .from('quote_views')
+            .select('*')
+            .eq('quote_id', quoteId)
+            .order('viewed_at', { ascending: false })
+            .limit(20);
+          quoteViews = views || [];
+        } catch (e) {
+          console.log('Quote views table may not exist yet');
+          quoteViews = [];
+        }
+        
+        // Load packages (bundles)
+        try {
+          const { data: pkgData } = await supabase
+            .from('quote_packages')
+            .select('*, quote_package_items(*)')
+            .eq('quote_id', quoteId)
+            .order('sort_order');
+          packages = pkgData || [];
+        } catch (e) {
+          console.log('Packages table may not exist yet');
+          packages = [];
+        }
+        
+        // Load attachments
+        try {
+          const { data: attData } = await supabase
+            .from('quote_attachments')
+            .select('*')
+            .eq('quote_id', quoteId)
+            .order('display_order');
+          attachments = attData || [];
+        } catch (e) {
+          console.log('Attachments table may not exist yet');
+          attachments = [];
+        }
+        
+        renderQuote();
+        
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to load quote', 'error');
+      }
+    }
+    
+    function renderQuote() {
+      // Header
+      document.title = `Quote #${quote.quote_number} | Admin`;
+      $('#quote-title').textContent = `Quote #${quote.quote_number} - ${quote.title}`;
+      $('#quote-meta').textContent = `Created ${formatDate(quote.created_at)}`;
+      
+      // Action buttons
+      const isLocked = ['accepted', 'converted'].includes(quote.status);
+
+      // Status badge
+      const statusEl = $('#quote-status');
+      statusEl.textContent = quote.status.charAt(0).toUpperCase() + quote.status.slice(1);
+      statusEl.className = `status-badge status-${quote.status}`;
+
+      // Show lock indicator for accepted/converted quotes
+      if (isLocked) {
+        const lockBadge = document.createElement('span');
+        lockBadge.style.cssText = 'font-size: 0.75rem; color: var(--color-text-muted); margin-left: 8px;';
+        lockBadge.textContent = '🔒 Locked — use Change Orders to modify';
+        statusEl.parentNode.insertBefore(lockBadge, statusEl.nextSibling);
+      }
+
+      // Update archive button text based on status
+      const archiveBtn = $('#archive-btn');
+      if (archiveBtn) {
+        if (quote.status === 'archived') {
+          archiveBtn.innerHTML = '📤 Unarchive Quote';
+        } else {
+          archiveBtn.innerHTML = '📥 Archive Quote';
+        }
+      }
+      
+      if (isLocked) {
+        $('#edit-quote-btn').style.display = 'none';
+        $('#unlock-quote-btn').style.display = '';
+      }
+      $('#edit-quote-btn').href = `/admin/quote-builder.html?id=${quote.id}`;
+
+      // Show Convert to Invoice button for accepted quotes (not yet converted)
+      if (quote.status === 'accepted' && hasPermission('can_convert_quotes')) {
+        $('#convert-invoice-btn').style.display = '';
+      }
+
+      // Show unconvert button for converted quotes
+      if (quote.status === 'converted' && hasPermission('can_convert_quotes')) {
+        $('#unconvert-btn').style.display = '';
+      }
+
+      // Check for existing invoice and wire up View Invoice button
+      checkForInvoice();
+
+      // QB Estimate sync button
+      const qbEstBtn = $('#qb-estimate-btn');
+      qbEstBtn.style.display = '';
+      if (quote.qb_estimate_id) {
+        qbEstBtn.textContent = '✅ QB Estimate';
+        qbEstBtn.title = quote.qb_synced_at ? 'Synced ' + new Date(quote.qb_synced_at).toLocaleDateString() : 'Synced';
+      }
+      
+      // Customer view - set up the new tab link (no preview param - allows real checkout)
+      const newTabLink = $('#customer-view-newtab');
+      const printBtn = $('#print-estimate-btn');
+      if (quote.access_token) {
+        newTabLink.href = `/portal/quote.html?token=${quote.access_token}&admin=1`;
+        printBtn.href = `/portal/quote.html?token=${quote.access_token}&admin=1&print=1&hideUnselected=1`;
+      } else {
+        newTabLink.href = '#';
+        printBtn.href = '#';
+        const generateToken = async (e) => {
+          e.preventDefault();
+          try {
+            const supabase = await app.waitForSupabase();
+            const token = crypto.randomUUID();
+            await supabase.from('quotes').update({ access_token: token }).eq('id', quote.id);
+            quote.access_token = token;
+            newTabLink.href = `/portal/quote.html?token=${token}&admin=1`;
+            newTabLink.onclick = null;
+            printBtn.href = `/portal/quote.html?token=${token}&admin=1&print=1&hideUnselected=1`;
+            printBtn.onclick = null;
+            showToast('Customer link generated! Click again to proceed.', 'success');
+          } catch (err) {
+            showToast('Failed to generate link', 'error');
+          }
+        };
+        newTabLink.onclick = generateToken;
+        printBtn.onclick = generateToken;
+      }
+
+      // Customer info
+      $('#customer-info').innerHTML = `
+        <div>
+          <div class="info-label">Customer</div>
+          <div class="info-value">${customer?.name || 'N/A'}</div>
+        </div>
+        <div>
+          <div class="info-label">Email</div>
+          <div class="info-value">${customer?.email || 'N/A'}</div>
+        </div>
+        <div>
+          <div class="info-label">Phone</div>
+          <div class="info-value">${customer?.phone ? phoneLink(customer.phone) : 'N/A'}</div>
+        </div>
+        <div>
+          <div class="info-label">Address</div>
+          <div class="info-value">${customer?.address || 'N/A'}</div>
+        </div>
+      `;
+      
+      // Render activity log
+      renderActivityLog();
+      
+      if (quote.document_mode === 'attachment') {
+        // Attached-document quote: the uploaded file is the quote; total entered manually
+        $('#bundles-section').style.display = 'none';
+        $('#line-items-section').style.display = 'block';
+        const docTotal = parseFloat(quote.manual_total ?? quote.total) || 0;
+        const docLinks = attachments.map(a => `<a href="${a.file_url}" target="_blank" rel="noopener">${escapeHtml(a.file_name)}</a>`).join(', ');
+        $('#line-items-body').innerHTML = `<tr><td colspan="6">📄 Quote document: ${docLinks || '<span class="text-muted">none attached yet</span>'}</td></tr>`;
+        $('#line-items-footer').innerHTML = '';
+        $('#grand-subtotal').textContent = formatCurrency(docTotal);
+        renderDiscountRow({ amount: 0, type: 'fixed', value: 0 });
+        $('#grand-tax').textContent = formatCurrency(0);
+        $('#grand-total').innerHTML = `<strong>${formatCurrency(docTotal)}</strong>`;
+      } else
+      // Check if we have packages (bundles)
+      if (packages && packages.length > 0) {
+        // Show bundles section, hide line items
+        $('#bundles-section').style.display = 'block';
+        $('#line-items-section').style.display = 'none';
+        renderBundles();
+      } else {
+        // Show line items, hide bundles
+        $('#bundles-section').style.display = 'none';
+        $('#line-items-section').style.display = 'block';
+        
+        // Render line items (non-optional only, or selected options)
+        const acceptedItems = lineItems.filter(item => !item.is_optional || item.is_selected);
+        renderLineItems(acceptedItems, '#line-items-body', '#line-items-footer');
+      }
+      
+      // Render declined options (only after quote is accepted)
+      if (['accepted', 'converted'].includes(quote.status)) {
+        const declinedItems = lineItems.filter(item => item.is_optional && !item.is_selected);
+        if (declinedItems.length > 0) {
+          $('#declined-section').style.display = 'block';
+          renderDeclinedItems(declinedItems);
+        }
+      }
+      
+      // Render change orders
+      renderChangeOrders();
+      
+      // Calculate grand totals
+      calculateGrandTotals();
+      
+      // Notes
+      $('#quote-notes').innerHTML = quote.notes ? quote.notes.replace(/\n/g, '<br>') : '<span class="text-muted">No notes</span>';
+      
+      // Attachments
+      const attContainer = $('#quote-attachments');
+      if (attachments.length > 0) {
+        attContainer.innerHTML = attachments.map(att => {
+          const isImage = att.file_type?.includes('image');
+          if (isImage) {
+            return `<a href="${att.file_url}" target="_blank" style="display: inline-block; margin: 0 8px 8px 0; text-decoration: none;">
+              <div style="border: 1px solid var(--color-border); border-radius: 8px; padding: 8px; text-align: center;">
+                <img src="${att.file_url}" alt="${att.file_name}" style="max-width: 150px; max-height: 100px; border-radius: 4px; display: block; margin-bottom: 4px;">
+                <span style="font-size: 0.75rem; color: var(--color-text-muted);">${att.file_name}</span>
+              </div>
+            </a>`;
+          } else {
+            return `<a href="${att.file_url}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; margin: 0 8px 8px 0; background: var(--color-bg-alt); border-radius: 8px; text-decoration: none; color: var(--color-text); font-size: 0.875rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              ${att.file_name}
+            </a>`;
+          }
+        }).join('');
+      } else {
+        attContainer.innerHTML = '<span class="text-muted">No attachments</span>';
+      }
+    }
+    
+    async function checkForInvoice() {
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: invoices } = await supabase
+          .from('invoices')
+          .select('id, invoice_number, qb_invoice_id')
+          .eq('quote_id', quote.id)
+          .limit(1);
+
+        if (invoices && invoices.length > 0) {
+          const inv = invoices[0];
+          const viewBtn = $('#view-invoice-btn');
+          viewBtn.href = `/admin/invoices.html?id=${inv.id}`;
+          viewBtn.textContent = `View Invoice #${inv.invoice_number}`;
+          viewBtn.style.display = '';
+          // Hide convert button if invoice already exists
+          $('#convert-invoice-btn').style.display = 'none';
+          // Show QB Invoice sync button
+          const qbInvBtn = $('#qb-invoice-btn');
+          qbInvBtn.style.display = '';
+          if (inv.qb_invoice_id) {
+            qbInvBtn.textContent = '✅ QB Invoice';
+          }
+        }
+      } catch (e) {
+        console.log('Could not check for invoice:', e.message);
+      }
+    }
+
+
+    // Bundle-aware invoice lines: when a quote has bundles, use the selected bundle's included items
+    function bundleInvoiceLines(pkgs, quote) {
+      if (!pkgs || pkgs.length === 0) return null;
+      const pkg = pkgs.find(p => p.id === quote.selected_package_id) || pkgs.find(p => p.is_selected) || pkgs[0];
+      const taxable = pkg.apply_tax !== false;
+      const items = (pkg.quote_package_items || [])
+        .filter(i => i.is_included !== false)
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+      const lines = items.map((i, idx) => {
+        const qty = parseFloat(i.quantity) || 1;
+        const unit = parseFloat(i.price) || 0;
+        const attrs = (i.attribute_selections || []).filter(s => s && s.option_name)
+          .map(s => `${s.attribute_name}: ${s.option_name}`).join('\n');
+        return {
+          description: i.name,
+          details: [i.description || '', attrs].filter(Boolean).join('\n'),
+          quantity: qty,
+          unit_price: unit,
+          line_total: Math.round(unit * qty * 100) / 100,
+          is_taxable: taxable,
+          apply_discount: true,
+          sort_order: idx
+        };
+      });
+      const itemsTotal = lines.reduce((s, l) => s + l.line_total, 0);
+      if (pkg.price !== null && pkg.price !== undefined && pkg.price !== '') {
+        const override = Math.round((parseFloat(pkg.price) || 0) * 100) / 100;
+        if (items.length === 0) {
+          lines.push({ description: pkg.name || quote.title, details: pkg.description || '', quantity: 1,
+            unit_price: override, line_total: override, is_taxable: taxable, apply_discount: true, sort_order: 0 });
+        } else {
+          const diff = Math.round((override - itemsTotal) * 100) / 100;
+          if (diff !== 0) lines.push({ description: `${pkg.name || 'Bundle'} - bundle price adjustment`, details: '',
+            quantity: 1, unit_price: diff, line_total: diff, is_taxable: taxable, apply_discount: true, sort_order: lines.length });
+        }
+      }
+      return lines;
+    }
+
+    // Payment schedule to store on the invoice (null when the quote has none)
+    function scheduleForInvoice(quote) {
+      return Array.isArray(quote.payment_schedule) && quote.payment_schedule.length > 0 ? quote.payment_schedule : null;
+    }
+
+    async function convertToInvoice() {
+      if (!hasPermission('can_convert_quotes')) { showToast('You do not have permission to convert quotes', 'error'); return; }
+      if (!confirm('Create an invoice from this quote?')) return;
+
+      try {
+        const supabase = await app.waitForSupabase();
+
+        // Guard: if an invoice already exists for this quote, don't create another
+        const { data: existingInvoices } = await supabase
+          .from('invoices')
+          .select('id, invoice_number')
+          .eq('quote_id', quote.id)
+          .limit(1);
+        if (existingInvoices && existingInvoices.length > 0) {
+          showToast(`Invoice ${existingInvoices[0].invoice_number} already exists for this quote`, 'error');
+          return;
+        }
+
+        // Get accepted change orders with items
+        const { data: cos } = await supabase
+          .from('change_orders')
+          .select('*, change_order_items(*)')
+          .eq('quote_id', quote.id)
+          .eq('status', 'accepted');
+
+        // Calculate totals
+        let subtotal = 0;
+        let taxableSubtotal = 0;
+        let discountableSubtotal = 0;
+        let taxableDiscountable = 0;
+        const taxRate = quote.tax_rate || 0;
+
+        // Check packages vs line items
+        let selectedItems = [];
+        if (packages && packages.length > 0) {
+          selectedItems = bundleInvoiceLines(packages, quote) || [];
+          selectedItems.forEach(item => {
+            const lt = item.line_total;
+            subtotal += lt;
+            if (item.is_taxable) taxableSubtotal += lt;
+          });
+          discountableSubtotal = subtotal;
+          taxableDiscountable = taxableSubtotal;
+        } else {
+          selectedItems = lineItems.filter(i => !i.is_optional || i.is_selected);
+          selectedItems.forEach(item => {
+            const lineTotal = (item.unit_price || 0) * (item.quantity || 1);
+            subtotal += lineTotal;
+            if (item.is_taxable) taxableSubtotal += lineTotal;
+            if (item.apply_discount !== false) {
+              discountableSubtotal += lineTotal;
+              if (item.is_taxable) taxableDiscountable += lineTotal;
+            }
+          });
+        }
+
+        // Change order items
+        const changeOrderItems = [];
+        (cos || []).forEach(co => {
+          (co.change_order_items || []).forEach(item => {
+            const lineTotal = (item.unit_price || 0) * (item.quantity || 1);
+            subtotal += lineTotal;
+            taxableSubtotal += lineTotal;
+            changeOrderItems.push({
+              description: item.description,
+              details: `Change Order #${co.change_order_number}`,
+              quantity: item.quantity || 1,
+              unit_price: item.unit_price || 0,
+              line_total: lineTotal,
+              is_taxable: true,
+              change_order_id: co.id
+            });
+          });
+        });
+
+        // Carry the quote's discount over to the invoice (applied before tax)
+        const disc = computeQuoteDiscount(discountableSubtotal);
+        const taxableShare = discountableSubtotal > 0 ? (taxableDiscountable / discountableSubtotal) : 0;
+        const taxAmount = Math.max(0, taxableSubtotal - disc.amount * taxableShare) * taxRate;
+        const total = subtotal - disc.amount + taxAmount;
+
+        // Generate invoice number
+        const { data: invoiceNumber } = await supabase.rpc('generate_invoice_number');
+
+        // Create invoice
+        const { data: invoice, error: invError } = await supabase
+          .from('invoices')
+          .insert({
+            invoice_number: invoiceNumber,
+            quote_id: quote.id,
+            customer_id: quote.customer_id,
+            title: quote.title,
+            status: 'draft',
+            payment_schedule: scheduleForInvoice(quote),
+            subtotal,
+            discount_type: disc.type,
+            discount_value: disc.value,
+            discount_amount: disc.amount,
+            tax_rate: taxRate,
+            tax_amount: taxAmount,
+            total,
+            amount_due: total,
+            due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+          })
+          .select()
+          .single();
+
+        if (invError) throw invError;
+
+        // Copy line items to invoice
+        const allInvoiceItems = [];
+
+        if (packages && packages.length > 0) {
+          // Package-based: use the selectedItems we built above
+          selectedItems.forEach((item, index) => {
+            let details = item.details || '';
+            const attrs = (item.attribute_selections || [])
+              .filter(sel => sel.option_name)
+              .map(sel => sel.attribute_name + ': ' + sel.option_name)
+              .join('\n');
+            if (attrs) details = details ? details + '\n' + attrs : attrs;
+            allInvoiceItems.push({
+              invoice_id: invoice.id,
+              description: item.description,
+              details: details,
+              quantity: item.quantity,
+              unit_price: item.unit_price,
+              line_total: item.line_total,
+              is_taxable: item.is_taxable,
+              apply_discount: item.apply_discount !== false,
+              sort_order: index
+            });
+          });
+        } else {
+          selectedItems.forEach((item, index) => {
+            let details = item.details || '';
+            const attrs = (item.attribute_selections || [])
+              .filter(sel => sel.option_name)
+              .map(sel => sel.attribute_name + ': ' + sel.option_name)
+              .join('\n');
+            if (attrs) details = details ? details + '\n' + attrs : attrs;
+            allInvoiceItems.push({
+              invoice_id: invoice.id,
+              description: item.description,
+              details: details,
+              quantity: item.quantity,
+              unit_price: item.unit_price || item.price_range_low,
+              line_total: (item.unit_price || item.price_range_low) * item.quantity,
+              is_taxable: item.is_taxable,
+              apply_discount: item.apply_discount !== false,
+              sort_order: index
+            });
+          });
+        }
+
+        changeOrderItems.forEach((item, index) => {
+          allInvoiceItems.push({
+            invoice_id: invoice.id,
+            description: item.description,
+            details: item.details,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            line_total: item.line_total,
+            is_taxable: item.is_taxable,
+            change_order_id: item.change_order_id || null,
+            sort_order: selectedItems.length + index
+          });
+        });
+
+        if (allInvoiceItems.length > 0) {
+          await supabase.from('invoice_line_items').insert(allInvoiceItems);
+        }
+
+        // Update quote status to converted
+        await supabase.from('quotes').update({ status: 'converted' }).eq('id', quote.id);
+
+        showToast('Invoice created successfully', 'success');
+
+        // Update UI
+        quote.status = 'converted';
+        $('#convert-invoice-btn').style.display = 'none';
+        const viewBtn = $('#view-invoice-btn');
+        viewBtn.href = `/admin/invoices.html?id=${invoice.id}`;
+        viewBtn.textContent = `View Invoice #${invoice.invoice_number}`;
+        viewBtn.style.display = '';
+
+        // Update status badge
+        const statusEl = $('#quote-status');
+        statusEl.textContent = 'Converted';
+        statusEl.className = 'status-badge status-converted';
+
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to create invoice: ' + err.message, 'error');
+      }
+    }
+
+    async function unconvertQuote() {
+      if (!hasPermission('can_convert_quotes')) { showToast('You do not have permission to convert quotes', 'error'); return; }
+      if (!confirm('This will delete the invoice created from this quote and set the quote back to accepted. Continue?')) return;
+
+      try {
+        const supabase = await app.waitForSupabase();
+
+        // Find the invoice linked to this quote
+        const { data: invoices } = await supabase
+          .from('invoices')
+          .select('id, invoice_number, status')
+          .eq('quote_id', quote.id);
+
+        if (!invoices || invoices.length === 0) {
+          showToast('No linked invoice found', 'error');
+          return;
+        }
+
+        const invoice = invoices[0];
+
+        // Check for payments against this invoice
+        const { data: payments } = await supabase
+          .from('payments')
+          .select('id')
+          .eq('invoice_id', invoice.id)
+          .eq('status', 'succeeded')
+          .limit(1);
+
+        if (payments && payments.length > 0) {
+          showToast('Cannot unconvert — invoice has payments recorded. Delete payments first.', 'error');
+          return;
+        }
+
+        // Delete invoice line items then the invoice
+        await supabase.from('invoice_line_items').delete().eq('invoice_id', invoice.id);
+        await supabase.from('invoices').delete().eq('id', invoice.id);
+
+        // Set quote status back to accepted
+        await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quote.id);
+
+        showToast('Invoice deleted and quote restored to accepted', 'success');
+
+        // Update UI
+        quote.status = 'accepted';
+        $('#convert-invoice-btn').style.display = '';
+        $('#view-invoice-btn').style.display = 'none';
+        $('#qb-invoice-btn').style.display = 'none';
+        $('#unconvert-btn').style.display = 'none';
+
+        const statusEl = $('#quote-status');
+        statusEl.textContent = 'Accepted';
+        statusEl.className = 'status-badge status-accepted';
+
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to unconvert: ' + err.message, 'error');
+      }
+    }
+
+    async function unlockQuote() {
+      const previousStatus = quote.status;
+      if (!confirm(`This will temporarily set the quote back to "draft" so you can edit it. You will need to re-send it when done.\n\nCurrent status: ${previousStatus}\n\nContinue?`)) return;
+
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('quotes').update({ status: 'draft' }).eq('id', quote.id);
+
+        showToast('Quote unlocked for editing. Remember to re-send when done.', 'success');
+        quote.status = 'draft';
+
+        // Redirect to quote builder
+        window.location.href = `/admin/quote-builder.html?id=${quote.id}`;
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to unlock: ' + err.message, 'error');
+      }
+    }
+
+    async function syncEstimateToQB() {
+      const btn = $('#qb-estimate-btn');
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Syncing...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/.netlify/functions/qb-sync-estimate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quoteId: quote.id })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Sync failed');
+
+        btn.textContent = '✅ QB Estimate';
+        btn.title = 'Synced ' + new Date().toLocaleDateString();
+        quote.qb_estimate_id = result.qb_estimate_id;
+        showToast(result.message || 'Estimate synced to QuickBooks', 'success');
+      } catch (err) {
+        btn.textContent = originalText;
+        showToast('QB sync failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function syncInvoiceToQB() {
+      const btn = $('#qb-invoice-btn');
+      const originalText = btn.textContent;
+      btn.textContent = '⏳ Syncing...';
+      btn.disabled = true;
+
+      try {
+        // Find the invoice for this quote
+        const supabase = await app.waitForSupabase();
+        const { data: invoices } = await supabase
+          .from('invoices')
+          .select('id, qb_invoice_id')
+          .eq('quote_id', quote.id)
+          .limit(1);
+
+        if (!invoices || invoices.length === 0) {
+          throw new Error('No invoice found for this quote');
+        }
+
+        const invoiceId = invoices[0].id;
+
+        const response = await fetch('/.netlify/functions/qb-sync-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ invoiceId })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || 'Sync failed');
+
+        btn.textContent = '✅ QB Invoice';
+        btn.title = 'Synced ' + new Date().toLocaleDateString();
+        showToast(result.message || 'Invoice synced to QuickBooks', 'success');
+      } catch (err) {
+        btn.textContent = originalText;
+        showToast('QB sync failed: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function renderActivityLog() {
+      const container = $('#quote-activity');
+      const events = [];
+      
+      // 1. Quote created
+      if (quote.created_at) {
+        events.push({
+          icon: '📝',
+          label: 'Quote created',
+          date: quote.created_at,
+          type: 'lifecycle'
+        });
+      }
+      
+      // 2. Quote sent (email)
+      if (quote.sent_at) {
+        events.push({
+          icon: '📧',
+          label: 'Quote emailed to customer',
+          date: quote.sent_at,
+          type: 'lifecycle'
+        });
+      }
+      
+      // 3. Individual view events from quote_views table
+      if (quoteViews.length > 0) {
+        quoteViews.forEach(v => {
+          const sourceLabel = v.source === 'portal' ? 'via Customer Portal' : 'via email link';
+          events.push({
+            icon: '👁️',
+            label: `Customer viewed quote ${sourceLabel}`,
+            date: v.viewed_at || v.created_at,
+            type: 'view'
+          });
+        });
+      } else if (quote.viewed_at) {
+        // Fallback for quotes viewed before detailed tracking
+        events.push({
+          icon: '👁️',
+          label: 'Customer viewed quote',
+          date: quote.viewed_at,
+          type: 'view'
+        });
+      }
+      
+      // 4. Quote accepted
+      if (quote.accepted_at) {
+        events.push({
+          icon: '✅',
+          label: `Quote accepted${quote.payment_method ? ' (' + quote.payment_method + ')' : ''}`,
+          date: quote.accepted_at,
+          type: 'lifecycle'
+        });
+      }
+      
+      // 5. Quote declined
+      if (quote.status === 'declined' && quote.updated_at) {
+        events.push({
+          icon: '❌',
+          label: 'Quote declined by customer',
+          date: quote.updated_at,
+          type: 'lifecycle'
+        });
+      }
+      
+      // Sort by date, newest first
+      events.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      if (events.length === 0) {
+        container.innerHTML = '<span class="text-muted">No activity yet</span>';
+        return;
+      }
+      
+      container.innerHTML = events.map((evt, i) => {
+        const date = new Date(evt.date);
+        const timeAgo = getTimeAgo(date);
+        const isLast = i === events.length - 1;
+        
+        return `
+          <div style="display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; ${!isLast ? 'border-bottom: 1px solid var(--color-border-light);' : ''}">
+            <div style="font-size: 1.1rem; flex-shrink: 0; margin-top: 1px;">${evt.icon}</div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 500; font-size: 0.875rem;">${evt.label}</div>
+              <div class="text-muted" style="font-size: 0.8rem;">${formatDateTime(evt.date)} · ${timeAgo}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function getTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      const intervals = [
+        { label: 'year', seconds: 31536000 },
+        { label: 'month', seconds: 2592000 },
+        { label: 'week', seconds: 604800 },
+        { label: 'day', seconds: 86400 },
+        { label: 'hour', seconds: 3600 },
+        { label: 'minute', seconds: 60 }
+      ];
+      
+      for (const interval of intervals) {
+        const count = Math.floor(seconds / interval.seconds);
+        if (count >= 1) {
+          return `${count} ${interval.label}${count !== 1 ? 's' : ''} ago`;
+        }
+      }
+      return 'just now';
+    }
+    
+    function formatDateTime(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    }
+    
+    function renderBundles() {
+      const container = $('#bundles-container');
+      
+      // Find selected package
+      const selectedPkg = packages.find(p => p.is_selected || p.id === quote.selected_package_id);
+      
+      if (selectedPkg) {
+        $('#selected-bundle-badge').textContent = `Selected: ${selectedPkg.name}`;
+      }
+      
+      // Calculate totals from packages
+      let subtotal = 0;
+      let taxableSubtotal = 0;
+      
+      container.innerHTML = packages.map(pkg => {
+        const isSelected = pkg.is_selected || pkg.id === quote.selected_package_id;
+        let pkgTotal = 0;
+        
+        if (pkg.price !== null && pkg.price !== undefined && pkg.price !== '') {
+          pkgTotal = parseFloat(pkg.price) || 0;
+        } else if (pkg.quote_package_items && pkg.quote_package_items.length > 0) {
+          pkgTotal = pkg.quote_package_items
+            .filter(i => i.is_included !== false)
+            .reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * (item.quantity || 1)), 0);
+        }
+        
+        if (isSelected) {
+          subtotal = pkgTotal;
+          if (pkg.apply_tax !== false) {
+            taxableSubtotal = pkgTotal;
+          }
+        }
+        
+        const items = pkg.quote_package_items || [];
+        const includedItems = items.filter(i => i.is_included !== false);
+        
+        return `
+          <div class="bundle-card ${isSelected ? 'selected' : ''}" style="border: 2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}; border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-md); background: white; ${isSelected ? 'border-left-width: 4px;' : ''}">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-md);">
+              <div>
+                <h4 style="margin: 0; font-size: 1.1rem; ${isSelected ? 'color: var(--color-primary);' : ''}">${pkg.name}</h4>
+                ${pkg.description ? `<p style="margin: var(--space-xs) 0 0; color: var(--color-text-muted); font-size: 0.875rem;">${pkg.description}</p>` : ''}
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 1.25rem; font-weight: 600; color: var(--color-primary);">${formatCurrency(pkgTotal)}</div>
+                ${isSelected ? '<span style="display: inline-block; background: var(--color-primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 4px;">SELECTED</span>' : ''}
+                ${pkg.is_recommended ? '<span style="display: inline-block; background: var(--color-success); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 4px; margin-left: 4px;">RECOMMENDED</span>' : ''}
+              </div>
+            </div>
+            ${includedItems.length > 0 ? `
+              <div style="border-top: 1px solid var(--color-border-light); padding-top: var(--space-sm); margin-top: var(--space-sm);">
+                <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: var(--space-xs);">INCLUDED ITEMS</div>
+                ${includedItems.map(item => `
+                  <div style="display: flex; justify-content: space-between; padding: var(--space-xs) 0; font-size: 0.875rem;">
+                    <span>${item.name}${item.quantity > 1 ? ` × ${item.quantity}` : ''}</span>
+                    <span>${formatCurrency((parseFloat(item.price) || 0) * (item.quantity || 1))}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+      
+      // Update totals section - apply discount before tax
+      const disc = computeQuoteDiscount(subtotal);
+      const taxableShare = subtotal > 0 ? (taxableSubtotal / subtotal) : 0;
+      const tax = Math.max(0, (taxableSubtotal - disc.amount * taxableShare) * TAX_RATE);
+      const total = subtotal - disc.amount + tax;
+
+      // Update the Grand Totals section
+      $('#grand-subtotal').textContent = formatCurrency(subtotal);
+      renderDiscountRow(disc);
+      $('#grand-tax').textContent = formatCurrency(tax);
+      $('#grand-total').innerHTML = `<strong>${formatCurrency(total)}</strong>`;
+    }
+
+    function renderLineItems(items, bodySelector, footerSelector) {
+      let subtotal = 0, tax = 0;
+      
+      $(bodySelector).innerHTML = items.map(item => {
+        const price = item.unit_price || 0;
+        const qty = item.quantity || 1;
+        const lineSubtotal = price * qty;
+        const lineTax = item.is_taxable ? lineSubtotal * TAX_RATE : 0;
+        const lineTotal = lineSubtotal + lineTax;
+        
+        subtotal += lineSubtotal;
+        tax += lineTax;
+        
+        const attrs = (item.attribute_selections || []).filter(sel => sel.option_name);
+        const attrsHtml = attrs
+          .map(sel => `<div class="text-sm text-muted" style="margin-left: 8px;">↳ ${sel.attribute_name}: <strong>${sel.option_name}</strong></div>`)
+          .join('');
+
+        // Strip raw attribute option listings from details when we have selections
+        let cleanDetails = item.details || '';
+        if (attrs.length > 0) {
+          attrs.forEach(sel => {
+            const escaped = sel.attribute_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            cleanDetails = cleanDetails.replace(new RegExp('[,\\s]*' + escaped + ':[^,\\n]*'), '');
+          });
+          cleanDetails = cleanDetails.replace(/\s*[-–]\s*$/, '').trim();
+        }
+
+        return `
+          <tr>
+            <td>
+              <div class="item-name">${item.description}</div>
+              ${cleanDetails ? `<div class="text-sm text-muted" style="white-space: pre-wrap;">${cleanDetails}</div>` : ''}
+              ${attrsHtml}
+            </td>
+            <td class="text-right">${qty.toFixed(2)}</td>
+            <td class="text-right">${formatCurrency(price)} / Ea</td>
+            <td class="text-right">${formatCurrency(lineSubtotal)}</td>
+            <td class="text-right">${formatCurrency(lineTax)}</td>
+            <td class="text-right">${formatCurrency(lineTotal)}</td>
+          </tr>
+        `;
+      }).join('');
+      
+      $(footerSelector).innerHTML = `
+        <tr class="total-row">
+          <td colspan="3"><strong>Total</strong></td>
+          <td class="text-right"><strong>${formatCurrency(subtotal)}</strong></td>
+          <td class="text-right"><strong>${formatCurrency(tax)}</strong></td>
+          <td class="text-right" style="background: var(--color-primary); color: white;"><strong>${formatCurrency(subtotal + tax)}</strong></td>
+        </tr>
+      `;
+      
+      return { subtotal, tax, total: subtotal + tax };
+    }
+    
+    function renderDeclinedItems(items) {
+      let subtotal = 0, tax = 0;
+      
+      $('#declined-items-body').innerHTML = items.map(item => {
+        const price = item.unit_price || 0;
+        const qty = item.quantity || 1;
+        const lineSubtotal = price * qty;
+        const lineTax = item.is_taxable ? lineSubtotal * TAX_RATE : 0;
+        
+        subtotal += lineSubtotal;
+        tax += lineTax;
+        
+        const attrs = (item.attribute_selections || []).filter(sel => sel.option_name);
+        const attrsHtml = attrs
+          .map(sel => `<div class="text-sm" style="margin-left: 8px;">↳ ${sel.attribute_name}: <strong>${sel.option_name}</strong></div>`)
+          .join('');
+
+        let cleanDetails = item.details || '';
+        if (attrs.length > 0) {
+          attrs.forEach(sel => {
+            const escaped = sel.attribute_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            cleanDetails = cleanDetails.replace(new RegExp('[,\\s]*' + escaped + ':[^,\\n]*'), '');
+          });
+          cleanDetails = cleanDetails.replace(/\s*[-–]\s*$/, '').trim();
+        }
+
+        return `
+          <tr style="color: var(--color-text-muted);">
+            <td>
+              <div class="item-name" style="color: #f59e0b;">${item.description}</div>
+              ${cleanDetails ? `<div class="text-sm" style="white-space: pre-wrap;">${cleanDetails}</div>` : ''}
+              ${attrsHtml}
+            </td>
+            <td class="text-right">${qty.toFixed(2)}</td>
+            <td class="text-right">${formatCurrency(price)} / Ea</td>
+            <td class="text-right">${formatCurrency(lineSubtotal)}</td>
+            <td class="text-right">${formatCurrency(lineTax)}</td>
+            <td class="text-right">${formatCurrency(lineSubtotal + lineTax)}</td>
+          </tr>
+        `;
+      }).join('');
+      
+      $('#declined-subtotal').textContent = formatCurrency(subtotal);
+      $('#declined-tax').textContent = formatCurrency(tax);
+      $('#declined-total').textContent = formatCurrency(subtotal + tax);
+    }
+    
+    function renderChangeOrders() {
+      const container = $('#change-orders-container');
+      
+      container.innerHTML = changeOrders.map(co => {
+        const items = co.change_order_items || [];
+        let subtotal = 0, tax = 0;
+        
+        const itemsHtml = items.map(item => {
+          const qty = item.quantity || 1;
+          const price = item.unit_price || 0;
+          const lineSubtotal = price * qty;
+          const lineTax = lineSubtotal * TAX_RATE;
+          
+          subtotal += lineSubtotal;
+          tax += lineTax;
+          
+          return `
+            <tr>
+              <td><div class="item-name" style="color: var(--color-primary);">${item.description}</div></td>
+              <td class="text-right">${qty.toFixed(2)}</td>
+              <td class="text-right">${formatCurrency(price)} / Ea</td>
+              <td class="text-right">${formatCurrency(lineSubtotal)}</td>
+              <td class="text-right">${formatCurrency(lineTax)}</td>
+              <td class="text-right">${formatCurrency(lineSubtotal + lineTax)}</td>
+            </tr>
+          `;
+        }).join('');
+        
+        const statusBadge = co.status === 'accepted' 
+          ? `<span class="change-order-badge accepted">Accepted – on ${formatDate(co.accepted_at)}</span>`
+          : co.status === 'declined'
+          ? `<span class="change-order-badge declined">Declined</span>`
+          : co.status === 'sent'
+          ? `<span class="change-order-badge sent">Sent – Awaiting Response</span>`
+          : `<span class="change-order-badge draft">Draft</span>`;
+        
+        return `
+          <div class="section-card change-order-section">
+            <div class="section-header">
+              <div class="section-title">
+                Change Order #${co.change_order_number}
+                ${statusBadge}
+              </div>
+              <div class="flex gap-sm">
+                ${co.status === 'draft' ? `<button class="btn btn-sm btn-secondary" onclick="editChangeOrder('${co.id}')">Edit</button>` : ''}
+                ${co.status === 'draft' ? `<button class="btn btn-sm btn-primary" onclick="sendChangeOrder('${co.id}')">Send</button>` : ''}
+              </div>
+            </div>
+            <div class="section-body" style="padding: 0;">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                    <th>Product / Service</th>
+                    <th class="text-right">Quantity</th>
+                    <th class="text-right">Price</th>
+                    <th class="text-right">Subtotal</th>
+                    <th class="text-right">Tax</th>
+                    <th class="text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody>${itemsHtml}</tbody>
+                <tfoot>
+                  <tr class="total-row">
+                    <td colspan="3"><strong>Total</strong></td>
+                    <td class="text-right"><strong>${formatCurrency(subtotal)}</strong></td>
+                    <td class="text-right"><strong>${formatCurrency(tax)}</strong></td>
+                    <td class="text-right" style="background: var(--color-primary); color: white;"><strong>${formatCurrency(subtotal + tax)}</strong></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Compute the quote's discount over a discountable base (items with apply_discount on)
+    function computeQuoteDiscount(discountableSubtotal) {
+      const type = quote?.discount_type || 'percentage';
+      const value = parseFloat(quote?.discount_value) || 0;
+      let amount = type === 'percentage'
+        ? discountableSubtotal * (value / 100)
+        : Math.min(value, discountableSubtotal);
+      if (!(amount > 0)) amount = 0;
+      return { type, value, amount: Math.round(amount * 100) / 100 };
+    }
+
+    function renderDiscountRow(disc) {
+      const row = $('#grand-discount-row');
+      if (!row) return;
+      if (disc.amount > 0) {
+        $('#grand-discount').textContent = '-' + formatCurrency(disc.amount);
+        $('#grand-discount-label').textContent = disc.type === 'percentage' ? ` (${disc.value}%)` : '';
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    }
+
+    function calculateGrandTotals() {
+      let subtotal = 0, tax = 0;
+      let discountableSubtotal = 0, taxableDiscountable = 0;
+
+      // Check if we have packages - if so, use package totals
+      if (packages && packages.length > 0) {
+        const selectedPkg = packages.find(p => p.is_selected || p.id === quote.selected_package_id) || packages[0];
+        
+        if (selectedPkg) {
+          if (selectedPkg.price !== null && selectedPkg.price !== undefined && selectedPkg.price !== '') {
+            subtotal = parseFloat(selectedPkg.price) || 0;
+          } else if (selectedPkg.quote_package_items && selectedPkg.quote_package_items.length > 0) {
+            subtotal = selectedPkg.quote_package_items
+              .filter(i => i.is_included !== false)
+              .reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * (item.quantity || 1)), 0);
+          }
+          
+          if (selectedPkg.apply_tax !== false) {
+            tax = subtotal * TAX_RATE;
+          }
+          discountableSubtotal = subtotal;
+          taxableDiscountable = selectedPkg.apply_tax !== false ? subtotal : 0;
+        }
+      } else {
+        // Line items (accepted only)
+        const acceptedItems = lineItems.filter(item => !item.is_optional || item.is_selected);
+
+        acceptedItems.forEach(item => {
+          const qty = item.quantity || 1;
+          const price = item.unit_price || 0;
+          const lineSubtotal = price * qty;
+          subtotal += lineSubtotal;
+          if (item.is_taxable) tax += lineSubtotal * TAX_RATE;
+          if (item.apply_discount !== false) {
+            discountableSubtotal += lineSubtotal;
+            if (item.is_taxable) taxableDiscountable += lineSubtotal;
+          }
+        });
+      }
+      
+      // Add accepted change orders
+      changeOrders.forEach(co => {
+        if (co.status === 'accepted') {
+          (co.change_order_items || []).forEach(item => {
+            const qty = item.quantity || 1;
+            const price = item.unit_price || 0;
+            const lineSubtotal = price * qty;
+            subtotal += lineSubtotal;
+            tax += lineSubtotal * TAX_RATE;
+          });
+        }
+      });
+      
+      // Apply discount before tax (proportionally reduces the taxable portion)
+      const disc = computeQuoteDiscount(discountableSubtotal);
+      const taxableShare = discountableSubtotal > 0 ? (taxableDiscountable / discountableSubtotal) : 0;
+      tax = Math.max(0, tax - disc.amount * taxableShare * TAX_RATE);
+
+      $('#grand-subtotal').textContent = formatCurrency(subtotal);
+      renderDiscountRow(disc);
+      $('#grand-tax').textContent = formatCurrency(tax);
+      $('#grand-total').innerHTML = `<strong>${formatCurrency(subtotal - disc.amount + tax)}</strong>`;
+    }
+
+    // Change Order Functions
+    function createChangeOrder() {
+      coItems = [{ id: crypto.randomUUID(), description: '', quantity: 1, unit_price: 0 }];
+      $('#co-id').value = '';
+      $('#co-title').value = '';
+      $('#co-notes').value = '';
+      renderCoItems();
+      $('#change-order-modal').classList.add('active');
+      closeDropdowns();
+    }
+    
+    function editChangeOrder(id) {
+      const co = changeOrders.find(c => c.id === id);
+      if (!co) return;
+      
+      coItems = (co.change_order_items || []).map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity || 1,
+        unit_price: item.unit_price || 0
+      }));
+      
+      if (coItems.length === 0) {
+        coItems = [{ id: crypto.randomUUID(), description: '', quantity: 1, unit_price: 0 }];
+      }
+      
+      $('#co-id').value = co.id;
+      $('#co-title').value = co.title || '';
+      $('#co-notes').value = co.notes || '';
+      renderCoItems();
+      $('#change-order-modal').classList.add('active');
+    }
+    
+    function closeChangeOrderModal() {
+      $('#change-order-modal').classList.remove('active');
+    }
+    
+    function addChangeOrderItem() {
+      coItems.push({ id: crypto.randomUUID(), description: '', quantity: 1, unit_price: 0 });
+      renderCoItems();
+    }
+    
+    function removeCoItem(id) {
+      coItems = coItems.filter(i => i.id !== id);
+      if (coItems.length === 0) addChangeOrderItem();
+      else renderCoItems();
+    }
+    
+    function renderCoItems() {
+      $('#co-items-list').innerHTML = coItems.map((item, i) => `
+        <div class="flex gap-sm mb-sm items-start">
+          <input type="text" class="form-input" style="flex: 2;" placeholder="Description" value="${item.description}" onchange="updateCoItem('${item.id}', 'description', this.value)">
+          <input type="number" class="form-input" style="width: 80px;" placeholder="Qty" value="${item.quantity}" step="0.01" onchange="updateCoItem('${item.id}', 'quantity', this.value)">
+          <input type="number" class="form-input" style="width: 120px;" placeholder="Price" value="${item.unit_price}" step="0.01" onchange="updateCoItem('${item.id}', 'unit_price', this.value)">
+          <button type="button" class="btn btn-sm" style="color: var(--color-danger);" onclick="removeCoItem('${item.id}')">×</button>
+        </div>
+      `).join('');
+      
+      updateCoTotal();
+    }
+    
+    function updateCoItem(id, field, value) {
+      const item = coItems.find(i => i.id === id);
+      if (item) {
+        item[field] = field === 'description' ? value : parseFloat(value) || 0;
+        updateCoTotal();
+      }
+    }
+    
+    function updateCoTotal() {
+      const total = coItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0), 0);
+      const tax = total * TAX_RATE;
+      $('#co-total').textContent = formatCurrency(total + tax);
+    }
+    
+    async function saveChangeOrder(status) {
+      const validItems = coItems.filter(i => i.description && i.unit_price > 0);
+      if (validItems.length === 0) {
+        showToast('Please add at least one item', 'error');
+        return;
+      }
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const coId = $('#co-id').value;
+        
+        const subtotal = validItems.reduce((sum, i) => sum + (i.quantity * i.unit_price), 0);
+        const tax = subtotal * TAX_RATE;
+        
+        const coData = {
+          quote_id: quote.id,
+          title: $('#co-title').value || null,
+          status,
+          subtotal,
+          tax,
+          total: subtotal + tax,
+          notes: $('#co-notes').value || null,
+          updated_at: new Date().toISOString()
+        };
+        
+        if (status === 'sent') {
+          coData.sent_at = new Date().toISOString();
+        }
+        
+        let savedCo;
+        if (coId) {
+          const { data } = await supabase.from('change_orders').update(coData).eq('id', coId).select().single();
+          savedCo = data;
+          await supabase.from('change_order_items').delete().eq('change_order_id', coId);
+        } else {
+          const { data: numData } = await supabase.rpc('generate_change_order_number');
+          coData.change_order_number = numData;
+          const { data } = await supabase.from('change_orders').insert([coData]).select().single();
+          savedCo = data;
+        }
+        
+        // Insert items
+        const itemsToInsert = validItems.map((item, index) => ({
+          change_order_id: savedCo.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total: item.quantity * item.unit_price,
+          sort_order: index
+        }));
+        await supabase.from('change_order_items').insert(itemsToInsert);
+        
+        closeChangeOrderModal();
+        await loadQuote(quote.id);
+        showToast(status === 'sent' ? 'Change order sent!' : 'Change order saved', 'success');
+        
+      } catch (err) {
+        console.error(err);
+        showToast('Failed to save change order', 'error');
+      }
+    }
+    
+    async function sendChangeOrder(id) {
+      if (!confirm('Send this change order to the customer?')) return;
+      try {
+        const supabase = await app.waitForSupabase();
+        await supabase.from('change_orders').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', id);
+        await loadQuote(quote.id);
+        showToast('Change order sent!', 'success');
+      } catch (err) {
+        showToast('Failed to send', 'error');
+      }
+    }
+    
+    // Tabs
+    function setupTabs() {
+      $$('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          $$('.tab').forEach(t => t.classList.remove('active'));
+          $$('.tab-content').forEach(c => c.style.display = 'none');
+          tab.classList.add('active');
+          $(`#tab-${tab.dataset.tab}`).style.display = 'block';
+        });
+      });
+    }
+    
+    // Text / copy customer link
+    async function textQuoteLink() {
+      if (!quote) return;
+      const hadToken = !!quote.access_token;
+      await ShareLink.open({ table: 'quotes', record: quote, customer: customer || quote.customers });
+      if (!hadToken && quote.access_token) {
+        const t = quote.access_token;
+        $('#customer-view-newtab').href = `/portal/quote.html?token=${t}&admin=1`;
+        $('#customer-view-newtab').onclick = null;
+        $('#print-estimate-btn').href = `/portal/quote.html?token=${t}&admin=1&print=1&hideUnselected=1`;
+        $('#print-estimate-btn').onclick = null;
+      }
+    }
+
+    // Send Email Modal
+    async function showSendEmailModal() {
+      if (!customer || !customer.email) {
+        showToast('Customer email not found', 'error');
+        return;
+      }
+      
+      // Calculate total for preview
+      let totalDisplay = '$0.00';
+      if (packages && packages.length > 0) {
+        const selectedPkg = packages.find(p => p.is_selected) || packages[0];
+        let pkgTotal = parseFloat(selectedPkg.price) || 0;
+        if (!pkgTotal && selectedPkg.quote_package_items) {
+          pkgTotal = selectedPkg.quote_package_items
+            .filter(i => i.is_included !== false)
+            .reduce((sum, item) => sum + ((parseFloat(item.price) || 0) * (item.quantity || 1)), 0);
+        }
+        totalDisplay = formatCurrency(pkgTotal);
+      } else if (lineItems && lineItems.length > 0) {
+        const total = lineItems
+          .filter(item => !item.is_optional || item.is_selected)
+          .reduce((sum, item) => sum + parseFloat(item.line_total || 0), 0);
+        totalDisplay = formatCurrency(total);
+      }
+      
+      const firstName = customer.name?.split(' ')[0] || 'Customer';
+      
+      // Fetch email template from database
+      let templateSubject = `Quote #${quote.quote_number}: ${quote.title}`;
+      let templateBody = `Hi ${firstName},\n\nThank you for requesting a quote!`;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { data: template } = await supabase
+          .from('email_templates')
+          .select('*')
+          .eq('template_type', 'quote')
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+        
+        if (template) {
+          const replaceVars = (text) => text
+            .replace(/\{\{first_name\}\}/g, firstName)
+            .replace(/\{\{customer_name\}\}/g, customer.name || '')
+            .replace(/\{\{company_name\}\}/g, ((typeof getCurrentUser === 'function' && getCurrentUser()?.org_name) || ''))
+            .replace(/\{\{quote_number\}\}/g, quote.quote_number || '')
+            .replace(/\{\{quote_title\}\}/g, quote.title || '')
+            .replace(/\{\{total\}\}/g, totalDisplay)
+            .replace(/\{\{amount_due\}\}/g, totalDisplay)
+            .replace(/\{\{due_date\}\}/g, quote.expires_at ? new Date(quote.expires_at).toLocaleDateString() : '');
+          
+          templateSubject = replaceVars(template.subject);
+          templateBody = replaceVars(template.body);
+        }
+      } catch (e) {
+        console.log('Could not load email template, using defaults');
+      }
+      
+      // Convert body to preview HTML
+      const bodyPreviewHtml = templateBody
+        .split('\n\n')
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => `<p style="color: #475569; font-size: 13px; margin: 0 0 10px; white-space: pre-wrap;">${p}</p>`)
+        .join('');
+      
+      const content = createElement('div');
+      content.innerHTML = `
+        <div style="margin-bottom: var(--space-lg);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); margin-bottom: var(--space-md);">
+            <div>
+              <label class="form-label">To:</label>
+              <div style="padding: 8px 12px; background: var(--color-bg-soft); border-radius: var(--radius-md);">${customer.email}</div>
+            </div>
+            <div>
+              <label class="form-label">Subject:</label>
+              <input type="text" id="email-subject" class="form-input" value="${templateSubject.replace(/"/g, '&quot;')}">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+            <div>
+              <label class="form-label">CC: <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+              <input type="text" id="email-cc" class="form-input" placeholder="email@example.com" value="">
+            </div>
+            <div>
+              <label class="form-label">BCC: <span style="color: var(--color-text-muted); font-weight: normal;">(optional)</span></label>
+              <input type="text" id="email-bcc" class="form-input" placeholder="email@example.com">
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Personal Message <span style="color: var(--color-text-muted); font-weight: normal;">(optional - replaces template body)</span></label>
+          <textarea id="email-custom-message" class="form-textarea" rows="3" placeholder="Short personal note (2-3 sentences). Leave prices and line items on the quote page so the customer clicks View Quote and you can see it was viewed."></textarea>
+          <div id="email-message-warning" style="display: none; margin-top: 6px; padding: 8px 10px; border-radius: var(--radius-md); background: #fef3c7; color: #92400e; font-size: 0.85rem; line-height: 1.4;"></div>
+        </div>
+        
+        <div style="border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; margin-top: var(--space-lg);">
+          <div style="background: var(--color-bg-soft); padding: 8px 12px; border-bottom: 1px solid var(--color-border); font-weight: 600; font-size: 0.9rem;">
+            Email Preview <span style="font-weight: normal; color: var(--color-text-muted); font-size: 0.8rem;">(from Quote Email template)</span>
+          </div>
+          <div style="padding: var(--space-md); background: white; max-height: 300px; overflow-y: auto;">
+            <div style="font-family: Arial, sans-serif; max-width: 500px;">
+              <div style="background: var(--color-primary); padding: 15px; text-align: center; border-radius: 8px 8px 0 0;">
+                <h2 data-org-name style="color: white; margin: 0; font-size: 16px;">Your Business</h2>
+                
+              </div>
+
+              <div style="padding: 15px; background: #f8fafc;">
+                <div id="custom-message-preview" style="color: #475569; font-size: 13px; line-height: 1.6; margin-bottom: 10px; display: none; white-space: pre-wrap; padding-bottom: 10px; border-bottom: 1px solid #e2e8f0;"></div>
+
+                <div id="template-body-preview">${bodyPreviewHtml}</div>
+
+                <div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin: 10px 0;">
+                  <h4 style="color: var(--color-primary); margin: 0 0 5px; font-size: 14px;">${quote.title}</h4>
+                  <p style="color: #475569; margin: 0; font-size: 12px;"><strong>Total:</strong> <span style="color: var(--color-primary);">${totalDisplay}</span></p>
+                </div>
+
+                <div style="text-align: center; margin: 15px 0;">
+                  <span style="background: var(--color-primary); color: white; padding: 8px 20px; border-radius: 6px; font-size: 12px; font-weight: 600;">View Quote</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const footer = createElement('div', { className: 'btn-group' });
+      const cancelBtn = createElement('button', {
+        type: 'button',
+        className: 'btn btn-secondary',
+        textContent: 'Cancel'
+      });
+      const sendBtn = createElement('button', {
+        type: 'button',
+        className: 'btn btn-primary',
+        innerHTML: '📧 Send Email'
+      });
+      footer.appendChild(cancelBtn);
+      footer.appendChild(sendBtn);
+      
+      const modal = createModal({
+        title: '📧 Send Quote to Customer',
+        content,
+        footer,
+        size: 'lg'
+      });
+      
+      // Live preview of custom message - replaces template body when provided
+      const customMessageInput = content.querySelector('#email-custom-message');
+      const customMessagePreview = content.querySelector('#custom-message-preview');
+      const templateBodyPreview = content.querySelector('#template-body-preview');
+      
+      const messageWarning = content.querySelector('#email-message-warning');
+      customMessageInput.addEventListener('input', () => {
+        const msg = customMessageInput.value.trim();
+        // Nudge toward short emails: details belong on the quote page so the
+        // customer has to click through (which is what marks the quote Viewed)
+        if (messageWarning) {
+          const hasPrices = /\$\s?\d/.test(msg);
+          const bulletLines = (msg.match(/^\s*[-•*]\s+/gm) || []).length;
+          const tooLong = msg.length > 500;
+          if (hasPrices || bulletLines >= 3 || tooLong) {
+            const reasons = [];
+            if (hasPrices) reasons.push('prices');
+            if (bulletLines >= 3) reasons.push('a line-item list');
+            if (tooLong) reasons.push('a lot of detail');
+            messageWarning.textContent = 'Heads up: this message has ' + reasons.join(' and ') +
+              '. If the email answers everything, customers reply without opening the quote and it stays "Sent." Consider keeping details on the quote page.';
+            messageWarning.style.display = 'block';
+          } else {
+            messageWarning.style.display = 'none';
+          }
+        }
+        if (msg) {
+          customMessagePreview.textContent = msg;
+          customMessagePreview.style.display = 'block';
+          templateBodyPreview.style.display = 'none';
+        } else {
+          customMessagePreview.style.display = 'none';
+          templateBodyPreview.style.display = 'block';
+        }
+      });
+      
+      cancelBtn.addEventListener('click', () => closeModal(modal));
+      
+      sendBtn.addEventListener('click', async () => {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '📧 Sending...';
+        
+        try {
+          const customMessage = customMessageInput.value.trim();
+          const customSubject = content.querySelector('#email-subject').value.trim();
+          const cc = content.querySelector('#email-cc').value.trim();
+          const bcc = content.querySelector('#email-bcc').value.trim();
+          
+          const response = await fetch('/.netlify/functions/send-quote-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quoteId: quote.id,
+              customMessage: customMessage || undefined,
+              customSubject: customSubject || undefined,
+              cc: cc || undefined,
+              bcc: bcc || undefined
+            })
+          });
+          
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `Server error (${response.status})`);
+          }
+          
+          const result = await response.json();
+          
+          if (result.error) {
+            throw new Error(result.error);
+          }
+          
+          // Server already updates status, but ensure it's updated client-side too
+          try {
+            const supabase = await app.waitForSupabase();
+            await supabase.from('quotes').update({ status: 'sent', sent_at: new Date().toISOString() }).eq('id', quote.id);
+          } catch (e) {
+            console.log('Client-side status update failed (server should have handled it):', e);
+          }
+          
+          showToast('Quote sent to ' + customer.email, 'success');
+          closeModal(modal);
+          loadQuote(quote.id); // Refresh to show updated status
+        } catch (err) {
+          console.error('Send error:', err);
+          showToast('Failed to send: ' + err.message, 'error');
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = '📧 Send Email';
+        }
+      });
+    }
+    
+    // Dropdowns
+    function setupDropdowns() {
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) closeDropdowns();
+      });
+    }
+    
+    function toggleDropdown(id) {
+      const dd = $('#' + id);
+      dd.classList.toggle('open');
+    }
+    
+    function closeDropdowns() {
+      $$('.dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+    
+    async function archiveQuote() {
+      closeDropdowns();
+      if (quote.status === 'archived') {
+        // Unarchive
+        if (!confirm('Unarchive this quote?')) return;
+        try {
+          const supabase = await app.waitForSupabase();
+          await supabase.from('quotes').update({ status: 'draft' }).eq('id', quote.id);
+          showToast('Quote unarchived', 'success');
+          loadQuote(quote.id);
+        } catch (err) {
+          showToast('Failed to unarchive: ' + err.message, 'error');
+        }
+      } else {
+        // Archive
+        if (!confirm('Archive this quote? It will be hidden from the main list.')) return;
+        try {
+          const supabase = await app.waitForSupabase();
+          await supabase.from('quotes').update({ status: 'archived' }).eq('id', quote.id);
+          showToast('Quote archived', 'success');
+          window.location.href = '/admin/quotes.html';
+        } catch (err) {
+          showToast('Failed to archive: ' + err.message, 'error');
+        }
+      }
+    }
+    
+    async function deleteQuote() {
+      if (!hasPermission('can_delete')) { showToast('You do not have permission to delete quotes', 'error'); return; }
+      closeDropdowns();
+      if (!confirm(`Permanently delete quote ${quote.quote_number}? This cannot be undone.`)) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        const { error } = await supabase.from('quotes').delete().eq('id', quote.id);
+        if (error) throw error;
+        showToast('Quote deleted', 'success');
+        window.location.href = '/admin/quotes.html';
+      } catch (err) {
+        showToast('Failed to delete: ' + err.message, 'error');
+      }
+    }
+    
+    async function duplicateQuote() {
+      closeDropdowns();
+      if (!confirm('Create a duplicate of this quote?')) return;
+      
+      try {
+        const supabase = await app.waitForSupabase();
+        
+        // Get line items
+        const { data: lineItems } = await supabase
+          .from('quote_line_items')
+          .select('*')
+          .eq('quote_id', quote.id);
+        
+        // Get packages
+        const { data: packages } = await supabase
+          .from('quote_packages')
+          .select('*, quote_package_items(*)')
+          .eq('quote_id', quote.id);
+        
+        // Generate new quote number
+        const { data: quoteNumber } = await supabase.rpc('generate_quote_number');
+        
+        // Create duplicate quote
+        const { data: newQuote, error } = await supabase
+          .from('quotes')
+          .insert({
+            quote_number: quoteNumber,
+            customer_id: quote.customer_id,
+            title: quote.title + ' (Copy)',
+            description: quote.description,
+            status: 'draft',
+            subtotal: quote.subtotal,
+            tax_rate: quote.tax_rate,
+            tax_amount: quote.tax_amount,
+            total: quote.total,
+            deposit_type: quote.deposit_type,
+            deposit_value: quote.deposit_value,
+            notes: quote.notes,
+            internal_notes: quote.internal_notes,
+            valid_days: quote.valid_days
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        
+        // Copy line items
+        if (lineItems && lineItems.length > 0) {
+          const newItems = lineItems.map(item => ({
+            quote_id: newQuote.id,
+            description: item.description,
+            details: item.details,
+            quantity: item.quantity,
+            unit: item.unit,
+            unit_price: item.unit_price,
+            line_total: item.line_total,
+            is_taxable: item.is_taxable,
+            is_optional: item.is_optional,
+            is_selected: item.is_selected,
+            sort_order: item.sort_order
+          }));
+          await supabase.from('quote_line_items').insert(newItems);
+        }
+        
+        // Copy packages
+        if (packages && packages.length > 0) {
+          for (const pkg of packages) {
+            const { data: newPkg } = await supabase
+              .from('quote_packages')
+              .insert({
+                quote_id: newQuote.id,
+                name: pkg.name,
+                description: pkg.description,
+                price: pkg.price,
+                is_selected: pkg.is_selected,
+                sort_order: pkg.sort_order
+              })
+              .select()
+              .single();
+            
+            if (newPkg && pkg.quote_package_items && pkg.quote_package_items.length > 0) {
+              const newPkgItems = pkg.quote_package_items.map(item => ({
+                package_id: newPkg.id,
+                description: item.description,
+                details: item.details,
+                quantity: item.quantity,
+                price: item.price,
+                is_included: item.is_included,
+                sort_order: item.sort_order
+              }));
+              await supabase.from('quote_package_items').insert(newPkgItems);
+            }
+          }
+        }
+        
+        showToast('Quote duplicated', 'success');
+        window.location.href = `/admin/quote-builder.html?id=${newQuote.id}`;
+      } catch (err) {
+        showToast('Failed to duplicate: ' + err.message, 'error');
+      }
+    }
+    
+    // Device preview sizes
+    const deviceSizes = {
+      mobile: { width: 375, height: 700 },
+      tablet: { width: 768, height: 900 },
+      desktop: { width: 1200, height: 800 }
+    };
+    
+    let currentDevice = 'desktop';
+    
+    async function openCustomerPreview(device) {
+      closeDropdowns();
+      
+      // Generate token if needed
+      if (!quote.access_token) {
+        try {
+          const supabase = await app.waitForSupabase();
+          const token = crypto.randomUUID();
+          await supabase.from('quotes').update({ access_token: token }).eq('id', quote.id);
+          quote.access_token = token;
+          $('#customer-view-newtab').href = `/portal/quote.html?token=${token}&admin=1`;
+        } catch (err) {
+          showToast('Failed to generate preview link', 'error');
+          return;
+        }
+      }
+      
+      const url = `/portal/quote.html?token=${quote.access_token}&preview=1`;
+      const modal = $('#preview-modal');
+      const iframe = $('#preview-iframe');
+      const container = $('#preview-frame-container');
+      const loading = $('#preview-loading');
+      
+      // Show loading, hide iframe
+      loading.style.display = 'block';
+      container.style.opacity = '0';
+      
+      // Set device and load iframe
+      currentDevice = device;
+      updatePreviewSize();
+      
+      // Update button states
+      $$('#preview-device-btns .btn').forEach(btn => {
+        btn.classList.toggle('btn-primary', btn.dataset.device === device);
+        btn.classList.toggle('btn-secondary', btn.dataset.device !== device);
+      });
+      
+      iframe.src = url;
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    let previewLoadTimeout = null;
+    
+    function onPreviewLoaded() {
+      // The iframe fires onload when the HTML is loaded, but the quote page
+      // needs time to fetch and render data. Wait a bit longer.
+      clearTimeout(previewLoadTimeout);
+      previewLoadTimeout = setTimeout(() => {
+        const loading = $('#preview-loading');
+        const container = $('#preview-frame-container');
+        loading.style.display = 'none';
+        container.style.opacity = '1';
+      }, 800); // Give the page time to load data and render
+    }
+    
+    function setPreviewDevice(device) {
+      currentDevice = device;
+      updatePreviewSize();
+      
+      // Update button states
+      $$('#preview-device-btns .btn').forEach(btn => {
+        btn.classList.toggle('btn-primary', btn.dataset.device === device);
+        btn.classList.toggle('btn-secondary', btn.dataset.device !== device);
+      });
+    }
+    
+    function updatePreviewSize() {
+      const container = $('#preview-frame-container');
+      const size = deviceSizes[currentDevice];
+      const modalBody = container.parentElement;
+      const availableHeight = modalBody.clientHeight - 40;
+      const availableWidth = modalBody.clientWidth - 40;
+      
+      // Calculate size to fit within modal while maintaining aspect ratio
+      let width = size.width;
+      let height = size.height;
+      
+      // Scale down if too big
+      if (width > availableWidth) {
+        const scale = availableWidth / width;
+        width = availableWidth;
+        height = height * scale;
+      }
+      if (height > availableHeight) {
+        const scale = availableHeight / height;
+        height = availableHeight;
+        width = width * scale;
+      }
+      
+      container.style.width = width + 'px';
+      container.style.height = height + 'px';
+    }
+    
+    function closePreviewModal() {
+      const modal = $('#preview-modal');
+      const iframe = $('#preview-iframe');
+      const loading = $('#preview-loading');
+      const container = $('#preview-frame-container');
+      
+      clearTimeout(previewLoadTimeout);
+      modal.style.display = 'none';
+      iframe.src = 'about:blank';
+      document.body.style.overflow = '';
+      
+      // Reset for next open
+      loading.style.display = 'block';
+      container.style.opacity = '0';
+    }
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $('#preview-modal').style.display === 'flex') {
+        closePreviewModal();
+      }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      if ($('#preview-modal').style.display === 'flex') {
+        updatePreviewSize();
+      }
+    });
+    
+    init();
+  </script>
+</body>
+</html>
