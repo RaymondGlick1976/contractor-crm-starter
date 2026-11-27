@@ -3,6 +3,7 @@
 // =============================================
 
 const { getSupabase, success, error, handleCors } = require('./utils');
+const { resolveInvoicePaymentSchedule, buildPaymentScheduleRows, nextPaymentDue } = require('./invoice-builder');
 
 exports.handler = async (event) => {
   const corsResponse = handleCors(event);
@@ -38,6 +39,12 @@ exports.handler = async (event) => {
     }
 
     console.log('Found invoice:', invoice.invoice_number);
+
+    // Show the agreed payment terms (falls back to the linked quote's schedule)
+    invoice.payment_schedule = await resolveInvoicePaymentSchedule(supabase, invoice);
+    // Each milestone's paid / partial / due status, and the payment due next
+    invoice.schedule_rows = buildPaymentScheduleRows(invoice);
+    invoice.next_payment_due = nextPaymentDue(invoice);
 
     // Get line items
     const { data: lineItems } = await supabase

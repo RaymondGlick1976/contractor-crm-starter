@@ -309,6 +309,62 @@
         ${rows}${warn}</div>`;
     }
 
+    // Payment schedule with each milestone's status (paid / partially paid / due).
+    // Money received (amount_paid) is applied to milestones in schedule order.
+    function paymentScheduleStatusHtml(invoice) {
+      const sched = Array.isArray(invoice.payment_schedule) ? invoice.payment_schedule : [];
+      if (sched.length === 0) return '';
+      const total = parseFloat(invoice.total) || 0;
+      const fixedTotal = sched.filter(p => p.amount_type === 'fixed').reduce((s, p) => s + (parseFloat(p.amount_value) || 0), 0);
+      const base = Math.max(0, total - fixedTotal);
+      let unapplied = Math.max(0, parseFloat(invoice.amount_paid) || 0);
+      const labels = { paid: ['Paid', '#10b981'], partial: ['Partially paid', '#f59e0b'], due: ['Due', '#ef4444'] };
+      const rows = sched.map(p => {
+        const v = parseFloat(p.amount_value) || 0;
+        const amt = p.amount_type === 'percentage' ? base * (v / 100) : v;
+        const applied = Math.min(amt, unapplied);
+        unapplied -= applied;
+        const status = applied >= amt - 0.005 ? 'paid' : applied > 0.005 ? 'partial' : 'due';
+        const [label, color] = labels[status];
+        return `<tr>
+          <td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; color: #334155; font-size: 12px;"><strong>${p.name || ''}</strong>${p.due_description ? `<br><span style="color: #64748b; font-size: 11px;">${p.due_description}</span>` : ''}</td>
+          <td style="padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: right; white-space: nowrap; color: #334155; font-size: 12px;">${formatCurrency(amt)}</td>
+          <td style="padding: 6px 0; border-bottom: 1px solid #e2e8f0; text-align: right; white-space: nowrap;"><span style="color: ${color}; font-weight: bold; font-size: 11px;">${label}</span></td>
+        </tr>`;
+      }).join('');
+      return `<div style="background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin: 10px 0;">
+                  <h4 style="color: var(--color-primary); margin: 0 0 5px; font-size: 14px;">Payment Schedule</h4>
+                  <table style="width: 100%; border-collapse: collapse;">${rows}</table>
+                </div>`;
+    }
+
+    // Amount due now: the first milestone not yet fully paid, with what is still owed on it.
+    // Null when there is no schedule or nothing is left on it (the full balance is used then).
+    function nextPaymentDue(invoice) {
+      const sched = Array.isArray(invoice.payment_schedule) ? invoice.payment_schedule : [];
+      if (sched.length === 0) return null;
+      const total = parseFloat(invoice.total) || 0;
+      const fixedTotal = sched.filter(p => p.amount_type === 'fixed').reduce((s, p) => s + (parseFloat(p.amount_value) || 0), 0);
+      const base = Math.max(0, total - fixedTotal);
+      let unapplied = Math.max(0, parseFloat(invoice.amount_paid) || 0);
+      for (const p of sched) {
+        const v = parseFloat(p.amount_value) || 0;
+        const amt = p.amount_type === 'percentage' ? base * (v / 100) : v;
+        const applied = Math.min(amt, unapplied);
+        unapplied -= applied;
+        if (applied < amt - 0.005) return { name: p.name || '', amount: amt - applied };
+      }
+      return null;
+    }
+
+    // Invoices without a copied schedule show the agreed schedule from their linked quote
+    async function withQuoteSchedule(supabase, invoice) {
+      if (!invoice || (Array.isArray(invoice.payment_schedule) && invoice.payment_schedule.length > 0) || !invoice.quote_id) return invoice;
+      const { data: quote } = await supabase.from('quotes').select('payment_schedule').eq('id', invoice.quote_id).single();
+      if (Array.isArray(quote?.payment_schedule) && quote.payment_schedule.length > 0) invoice.payment_schedule = quote.payment_schedule;
+      return invoice;
+    }
+
     // Add accepted change orders to an existing invoice (one invoice line per change order item)
     async function addChangeOrdersToInvoice(invoiceId, cos) {
       const supabase = await app.waitForSupabase();
@@ -349,7 +405,7 @@
         .select('*, customers(name, email, phone, address, city, state, zip, company)')
         .eq('id', id)
         .single();
-      const invoice = freshInvoice || invoices.find(i => i.id === id);
+      const invoice = await withQuoteSchedule(supabase, freshInvoice || invoices.find(i => i.id === id));
       if (!invoice) return;
 
       // Update cached array so other actions reflect the fresh data
@@ -656,6 +712,7 @@
     window.sendInvoice = async (id) => {
       const invoice = invoices.find(i => i.id === id);
       if (!invoice) return;
+      await withQuoteSchedule(await app.waitForSupabase(), invoice);
       const customer = invoice.customers;
       if (!customer || !customer.email) {
         showToast('Customer email not found', 'error');
@@ -686,7 +743,7 @@
             .replace(/\{\{invoice_number\}\}/g, invoice.invoice_number || '')
             .replace(/\{\{invoice_title\}\}/g, invoice.title || '')
             .replace(/\{\{total\}\}/g, formatCurrency(invoice.total))
-            .replace(/\{\{amount_due\}\}/g, formatCurrency(invoice.amount_due))
+            .replace(/\{\{amount_due\}\}/g, formatCurrency(nextPaymentDue(invoice)?.amount ?? invoice.amount_due))
             .replace(/\{\{due_date\}\}/g, invoice.due_date ? new Date(invoice.due_date).toLocaleDateString() : '');
 
           templateSubject = replaceVars(template.subject);
@@ -754,9 +811,11 @@
                   <h4 style="color: var(--color-primary); margin: 0 0 5px; font-size: 14px;">${invoice.title}</h4>
                   <p style="color: #475569; margin: 3px 0; font-size: 12px;"><strong>Invoice #:</strong> ${invoice.invoice_number}</p>
                   <p style="color: #475569; margin: 3px 0; font-size: 12px;"><strong>Total:</strong> ${formatCurrency(invoice.total)}</p>
-                  <p style="color: #475569; margin: 3px 0; font-size: 12px;"><strong>Amount Due:</strong> <span style="color: #ef4444; font-weight: bold;">${formatCurrency(invoice.amount_due)}</span></p>
+                  <p style="color: #475569; margin: 3px 0; font-size: 12px;"><strong>Amount Due:</strong> <span style="color: #ef4444; font-weight: bold;">${formatCurrency(nextPaymentDue(invoice)?.amount ?? invoice.amount_due)}</span>${nextPaymentDue(invoice) ? ` <span style="color: #64748b; font-size: 11px;">(${nextPaymentDue(invoice).name})</span>` : ''}</p>
                   ${invoice.due_date ? `<p style="color: #94a3b8; margin: 3px 0; font-size: 11px;">Due: ${new Date(invoice.due_date).toLocaleDateString()}</p>` : ''}
                 </div>
+
+                ${paymentScheduleStatusHtml(invoice)}
 
                 <div style="text-align: center; margin: 15px 0;">
                   <span style="background: var(--color-primary); color: white; padding: 8px 20px; border-radius: 6px; font-size: 12px; font-weight: 600;">View Invoice & Pay</span>
@@ -1236,12 +1295,13 @@
     window.printInvoiceById = async (id) => {
       try {
         const supabase = await app.waitForSupabase();
-        const { data: invoice } = await supabase
+        const { data: invoiceRow } = await supabase
           .from('invoices')
           .select('*, customers(name, email, phone, address, city, state, zip, company)')
           .eq('id', id)
           .single();
-        if (!invoice) return;
+        if (!invoiceRow) return;
+        const invoice = await withQuoteSchedule(supabase, invoiceRow);
         const { data: lineItems } = await supabase.from('invoice_line_items').select('*').eq('invoice_id', id).order('sort_order');
         const { data: payments } = await supabase.from('payments').select('*').eq('invoice_id', id).eq('status', 'succeeded').order('payment_date');
         const { data: companySetting } = await supabase.from('settings').select('value').eq('key', 'company').single();
